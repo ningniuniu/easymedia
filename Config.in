@@ -1,0 +1,12 @@
+menuconfig RV_TARGET_RKMEDIA
+    bool "rk media library"
+
+if RV_TARGET_RKMEDIA
+
+config RV_TARGET_RKMEDIA_MPP
+    bool "rk mpp wrapper"
+    select RV_TARGET_MPP
+    help
+      wrapped function of rk mpp
+
+endif
