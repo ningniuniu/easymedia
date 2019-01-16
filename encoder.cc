@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
- * author: hertz.wang hertz.wong@rock-chips.com
+ * author: Hertz Wang wangh@rock-chips.com
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
@@ -54,34 +54,39 @@ const uint8_t *find_h264_startcode(const uint8_t *p, const uint8_t *end) {
 
 namespace rkmedia {
 
-DEFINE_REFLECTOR(VideoEncoder, VideoEncoderFactory, VideoEncoderReflector)
+DEFINE_REFLECTOR(Encoder)
 
 // define the base factory missing definition
-const char *VideoEncoderFactory::Parse(const char *request) {
+const char *FACTORY(Encoder)::Parse(const char *request) {
   // request should equal codec_name
   return request;
 }
 
-void VideoEncoder::RequestChange(uint32_t change, int value) {
+void VideoEncoder::RequestChange(uint32_t change,
+                                 std::shared_ptr<ParameterBuffer> value) {
   auto p = std::make_pair(change, value);
   change_mtx.lock();
   change_list.push_back(std::move(p));
   change_mtx.unlock();
 }
 
-std::pair<uint32_t, int> VideoEncoder::PeekChange() {
+std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>
+VideoEncoder::PeekChange() {
   std::lock_guard<std::mutex> _lg(change_mtx);
   if (change_list.empty())
-    return std::pair<uint32_t, int>(0, 0);
+    return std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>(0, nullptr);
 
-  std::pair<uint32_t, int> &p = change_list.front();
+  std::pair<uint32_t, std::shared_ptr<ParameterBuffer>> &p =
+      change_list.front();
   change_list.pop_front();
   return std::move(p);
 }
 
-bool VideoEncoder::InitConfig(MediaConfig &cfg) {
+bool VideoEncoder::InitConfig(const MediaConfig &cfg) {
   Codec::SetConfig(cfg);
   return true;
 }
+
+DEFINE_PART_FINAL_EXPOSE_PRODUCT(VideoEncoder, Encoder)
 
 } // namespace rkmedia

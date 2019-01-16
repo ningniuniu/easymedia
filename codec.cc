@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
- * author: hertz.wang hertz.wong@rock-chips.com
+ * author: Hertz Wang wangh@rock-chips.com
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
@@ -14,12 +14,45 @@
 
 namespace rkmedia {
 
-Codec::~Codec() {}
+Codec::~Codec() {
+  if (extra_data) {
+    free(extra_data);
+    extra_data_size = 0;
+  }
+}
+
+bool Codec::SetExtraData(void *data, size_t size, bool realloc) {
+  if (extra_data) {
+    free(extra_data);
+    extra_data_size = 0;
+  }
+  if (!realloc) {
+    extra_data = data;
+    extra_data_size = size;
+    return true;
+  }
+  if (!data || size == 0)
+    return false;
+  extra_data = malloc(size);
+  if (!extra_data) {
+    LOG_NO_MEMORY();
+    return false;
+  }
+  memcpy(extra_data, data, size);
+  extra_data_size = size;
+
+  return true;
+}
+
 bool Codec::Init() { return false; }
 int Codec::Process(std::shared_ptr<HwMediaBuffer> input _UNUSED,
                    std::shared_ptr<HwMediaBuffer> output _UNUSED,
                    std::shared_ptr<HwMediaBuffer> extra_output _UNUSED) {
   return -1;
+}
+
+std::shared_ptr<HwMediaBuffer> Codec::GenEmptyOutPutBuffer() {
+  return std::make_shared<HwMediaBuffer>(-1, nullptr, 0);
 }
 
 static void delete_thread(std::thread *&th) {
@@ -112,10 +145,6 @@ int ThreadCodec::ProcessInput(std::shared_ptr<HwMediaBuffer> input _UNUSED) {
   return 0;
 }
 
-std::shared_ptr<HwMediaBuffer> ThreadCodec::GenEmptyOutPutBuffer() {
-  return std::make_shared<HwMediaBuffer>(-1, nullptr, 0);
-}
-
 int ProcessOutput(std::shared_ptr<HwMediaBuffer> output _UNUSED,
                   std::shared_ptr<HwMediaBuffer> extra_output _UNUSED) {
   return 0;
@@ -172,7 +201,7 @@ void ThreadCodec::OutputRun() {
       extra_output = cache_extra_output;
     else
       extra_output =
-          ThreadCodec::GenEmptyOutPutBuffer(); // GenEmptyExtraOutPutBuffer?
+          Codec::GenEmptyOutPutBuffer(); // GenEmptyExtraOutPutBuffer?
     if (!output) {
       LOG_NO_MEMORY();
       break;

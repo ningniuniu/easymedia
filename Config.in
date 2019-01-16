@@ -1,5 +1,6 @@
 menuconfig RV_TARGET_RKMEDIA
     bool "rk media library"
+    default y
 
 if RV_TARGET_RKMEDIA
 
@@ -10,3 +11,4 @@ config RV_TARGET_RKMEDIA_MPP
       wrapped function of rk mpp
 
 endif
+

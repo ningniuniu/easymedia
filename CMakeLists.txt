@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------------
 #
-# hertz wangh@rock-chips.com
+# Hertz Wang wangh@rock-chips.com
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -27,7 +27,7 @@ if(NOT COMMAND find_host_program)
 	endmacro()
 endif()
 
-project (rk_media)
+project (rkmedia)
 
 cmake_minimum_required (VERSION 3.1.0 FATAL_ERROR)
 include(CheckIncludeFiles)
@@ -74,10 +74,14 @@ if($(CMAKE_BUILD_TYPE) MATCHES "Release")
 	set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 endif()
 
-# add PIC flag
-add_definitions(-fPIC)
 # set c++11
 set (CMAKE_CXX_STANDARD 11)
+# rtti may be expensive on Embedded Platform, obey Google C++ Style Guide
+add_definitions(-fno-rtti)
+
+# add PIC flag
+add_definitions(-fPIC)
+#set (CMAKE_SHARED_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
 
 include_directories(./)
 
@@ -99,7 +103,7 @@ if(WARNINGS_AS_ERRORS)
 	endif()
 endif(WARNINGS_AS_ERRORS)
 
-set(RK_MEDIA_SOURCE_FILES codec.cc encoder.cc)
+set(RK_MEDIA_SOURCE_FILES codec.cc encoder.cc image.cc utils.cc)
 
 # ----------------------------------------------------------------------------
 #  Start module definition
@@ -110,16 +114,6 @@ if( RKMPP )
 include_directories(rkmpp)
 add_subdirectory(rkmpp)
 endif()
-
-# pkg_check_modules(LIBDRM libdrm)
-# if ( LIBDRM_FOUND )
-# add_definitions(-DLIBDRM)
-# include_directories(${LIBDRM_INCLUDE_DIRS})
-# set(RK_MEDIA_DEPENDENT_LIBS drm)
-# else()
-# add_definitions(-DLIBION)
-# set(RK_MEDIA_DEPENDENT_LIBS ion)
-# endif()
 
 add_library(rkmedia SHARED ${RK_MEDIA_SOURCE_FILES})
 set_target_properties(rkmedia

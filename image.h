@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
- * author: hertz.wang hertz.wong@rock-chips.com
+ * author: Hertz Wang wangh@rock-chips.com
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
@@ -35,12 +35,16 @@ typedef struct {
   PixelFormat pix_fmt;
   int width;      // valid pixel width
   int height;     // valid pixel height
-  int vir_width;  // stride width, same to buffer_width
-  int vir_height; // stride height, same to buffer_height
+  int vir_width;  // stride width, same to buffer_width, must greater than
+                  // width, often set vir_width=(width+15)&(~15)
+  int vir_height; // stride height, same to buffer_height, must greater than
+                  // height, often set vir_height=(height+15)&(~15)
 } ImageInfo;
 
 #ifdef __cplusplus
 }
 #endif
+
+void GetPixFmtNumDen(const PixelFormat &fmt, int &num, int &den);
 
 #endif // #ifndef RKMEDIA_IMAGE_H_
