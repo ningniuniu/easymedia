@@ -45,9 +45,9 @@ public:
   virtual bool InitConfig(const MediaConfig &cfg) override;
 
   // sync encode the raw input buffer to output buffer
-  virtual int Process(std::shared_ptr<HwMediaBuffer> input,
-                      std::shared_ptr<HwMediaBuffer> output,
-                      std::shared_ptr<HwMediaBuffer> extra_output) override;
+  virtual int Process(std::shared_ptr<MediaBuffer> input,
+                      std::shared_ptr<MediaBuffer> output,
+                      std::shared_ptr<MediaBuffer> extra_output) override;
 
 protected:
   // call before Init()
@@ -59,11 +59,11 @@ protected:
   // Control before encoding.
   int EncodeControl(int cmd, void *param);
 
-  virtual int PrepareMppFrame(std::shared_ptr<HwMediaBuffer> input,
+  virtual int PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
                               MppFrame &frame);
-  virtual int PrepareMppPacket(std::shared_ptr<HwMediaBuffer> output,
+  virtual int PrepareMppPacket(std::shared_ptr<MediaBuffer> output,
                                MppPacket &packet);
-  virtual int PrepareMppExtraBuffer(std::shared_ptr<HwMediaBuffer> extra_output,
+  virtual int PrepareMppExtraBuffer(std::shared_ptr<MediaBuffer> extra_output,
                                     MppBuffer &buffer);
   int Process(MppFrame frame, MppPacket &packet, MppBuffer &mv_buf);
 

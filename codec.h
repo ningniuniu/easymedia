@@ -17,45 +17,11 @@
 #include <string>
 #include <thread>
 
-#include "image.h"
-
-typedef struct {
-  ImageInfo image_info;
-  int qp_init; // h264 : 0 - 48, higher value means higher compress
-               //        but lower quality
-               // jpeg (quantization coefficient): 1 - 10,
-               // higher value means lower compress but higher quality,
-               // contrary to h264
-} ImageConfig;
-
-typedef struct {
-  ImageConfig image_cfg;
-  int qp_step;
-  int qp_min;
-  int qp_max;
-  int bit_rate;
-  int frame_rate;
-  int level;
-  int gop_size;
-  int profile;
-  // quality - quality parameter
-  //    (extra CQP level means special constant-qp (CQP) mode)
-  //    (extra AQ_ONLY means special aq only mode)
-  // "worst", "worse", "medium", "better", "best", "cqp", "aq_only"
-  const char *rc_quality;
-  // rc_mode - rate control mode
-  // "vbr", "cbr"
-  const char *rc_mode;
-} VideoConfig;
-
-typedef union {
-  VideoConfig vid_cfg;
-  ImageConfig img_cfg;
-} MediaConfig;
+#include "media_config.h"
 
 namespace rkmedia {
 
-class HwMediaBuffer;
+class MediaBuffer;
 class Codec {
 public:
   Codec() : extra_data(nullptr), extra_data_size(0) {
@@ -73,10 +39,10 @@ public:
 
   virtual bool Init() = 0;
   // sync call
-  virtual int Process(std::shared_ptr<HwMediaBuffer> input,
-                      std::shared_ptr<HwMediaBuffer> output,
-                      std::shared_ptr<HwMediaBuffer> extra_output) = 0;
-  virtual std::shared_ptr<HwMediaBuffer> GenEmptyOutPutBuffer();
+  virtual int Process(std::shared_ptr<MediaBuffer> input,
+                      std::shared_ptr<MediaBuffer> output,
+                      std::shared_ptr<MediaBuffer> extra_output) = 0;
+  virtual std::shared_ptr<MediaBuffer> GenEmptyOutPutBuffer();
 
 private:
   MediaConfig config;
@@ -94,24 +60,24 @@ public:
   }
   virtual ~ThreadCodec();
   virtual bool Init();
-  virtual int Process(std::shared_ptr<HwMediaBuffer> input,
-                      std::shared_ptr<HwMediaBuffer> output,
-                      std::shared_ptr<HwMediaBuffer> extra_output) final;
+  virtual int Process(std::shared_ptr<MediaBuffer> input,
+                      std::shared_ptr<MediaBuffer> output,
+                      std::shared_ptr<MediaBuffer> extra_output) final;
   bool IsQuit() { return quit; }
   void SetQuit(bool q) { quit = q; }
-  virtual bool SendInput(std::shared_ptr<HwMediaBuffer> input);
-  virtual std::shared_ptr<HwMediaBuffer> GetOutPut(bool wait = false);
-  virtual std::shared_ptr<HwMediaBuffer> GetExtraPut();
+  virtual bool SendInput(std::shared_ptr<MediaBuffer> input);
+  virtual std::shared_ptr<MediaBuffer> GetOutPut(bool wait = false);
+  virtual std::shared_ptr<MediaBuffer> GetExtraPut();
 
-  virtual int ProcessInput(std::shared_ptr<HwMediaBuffer> input) = 0;
-  virtual int ProcessOutput(std::shared_ptr<HwMediaBuffer> output,
-                            std::shared_ptr<HwMediaBuffer> extra_output) = 0;
+  virtual int ProcessInput(std::shared_ptr<MediaBuffer> input) = 0;
+  virtual int ProcessOutput(std::shared_ptr<MediaBuffer> output,
+                            std::shared_ptr<MediaBuffer> extra_output) = 0;
   virtual void InputRun();
   virtual void OutputRun();
 
 protected:
-  std::shared_ptr<HwMediaBuffer>
-  GetElement(std::list<std::shared_ptr<HwMediaBuffer>> &list, std::mutex &mtx,
+  std::shared_ptr<MediaBuffer>
+  GetElement(std::list<std::shared_ptr<MediaBuffer>> &list, std::mutex &mtx,
              std::condition_variable &cond, bool wait);
 
 private:
@@ -119,12 +85,12 @@ private:
   std::string th_name_prefix;
   std::mutex input_mtx;
   std::condition_variable input_cond;
-  std::list<std::shared_ptr<HwMediaBuffer>> input_list;
+  std::list<std::shared_ptr<MediaBuffer>> input_list;
   std::thread *input_th;
   std::mutex output_mtx;
   std::condition_variable output_cond;
-  std::list<std::shared_ptr<HwMediaBuffer>> output_list;
-  std::list<std::shared_ptr<HwMediaBuffer>> extra_output_list;
+  std::list<std::shared_ptr<MediaBuffer>> output_list;
+  std::list<std::shared_ptr<MediaBuffer>> extra_output_list;
   std::thread *output_th;
 };
 

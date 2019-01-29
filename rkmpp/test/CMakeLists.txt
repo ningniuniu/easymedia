@@ -1,3 +1,9 @@
+# Hertz Wang wangh@rock-chips.com
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# vi: set noexpandtab syntax=cmake:
+
 project(rkmedia_rkmpp_test)
 
 pkg_check_modules(LIBDRM libdrm)

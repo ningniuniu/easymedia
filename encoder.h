@@ -82,12 +82,6 @@ public:
   static const uint32_t kForceIdrFrame = (1 << 3);
   static const uint32_t kOSDDataChange = (1 << 4);
 
-  // flags
-  static const uint32_t kIntraFrame = (1 << 0);
-  static const uint32_t kPredictedFrame = (1 << 1);
-  static const uint32_t kBiPredictiveFrame = (1 << 2);
-  static const uint32_t kBiDirectionalFrame = (1 << 3);
-
   virtual ~VideoEncoder() = default;
   void RequestChange(uint32_t change, std::shared_ptr<ParameterBuffer> value);
   virtual bool InitConfig(const MediaConfig &cfg) override;

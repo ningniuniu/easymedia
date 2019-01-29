@@ -26,4 +26,12 @@ public:
   static const bool Result = (sizeof(int) == sizeof(t((T *)nullptr)));
 };
 
+#include <map>
+#include <string>
+
+namespace rkmedia {
+
+std::map<std::string, std::string> parse_media_param(const char *param);
+}
+
 #endif // #ifndef RKMEDIA_UTILS_H_

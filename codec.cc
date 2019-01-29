@@ -45,14 +45,14 @@ bool Codec::SetExtraData(void *data, size_t size, bool realloc) {
 }
 
 bool Codec::Init() { return false; }
-int Codec::Process(std::shared_ptr<HwMediaBuffer> input _UNUSED,
-                   std::shared_ptr<HwMediaBuffer> output _UNUSED,
-                   std::shared_ptr<HwMediaBuffer> extra_output _UNUSED) {
+int Codec::Process(std::shared_ptr<MediaBuffer> input _UNUSED,
+                   std::shared_ptr<MediaBuffer> output _UNUSED,
+                   std::shared_ptr<MediaBuffer> extra_output _UNUSED) {
   return -1;
 }
 
-std::shared_ptr<HwMediaBuffer> Codec::GenEmptyOutPutBuffer() {
-  return std::make_shared<HwMediaBuffer>(-1, nullptr, 0);
+std::shared_ptr<MediaBuffer> Codec::GenEmptyOutPutBuffer() {
+  return std::make_shared<MediaBuffer>();
 }
 
 static void delete_thread(std::thread *&th) {
@@ -99,13 +99,13 @@ bool ThreadCodec::Init() {
   return true;
 }
 
-int ThreadCodec::Process(std::shared_ptr<HwMediaBuffer> input _UNUSED,
-                         std::shared_ptr<HwMediaBuffer> output _UNUSED,
-                         std::shared_ptr<HwMediaBuffer> extra_output _UNUSED) {
+int ThreadCodec::Process(std::shared_ptr<MediaBuffer> input _UNUSED,
+                         std::shared_ptr<MediaBuffer> output _UNUSED,
+                         std::shared_ptr<MediaBuffer> extra_output _UNUSED) {
   return -1;
 }
 
-bool ThreadCodec::SendInput(std::shared_ptr<HwMediaBuffer> input) {
+bool ThreadCodec::SendInput(std::shared_ptr<MediaBuffer> input) {
   std::lock_guard<std::mutex> _lg(input_mtx);
   if (!quit) {
     input_list.push_back(input);
@@ -115,8 +115,8 @@ bool ThreadCodec::SendInput(std::shared_ptr<HwMediaBuffer> input) {
   return false;
 }
 
-std::shared_ptr<HwMediaBuffer>
-ThreadCodec::GetElement(std::list<std::shared_ptr<HwMediaBuffer>> &list,
+std::shared_ptr<MediaBuffer>
+ThreadCodec::GetElement(std::list<std::shared_ptr<MediaBuffer>> &list,
                         std::mutex &mtx, std::condition_variable &cond,
                         bool wait) {
   std::unique_lock<std::mutex> _lk(mtx);
@@ -133,20 +133,20 @@ ThreadCodec::GetElement(std::list<std::shared_ptr<HwMediaBuffer>> &list,
   return ret;
 }
 
-std::shared_ptr<HwMediaBuffer> ThreadCodec::GetOutPut(bool wait) {
+std::shared_ptr<MediaBuffer> ThreadCodec::GetOutPut(bool wait) {
   return GetElement(output_list, output_mtx, output_cond, wait);
 }
 
-std::shared_ptr<HwMediaBuffer> ThreadCodec::GetExtraPut() {
+std::shared_ptr<MediaBuffer> ThreadCodec::GetExtraPut() {
   return GetElement(extra_output_list, output_mtx, output_cond, false);
 }
 
-int ThreadCodec::ProcessInput(std::shared_ptr<HwMediaBuffer> input _UNUSED) {
+int ThreadCodec::ProcessInput(std::shared_ptr<MediaBuffer> input _UNUSED) {
   return 0;
 }
 
-int ProcessOutput(std::shared_ptr<HwMediaBuffer> output _UNUSED,
-                  std::shared_ptr<HwMediaBuffer> extra_output _UNUSED) {
+int ProcessOutput(std::shared_ptr<MediaBuffer> output _UNUSED,
+                  std::shared_ptr<MediaBuffer> extra_output _UNUSED) {
   return 0;
 }
 
@@ -156,9 +156,9 @@ void ThreadCodec::InputRun() {
            __FUNCTION__);
   prctl(PR_SET_NAME, thread_name, 0, 0, 0);
 
-  std::shared_ptr<HwMediaBuffer> pending_input;
+  std::shared_ptr<MediaBuffer> pending_input;
   while (!quit) {
-    std::shared_ptr<HwMediaBuffer> input;
+    std::shared_ptr<MediaBuffer> input;
     if (pending_input)
       input = pending_input;
     else
@@ -188,11 +188,11 @@ void ThreadCodec::OutputRun() {
            __FUNCTION__);
   prctl(PR_SET_NAME, thread_name, 0, 0, 0);
 
-  std::shared_ptr<HwMediaBuffer> cache_output;
-  std::shared_ptr<HwMediaBuffer> cache_extra_output;
+  std::shared_ptr<MediaBuffer> cache_output;
+  std::shared_ptr<MediaBuffer> cache_extra_output;
   while (!quit) {
-    std::shared_ptr<HwMediaBuffer> output;
-    std::shared_ptr<HwMediaBuffer> extra_output;
+    std::shared_ptr<MediaBuffer> output;
+    std::shared_ptr<MediaBuffer> extra_output;
     if (cache_output)
       output = cache_output;
     else
@@ -200,8 +200,7 @@ void ThreadCodec::OutputRun() {
     if (cache_extra_output)
       extra_output = cache_extra_output;
     else
-      extra_output =
-          Codec::GenEmptyOutPutBuffer(); // GenEmptyExtraOutPutBuffer?
+      extra_output = GenEmptyOutPutBuffer();
     if (!output) {
       LOG_NO_MEMORY();
       break;

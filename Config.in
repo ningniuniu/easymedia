@@ -1,5 +1,5 @@
 menuconfig RV_TARGET_RKMEDIA
-    bool "rk media library"
+    bool "[rv] media library"
     default y
 
 if RV_TARGET_RKMEDIA
@@ -10,5 +10,25 @@ config RV_TARGET_RKMEDIA_MPP
     help
       wrapped function of rk mpp
 
+config RV_TARGET_RKMEDIA_OGG
+    bool "ogg"
+    select RV_TARGET_LIBVORBIS
+    help
+      wrapped function of ogg vorbis
+
+if RV_TARGET_RKMEDIA_OGG
+
+config RV_TARGET_RKMEDIA_OGG_DECODE
+    bool "ogg decode"
+    default y
+    help
+      wrapped function of libvorbisfile
+
+config RV_TARGET_RKMEDIA_OGG_ENCODE
+    bool "ogg encode"
+    help
+      wrapped function of libvorbisenc
+
 endif
 
+endif

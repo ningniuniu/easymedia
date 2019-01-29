@@ -48,8 +48,7 @@ bool MPPEncoder::InitConfig(const MediaConfig &cfg) {
   return VideoEncoder::InitConfig(cfg);
 }
 
-static int init_mpp_buffer(MppBuffer &buffer,
-                           std::shared_ptr<HwMediaBuffer> &mb,
+static int init_mpp_buffer(MppBuffer &buffer, std::shared_ptr<MediaBuffer> &mb,
                            size_t frame_size) {
   int ret;
   int fd = mb->GetFD();
@@ -94,15 +93,19 @@ fail:
   return ret;
 }
 
-int MPPEncoder::PrepareMppFrame(std::shared_ptr<HwMediaBuffer> input,
+int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
                                 MppFrame &frame) {
   MppBuffer pic_buf = nullptr;
-  PixelFormat fmt = input->GetPixelFormat();
-  if (fmt == PIX_FMT_NONE) {
+  if (input->GetType() != MediaBuffer::Type::Image) {
     LOG("mpp encoder input source only support image buffer\n");
     return -EINVAL;
   }
-  HwImageBuffer *hw_buffer = static_cast<HwImageBuffer *>(input.get());
+  PixelFormat fmt = input->GetPixelFormat();
+  if (fmt == PIX_FMT_NONE) {
+    LOG("mpp encoder input source invalid pixel format\n");
+    return -EINVAL;
+  }
+  ImageBuffer *hw_buffer = static_cast<ImageBuffer *>(input.get());
   int fd = input->GetFD();
   void *ptr = input->GetPtr();
   size_t size = input->GetValidSize();
@@ -138,13 +141,13 @@ int MPPEncoder::PrepareMppFrame(std::shared_ptr<HwMediaBuffer> input,
   return 0;
 }
 
-int MPPEncoder::PrepareMppPacket(std::shared_ptr<HwMediaBuffer> output,
+int MPPEncoder::PrepareMppPacket(std::shared_ptr<MediaBuffer> output,
                                  MppPacket &packet) {
   MppBuffer mpp_buf = nullptr;
-  int fd = output->GetFD();
 
-  if (fd < 0)
+  if (!output->IsHwBuffer())
     return 0;
+
   int ret = init_mpp_buffer(mpp_buf, output, 0);
   if (ret) {
     LOG("import output stream buffer failed\n");
@@ -159,8 +162,8 @@ int MPPEncoder::PrepareMppPacket(std::shared_ptr<HwMediaBuffer> output,
   return 0;
 }
 
-int MPPEncoder::PrepareMppExtraBuffer(
-    std::shared_ptr<HwMediaBuffer> extra_output, MppBuffer &buffer) {
+int MPPEncoder::PrepareMppExtraBuffer(std::shared_ptr<MediaBuffer> extra_output,
+                                      MppBuffer &buffer) {
   MppBuffer mpp_buf = nullptr;
   if (!extra_output || !extra_output->IsValid())
     return 0;
@@ -180,9 +183,9 @@ static int free_mpp_packet(MppPacket packet) {
   return 0;
 }
 
-int MPPEncoder::Process(std::shared_ptr<HwMediaBuffer> input,
-                        std::shared_ptr<HwMediaBuffer> output,
-                        std::shared_ptr<HwMediaBuffer> extra_output) {
+int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
+                        std::shared_ptr<MediaBuffer> output,
+                        std::shared_ptr<MediaBuffer> extra_output) {
   MppFrame frame = nullptr;
   MppPacket packet = nullptr;
   MppPacket import_packet = nullptr;
@@ -236,8 +239,8 @@ int MPPEncoder::Process(std::shared_ptr<HwMediaBuffer> input,
 
   packet_len = mpp_packet_get_length(packet);
   packet_flag = (mpp_packet_get_flag(packet) & MPP_PACKET_FLAG_INTRA)
-                    ? kIntraFrame
-                    : kPredictedFrame;
+                    ? MediaBuffer::kIntra
+                    : MediaBuffer::kPredicted;
   out_eof = mpp_packet_get_eos(packet);
   if (output->IsValid()) {
     if (!import_packet) {

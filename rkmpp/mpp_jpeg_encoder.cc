@@ -7,6 +7,7 @@
 
 #include <mpp/mpp_log.h>
 
+#include "buffer.h"
 #include "mpp_encoder.h"
 
 namespace rkmedia {
@@ -22,7 +23,11 @@ public:
 
   virtual bool InitConfig(const MediaConfig &cfg) override;
 
-private:
+  virtual int Process(std::shared_ptr<MediaBuffer> input,
+                      std::shared_ptr<MediaBuffer> output,
+                      std::shared_ptr<MediaBuffer> extra_output) override;
+
+protected:
   virtual bool CheckConfigChange(
       std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>) override;
 };
@@ -107,6 +112,16 @@ bool MPPJpegEncoder::CheckConfigChange(
   }
 
   return true;
+}
+
+int MPPJpegEncoder::Process(std::shared_ptr<MediaBuffer> input,
+                            std::shared_ptr<MediaBuffer> output,
+                            std::shared_ptr<MediaBuffer> extra_output) {
+  int ret = MPPEncoder::Process(input, output, extra_output);
+  if (!ret)
+    output->SetType(MediaBuffer::Type::Image);
+
+  return ret;
 }
 
 DEFINE_MPP_ENCODER_FACTORY(MPPJpegEncoder)

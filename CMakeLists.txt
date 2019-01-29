@@ -103,7 +103,8 @@ if(WARNINGS_AS_ERRORS)
 	endif()
 endif(WARNINGS_AS_ERRORS)
 
-set(RK_MEDIA_SOURCE_FILES codec.cc encoder.cc image.cc utils.cc)
+set(RK_MEDIA_SOURCE_FILES codec.cc demuxer.cc encoder.cc image.cc
+							stream.cc utils.cc)
 
 # ----------------------------------------------------------------------------
 #  Start module definition
@@ -115,6 +116,11 @@ include_directories(rkmpp)
 add_subdirectory(rkmpp)
 endif()
 
+option(OGG "compile: ogg" OFF)
+if ( OGG )
+add_subdirectory(ogg)
+endif()
+
 add_library(rkmedia SHARED ${RK_MEDIA_SOURCE_FILES})
 set_target_properties(rkmedia
 	PROPERTIES PUBLIC_HEADER "image.h;buffer.h;codec.h;reflector.h;encoder.h")
@@ -122,6 +128,9 @@ set_target_properties(rkmedia
 if( RK_MEDIA_DEPENDENT_LIBS )
 target_link_libraries(rkmedia ${RK_MEDIA_DEPENDENT_LIBS})
 endif()
+
+message(files: ${RK_MEDIA_SOURCE_FILES})
+message(libs : ${RK_MEDIA_DEPENDENT_LIBS})
 
 install(TARGETS rkmedia
 		LIBRARY DESTINATION "lib"

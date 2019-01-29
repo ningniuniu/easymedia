@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
     }
     size_t out_len = dst_buffer->GetValidSize();
     fprintf(stderr, "frame %d encoded, type %s, out %d bytes\n", index,
-            dst_buffer->GetUserFlag() & rkmedia::VideoEncoder::kIntraFrame
+            dst_buffer->GetUserFlag() & rkmedia::MediaBuffer::kIntra
                 ? "I frame"
                 : "P frame",
             out_len);

@@ -5,9 +5,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
-#include <strings.h>
-
 #include <mpp/mpp_log.h>
+
+#include "buffer.h"
 
 #include "mpp_encoder.h"
 
@@ -27,7 +27,11 @@ public:
 
   virtual bool InitConfig(const MediaConfig &cfg) override;
 
-private:
+  virtual int Process(std::shared_ptr<MediaBuffer> input,
+                      std::shared_ptr<MediaBuffer> output,
+                      std::shared_ptr<MediaBuffer> extra_output) override;
+
+protected:
   // Change configs which are not contained in sps/pps.
   virtual bool CheckConfigChange(
       std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>) override;
@@ -318,7 +322,7 @@ bool MPPH264Encoder::CheckConfigChange(
     codec_cfg.h264.qp_max = values[2];
     codec_cfg.h264.qp_max_step = values[3];
     if (EncodeControl(MPP_ENC_SET_CODEC_CFG, &codec_cfg) != 0) {
-      LOG("encode_control MPP_ENC_SET_IDR_FRAME error!\n");
+      LOG("encode_control MPP_ENC_SET_CODEC_CFG error!\n");
       return false;
     }
     vconfig.image_cfg.qp_init = values[0];
@@ -342,6 +346,16 @@ bool MPPH264Encoder::CheckConfigChange(
   }
 
   return true;
+}
+
+int MPPH264Encoder::Process(std::shared_ptr<MediaBuffer> input,
+                            std::shared_ptr<MediaBuffer> output,
+                            std::shared_ptr<MediaBuffer> extra_output) {
+  int ret = MPPEncoder::Process(input, output, extra_output);
+  if (!ret)
+    output->SetType(MediaBuffer::Type::Video);
+
+  return ret;
 }
 
 DEFINE_MPP_ENCODER_FACTORY(MPPH264Encoder)
