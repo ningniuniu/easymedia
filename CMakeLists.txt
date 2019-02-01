@@ -103,8 +103,9 @@ if(WARNINGS_AS_ERRORS)
 	endif()
 endif(WARNINGS_AS_ERRORS)
 
-set(RK_MEDIA_SOURCE_FILES codec.cc demuxer.cc encoder.cc image.cc
-							stream.cc utils.cc)
+aux_source_directory(./ RK_MEDIA_SOURCE_FILES)
+# set( codec.cc demuxer.cc encoder.cc image.cc
+# 							stream.cc utils.cc)
 
 # ----------------------------------------------------------------------------
 #  Start module definition

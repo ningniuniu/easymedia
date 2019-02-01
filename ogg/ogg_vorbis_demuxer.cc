@@ -8,6 +8,7 @@
 #include "demuxer.h"
 
 #include "buffer.h"
+#include "media_type.h"
 
 #include "vorbis/codec.h"
 
@@ -136,5 +137,9 @@ std::shared_ptr<Demuxer>
     FACTORY(OggVorbisDemuxer)::NewProduct(const char *param) {
   return std::make_shared<OggVorbisDemuxer>(param);
 }
+const char *FACTORY(OggVorbisDemuxer)::ExpectedInputDataType() {
+  return STREAM_OGG;
+}
+const char *FACTORY(OggVorbisDemuxer)::OutPutDataType() { return AUDIO_PCM; }
 
 } // namespace rkmedia

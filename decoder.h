@@ -9,7 +9,7 @@
 #define RKMEDIA_DECODER_H_
 
 #include "codec.h"
-#include "reflector.h"
+#include "media_reflector.h"
 
 namespace rkmedia {
 
@@ -20,8 +20,9 @@ DECLARE_FACTORY(Decoder)
 DECLARE_REFLECTOR(Decoder)
 
 #define DEFINE_DECODER_FACTORY(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)             \
-  DEFINE_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetCodecName(),             \
-                       FINAL_EXPOSE_PRODUCT, Decoder)
+  DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetCodecName(),       \
+                             FINAL_EXPOSE_PRODUCT, Decoder)                    \
+  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)
 
 #define DEFINE_AUDIO_DECODER_FACTORY(REAL_PRODUCT)                             \
   DEFINE_DECODER_FACTORY(REAL_PRODUCT, AudioDecoder)

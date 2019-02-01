@@ -22,7 +22,7 @@ void GetPixFmtNumDen(const PixelFormat &fmt, int &num, int &den) {
   case PIX_FMT_YUV422P:
   case PIX_FMT_NV16:
   case PIX_FMT_NV61:
-  case PIX_FMT_YVYU422:
+  case PIX_FMT_YUYV422:
   case PIX_FMT_UYVY422:
   case PIX_FMT_RGB565:
   case PIX_FMT_BGR565:

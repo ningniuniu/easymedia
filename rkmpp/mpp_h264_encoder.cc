@@ -9,6 +9,7 @@
 
 #include "buffer.h"
 
+#include "media_type.h"
 #include "mpp_encoder.h"
 
 namespace rkmedia {
@@ -359,5 +360,9 @@ int MPPH264Encoder::Process(std::shared_ptr<MediaBuffer> input,
 }
 
 DEFINE_MPP_ENCODER_FACTORY(MPPH264Encoder)
+const char *FACTORY(MPPH264Encoder)::ExpectedInputDataType() {
+  return MppAcceptImageFmts();
+}
+const char *FACTORY(MPPH264Encoder)::OutPutDataType() { return VIDEO_H264; }
 
 } // namespace rkmedia

@@ -13,5 +13,6 @@
 
 MppFrameFormat ConvertToMppPixFmt(const PixelFormat &fmt);
 PixelFormat ConvertToPixFmt(const MppFrameFormat &mfmt);
+const char *MppAcceptImageFmts();
 
 #endif // RKMEDIA_MPP_INC_H_

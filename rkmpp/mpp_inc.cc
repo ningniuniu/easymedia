@@ -9,6 +9,7 @@
 
 #include <assert.h>
 
+#include "media_type.h"
 #include "utils.h"
 
 MppFrameFormat ConvertToMppPixFmt(const PixelFormat &fmt) {
@@ -22,7 +23,7 @@ MppFrameFormat ConvertToMppPixFmt(const PixelFormat &fmt) {
        [PIX_FMT_YUV422P] = MPP_FMT_YUV422P,
        [PIX_FMT_NV16] = MPP_FMT_YUV422SP,
        [PIX_FMT_NV61] = MPP_FMT_YUV422SP_VU,
-       [PIX_FMT_YVYU422] = MPP_FMT_YUV422_YUYV,
+       [PIX_FMT_YUYV422] = MPP_FMT_YUV422_YUYV,
        [PIX_FMT_UYVY422] = MPP_FMT_YUV422_UYVY,
        [PIX_FMT_RGB565] = MPP_FMT_RGB565,
        [PIX_FMT_BGR565] = MPP_FMT_BGR565,
@@ -49,7 +50,7 @@ PixelFormat ConvertToPixFmt(const MppFrameFormat &mfmt) {
   case MPP_FMT_YUV422SP_VU:
     return PIX_FMT_NV61;
   case MPP_FMT_YUV422_YUYV:
-    return PIX_FMT_YVYU422;
+    return PIX_FMT_YUYV422;
   case MPP_FMT_YUV422_UYVY:
     return PIX_FMT_UYVY422;
   case MPP_FMT_RGB565:
@@ -68,4 +69,13 @@ PixelFormat ConvertToPixFmt(const MppFrameFormat &mfmt) {
     LOG("unsupport for mpp pixel fmt: %d\n", mfmt);
     return PIX_FMT_NONE;
   }
+}
+
+const char *MppAcceptImageFmts() {
+  return TYPENEAR(IMAGE_YUV420P) TYPENEAR(IMAGE_NV12) TYPENEAR(IMAGE_NV21)
+      TYPENEAR(IMAGE_YUV422P) TYPENEAR(IMAGE_NV16) TYPENEAR(IMAGE_NV61)
+          TYPENEAR(IMAGE_YUYV422) TYPENEAR(IMAGE_UYVY422) TYPENEAR(IMAGE_RGB565)
+              TYPENEAR(IMAGE_BGR565) TYPENEAR(IMAGE_RGB888)
+                  TYPENEAR(IMAGE_BGR888) TYPENEAR(IMAGE_ARGB8888)
+                      TYPENEAR(IMAGE_ABGR8888);
 }

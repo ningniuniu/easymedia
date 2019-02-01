@@ -23,6 +23,7 @@
   class PRODUCT##Factory;                                                      \
   class PRODUCT##Reflector {                                                   \
   public:                                                                      \
+    const char *FindMatchIdentifier(const char *rules);                        \
     template <class T>                                                         \
     static std::shared_ptr<T> Create(const char *request, const char *param) { \
       if (!IsDerived<T, PRODUCT>::Result) {                                    \
@@ -36,10 +37,11 @@
                                                                                \
       auto it = factories.find(identifier);                                    \
       if (it != factories.end()) {                                             \
-        PRODUCT##Factory *f = const_cast<PRODUCT##Factory *>(it->second);      \
+        const PRODUCT##Factory *f = it->second;                                \
         if (!T::Compatible(f))                                                 \
           return nullptr;                                                      \
-        return std::static_pointer_cast<T>(f->NewProduct(param));              \
+        return std::static_pointer_cast<T>(                                    \
+            const_cast<PRODUCT##Factory *>(f)->NewProduct(param));             \
       }                                                                        \
       return nullptr;                                                          \
     }                                                                          \
@@ -60,6 +62,14 @@
 #define DEFINE_REFLECTOR(PRODUCT)                                              \
   std::map<std::string, const PRODUCT##Factory *>                              \
       PRODUCT##Reflector::factories;                                           \
+  const char *PRODUCT##Reflector::FindMatchIdentifier(const char *rules) {     \
+    for (auto &it : factories) {                                               \
+      const PRODUCT##Factory *f = it.second;                                   \
+      if (f->AcceptRules(rules))                                               \
+        return it.first.c_str();                                               \
+    }                                                                          \
+    return nullptr;                                                            \
+  }                                                                            \
   void PRODUCT##Reflector::RegisterFactory(std::string identifier,             \
                                            const PRODUCT##Factory *factory) {  \
     auto it = factories.find(identifier);                                      \
@@ -84,6 +94,14 @@
     virtual const char *Identifier() const = 0;                                \
     static const char *Parse(const char *request);                             \
     virtual std::shared_ptr<PRODUCT> NewProduct(const char *name) = 0;         \
+    bool AcceptRules(const char *rules) const {                                \
+      std::map<std::string, std::string> map;                                  \
+      if (!parse_media_param_map(rules, map))                                  \
+        return false;                                                          \
+      return AcceptRules(map);                                                 \
+    }                                                                          \
+    virtual bool                                                               \
+    AcceptRules(const std::map<std::string, std::string> &map) const = 0;      \
                                                                                \
   protected:                                                                   \
     PRODUCT##Factory() = default;                                              \
@@ -116,7 +134,7 @@
 
 #define DECLARE_PART_FINAL_EXPOSE_PRODUCT(PRODUCT)                             \
 public:                                                                        \
-  static bool Compatible(PRODUCT##Factory *factory);                           \
+  static bool Compatible(const PRODUCT##Factory *factory);                     \
   static void RegisterFactory(const PRODUCT##Factory *factory);                \
                                                                                \
 private:                                                                       \
@@ -125,7 +143,7 @@ private:                                                                       \
 #define DEFINE_PART_FINAL_EXPOSE_PRODUCT(FINAL_EXPOSE_PRODUCT, PRODUCT)        \
   std::list<const PRODUCT##Factory *>                                          \
       FINAL_EXPOSE_PRODUCT::compatiable_factories;                             \
-  bool FINAL_EXPOSE_PRODUCT::Compatible(PRODUCT##Factory *factory) {           \
+  bool FINAL_EXPOSE_PRODUCT::Compatible(const PRODUCT##Factory *factory) {     \
     auto it = std::find(compatiable_factories.begin(),                         \
                         compatiable_factories.end(), factory);                 \
     if (it != compatiable_factories.end())                                     \
@@ -141,8 +159,9 @@ private:                                                                       \
   }
 
 // macro of define child factory
+// EXTRA_CODE: extra class declaration
 #define DEFINE_CHILD_FACTORY(REAL_PRODUCT, IDENTIFIER, FINAL_EXPOSE_PRODUCT,   \
-                             PRODUCT)                                          \
+                             PRODUCT, EXTRA_CODE)                              \
   class REAL_PRODUCT##Factory : public PRODUCT##Factory {                      \
   public:                                                                      \
     FACTORY_IDENTIFIER_DEFINITION(IDENTIFIER)                                  \
@@ -152,6 +171,7 @@ private:                                                                       \
   private:                                                                     \
     REAL_PRODUCT##Factory() = default;                                         \
     ~REAL_PRODUCT##Factory() = default;                                        \
+    EXTRA_CODE                                                                 \
   };                                                                           \
                                                                                \
   FACTORY_REGISTER(REAL_PRODUCT##Factory, PRODUCT##Reflector,                  \

@@ -8,6 +8,7 @@
 #include <mpp/mpp_log.h>
 
 #include "buffer.h"
+#include "media_type.h"
 #include "mpp_encoder.h"
 
 namespace rkmedia {
@@ -125,5 +126,9 @@ int MPPJpegEncoder::Process(std::shared_ptr<MediaBuffer> input,
 }
 
 DEFINE_MPP_ENCODER_FACTORY(MPPJpegEncoder)
+const char *FACTORY(MPPJpegEncoder)::ExpectedInputDataType() {
+  return MppAcceptImageFmts();
+}
+const char *FACTORY(MPPJpegEncoder)::OutPutDataType() { return IMAGE_JPEG; }
 
 } // namespace rkmedia

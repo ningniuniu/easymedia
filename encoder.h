@@ -23,9 +23,7 @@ const uint8_t *find_h264_startcode(const uint8_t *p, const uint8_t *end);
 #ifdef __cplusplus
 
 #include "codec.h"
-#include "reflector.h"
-
-#include <algorithm>
+#include "media_reflector.h"
 
 namespace rkmedia {
 
@@ -36,8 +34,9 @@ DECLARE_FACTORY(Encoder)
 DECLARE_REFLECTOR(Encoder)
 
 #define DEFINE_ENCODER_FACTORY(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)             \
-  DEFINE_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetCodecName(),             \
-                       FINAL_EXPOSE_PRODUCT, Encoder)
+  DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetCodecName(),       \
+                             FINAL_EXPOSE_PRODUCT, Encoder)                    \
+  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)
 
 #define DEFINE_VIDEO_ENCODER_FACTORY(REAL_PRODUCT)                             \
   DEFINE_ENCODER_FACTORY(REAL_PRODUCT, VideoEncoder)

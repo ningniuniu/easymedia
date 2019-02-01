@@ -130,11 +130,6 @@ private:
   ImageInfo image_info;
 };
 
-// template <typename T>
-// inline std::shared_ptr<T>& shared_ptr_forward_r2l(std::shared_ptr<T>&& t) {
-//   std::forward<std::shared_ptr<T>&>(t);
-// }
-
 } // namespace rkmedia
 
 #endif // RKMEDIA_BUFFER_H_

@@ -24,9 +24,20 @@ typedef struct {
 }
 #endif
 
-#include <algorithm>
+#include "media_reflector.h"
 
 namespace rkmedia {
+
+DECLARE_FACTORY(Stream)
+
+// usage: REFLECTOR(Stream)::Create<T>(streamname, param)
+//        T must be the final class type exposed to user
+DECLARE_REFLECTOR(Stream)
+
+#define DEFINE_STREAM_FACTORY(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)              \
+  DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetStreamName(),      \
+                             FINAL_EXPOSE_PRODUCT, Stream)                     \
+  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)
 
 // interface
 class Stream {
@@ -60,6 +71,8 @@ private:
   bool readable;
   bool writeable;
   bool seekable;
+
+  DECLARE_PART_FINAL_EXPOSE_PRODUCT(Stream)
 };
 
 } // namespace rkmedia

@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include <algorithm>
 #include <sstream>
 
 void LOG(const char *format, ...) {
@@ -22,8 +23,11 @@ void LOG(const char *format, ...) {
 
 namespace rkmedia {
 
-std::map<std::string, std::string> parse_media_param(const char *param) {
-  std::map<std::string, std::string> ret;
+bool parse_media_param_map(const char *param,
+                           std::map<std::string, std::string> &map) {
+  if (!param)
+    return false;
+
   std::string token;
   std::istringstream tokenStream(param);
   while (std::getline(tokenStream, token)) {
@@ -31,9 +35,37 @@ std::map<std::string, std::string> parse_media_param(const char *param) {
     std::istringstream subTokenStream(token);
     if (std::getline(subTokenStream, key, '='))
       std::getline(subTokenStream, value);
-    ret[key] = value;
+    map[key] = value;
   }
 
-  return std::move(ret);
+  return true;
+}
+
+bool parse_media_param_list(const char *param, std::list<std::string> &list,
+                            const char delim) {
+  if (!param)
+    return false;
+
+  std::string token;
+  std::istringstream tokenStream(param);
+  while (std::getline(tokenStream, token, delim))
+    list.push_back(token);
+
+  return true;
+}
+
+bool has_intersection(const char *str, const char *expect,
+                      std::list<std::string> *expect_list) {
+  std::list<std::string> request;
+  if (!parse_media_param_list(str, request, ','))
+    return false;
+  if (expect_list->empty() && !parse_media_param_list(expect, *expect_list))
+    return false;
+  for (auto &req : request) {
+    if (std::find(expect_list->begin(), expect_list->end(), req) !=
+        expect_list->end())
+      return true;
+  }
+  return false;
 }
 };

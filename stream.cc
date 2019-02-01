@@ -61,4 +61,14 @@ int Stream::Close() {
   return 0;
 }
 
+DEFINE_REFLECTOR(Stream)
+
+// define the base factory missing definition
+const char *FACTORY(Stream)::Parse(const char *request) {
+  // request should equal stream_name
+  return request;
+}
+
+DEFINE_PART_FINAL_EXPOSE_PRODUCT(Stream, Stream)
+
 } // namespace rkmedia

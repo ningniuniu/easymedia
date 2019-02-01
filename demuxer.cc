@@ -21,9 +21,9 @@ const char *FACTORY(Demuxer)::Parse(const char *request) {
 }
 
 Demuxer::Demuxer(const char *param) : total_time(0.0f) {
-  if (!param)
+  std::map<std::string, std::string> params;
+  if (!parse_media_param_map(param, params))
     return;
-  auto params = parse_media_param(param);
   for (auto &p : params) {
     const std::string &key = p.first;
     if (key == "path")

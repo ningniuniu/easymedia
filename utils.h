@@ -26,12 +26,19 @@ public:
   static const bool Result = (sizeof(int) == sizeof(t((T *)nullptr)));
 };
 
+#include <list>
 #include <map>
 #include <string>
 
 namespace rkmedia {
 
-std::map<std::string, std::string> parse_media_param(const char *param);
+// delim: '=', '\n'
+bool parse_media_param_map(const char *param,
+                           std::map<std::string, std::string> &map);
+bool parse_media_param_list(const char *param, std::list<std::string> &list,
+                            const char delim = '\n');
+bool has_intersection(const char *str, const char *expect,
+                      std::list<std::string> *expect_list);
 }
 
 #endif // #ifndef RKMEDIA_UTILS_H_

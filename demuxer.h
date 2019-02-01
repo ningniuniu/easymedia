@@ -11,7 +11,7 @@
 #include <list>
 
 #include "media_config.h"
-#include "reflector.h"
+#include "media_reflector.h"
 #include "stream.h"
 
 namespace rkmedia {
@@ -23,8 +23,9 @@ DECLARE_FACTORY(Demuxer)
 DECLARE_REFLECTOR(Demuxer)
 
 #define DEFINE_DEMUXER_FACTORY(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)             \
-  DEFINE_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetDemuxName(),             \
-                       FINAL_EXPOSE_PRODUCT, Demuxer)
+  DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetDemuxName(),       \
+                             FINAL_EXPOSE_PRODUCT, Demuxer)                    \
+  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)
 
 class MediaBuffer;
 class Demuxer {
