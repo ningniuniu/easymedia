@@ -44,17 +44,16 @@ class Stream {
 public:
   static StreamOperation c_operations;
 
-  Stream()
-      : priv_resource(nullptr), readable(true), writeable(true),
-        seekable(true) {}
-  virtual ~Stream();
+  Stream() : readable(false), writeable(false), seekable(false) {}
+  virtual ~Stream() = default;
 
   virtual size_t Read(void *ptr, size_t size, size_t nmemb) = 0;
   virtual size_t Write(const void *ptr, size_t size, size_t nmemb) = 0;
   // whence: SEEK_SET, SEEK_CUR, SEEK_END
   virtual int Seek(int64_t offset, int whence) = 0;
   virtual long Tell() = 0;
-  virtual int Close();
+  virtual int Open() = 0;
+  virtual int Close() = 0;
 
   virtual bool Readable() { return readable; }
   virtual bool Writeable() { return writeable; }
@@ -63,9 +62,6 @@ public:
   void SetReadable(bool able) { readable = able; }
   void SetWriteable(bool able) { writeable = able; }
   void SetSeekable(bool able) { seekable = able; }
-
-protected:
-  void *priv_resource;
 
 private:
   bool readable;

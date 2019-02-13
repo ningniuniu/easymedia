@@ -15,9 +15,16 @@ void LOG(const char *format, ...);
 #define LOG_NO_MEMORY()                                                        \
   fprintf(stderr, "No memory %s: %d\n", __FUNCTION__, __LINE__)
 
+#define LOG_FILE_FUNC_LINE()                                                   \
+  fprintf(stderr, "%s : %s: %d\n", __FILE__, __FUNCTION__, __LINE__)
+
 #define UPALIGNTO(value, align) ((value + align - 1) & (~(align - 1)))
 
 #define UPALIGNTO16(value) UPALIGNTO(value, 16)
+
+#define ARRAY_ELEMS(a) (sizeof(a) / sizeof((a)[0]))
+
+#define MATH_LOG2(x) (31 - __builtin_clz((x) | 1))
 
 template <typename T, typename TBase> class IsDerived {
 public:

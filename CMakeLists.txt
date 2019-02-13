@@ -122,6 +122,8 @@ if ( OGG )
 add_subdirectory(ogg)
 endif()
 
+add_subdirectory(stream)
+
 add_library(rkmedia SHARED ${RK_MEDIA_SOURCE_FILES})
 set_target_properties(rkmedia
 	PROPERTIES PUBLIC_HEADER "image.h;buffer.h;codec.h;reflector.h;encoder.h")

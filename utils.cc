@@ -19,6 +19,7 @@ void LOG(const char *format, ...) {
   va_start(vl, format);
   vsnprintf(line, sizeof(line), format, vl);
   va_end(vl);
+  fprintf(stderr, "%s", line);
 }
 
 namespace rkmedia {
@@ -57,14 +58,16 @@ bool parse_media_param_list(const char *param, std::list<std::string> &list,
 bool has_intersection(const char *str, const char *expect,
                       std::list<std::string> *expect_list) {
   std::list<std::string> request;
+  // LOG("request: %s; expect: %s\n", str, expect);
   if (!parse_media_param_list(str, request, ','))
     return false;
   if (expect_list->empty() && !parse_media_param_list(expect, *expect_list))
     return false;
   for (auto &req : request) {
     if (std::find(expect_list->begin(), expect_list->end(), req) !=
-        expect_list->end())
+        expect_list->end()) {
       return true;
+    }
   }
   return false;
 }

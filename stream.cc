@@ -48,13 +48,7 @@ StreamOperation Stream::c_operations = {
   tell : local_tell
 };
 
-Stream::~Stream() {
-  if (priv_resource)
-    assert(0 && "fogot release stream resource?");
-}
-
 int Stream::Close() {
-  priv_resource = nullptr;
   readable = false;
   writeable = false;
   seekable = false;

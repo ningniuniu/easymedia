@@ -31,4 +31,7 @@ typedef struct {
 }
 #endif
 
+const char *SampleFormatToString(SampleFormat fmt);
+SampleFormat StringToSampleFormat(const char *fmt_str);
+
 #endif // #ifndef RKMEDIA_SOUND_H_

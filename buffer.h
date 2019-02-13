@@ -97,9 +97,20 @@ public:
   }
 
   SampleInfo &GetSampleInfo() { return sample_info; }
-  // int GetSamples() const { return sample_info.samples; }
-  // int GetChannels() const { return sample_info.channels; }
-  // int GetSampleRate() const { return sample_info.sample_rate; }
+  size_t GetSampleSize() const {
+    size_t sample_size = sample_info.channels;
+    switch (sample_info.fmt) {
+    case SAMPLE_FMT_U8:
+      return sample_size;
+    case SAMPLE_FMT_S16:
+      return sample_size << 1;
+    case SAMPLE_FMT_S32:
+      return sample_size << 2;
+    default:
+      return 0;
+    }
+  }
+  int GetSamples() const { return sample_info.samples; }
 
 private:
   SampleInfo sample_info;

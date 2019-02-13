@@ -32,22 +32,33 @@ int main(int argc, char **argv) {
       break;
     case 'o':
       output_path = optarg;
-      printf("output file path: %s\n", output_path.c_str());
+      printf("output path: %s\n", output_path.c_str());
       break;
     case '?':
     default:
       printf("usage example: \n");
-      printf("rkogg_decode_test -i input.ogg -o output.pcm\n");
+      printf("rkogg_decode_test -i input.ogg -o output.pcm\n"
+             "rkogg_decode_test -i input.ogg -o alsa:default\n");
       break;
     }
   }
   if (input_path.empty() || output_path.empty())
     exit(EXIT_FAILURE);
 
-  unlink(output_path.c_str());
-  int output_file_fd =
-      open(output_path.c_str(), O_WRONLY | O_CREAT | O_CLOEXEC);
-  assert(output_file_fd >= 0);
+  int output_file_fd = -1;
+  std::string alsa_device;
+
+  if (output_path.find("alsa:") == 0) {
+    alsa_device = output_path.substr(output_path.find(':') + 1);
+    assert(!alsa_device.empty());
+  } else {
+    unlink(output_path.c_str());
+    output_file_fd = open(output_path.c_str(), O_WRONLY | O_CREAT | O_CLOEXEC);
+    assert(output_file_fd >= 0);
+  }
+
+  LOG("alsa_device: %s, output_file_fd: %d\n", alsa_device.c_str(),
+      output_file_fd);
 
   rkmedia::REFLECTOR(Demuxer)::DumpFactories();
 
@@ -79,17 +90,42 @@ int main(int argc, char **argv) {
   char **comment = ogg_demuxer->GetComment();
   if (comment) {
     if (*comment)
-      printf("ogg comment: ");
+      printf("ogg comment: \n");
     while (*comment) {
-      printf("%s\n", *comment);
+      printf("\t%s\n", *comment);
       ++comment;
     }
-    printf("\n");
   }
   AudioConfig &aud_cfg = pcm_config.aud_cfg;
   SampleInfo &sample_info = aud_cfg.sample_info;
   printf("channel num : %d , sample rate %d, average bit rate: %d\n",
          sample_info.channels, sample_info.sample_rate, aud_cfg.bit_rate);
+
+  std::shared_ptr<rkmedia::Stream> out_stream;
+  if (!alsa_device.empty()) {
+    rkmedia::REFLECTOR(Stream)::DumpFactories();
+
+    std::string stream_name("alsa_playback_stream");
+    std::string fmt_str = SampleFormatToString(sample_info.fmt);
+    std::string rule = "input_data_type=" + fmt_str + "\n";
+    if (!rkmedia::REFLECTOR(Stream)::IsMatch(stream_name.c_str(),
+                                             rule.c_str())) {
+      fprintf(stderr, "unsupport data type\n");
+      exit(EXIT_FAILURE);
+    }
+    std::string params = "device=";
+    params += alsa_device + "\n";
+    params += "format=" + fmt_str + "\n";
+    params += "channels=" + std::to_string(sample_info.channels) + "\n";
+    params += "sample_rate=" + std::to_string(sample_info.sample_rate) + "\n";
+    LOG("params:\n%s\n", params.c_str());
+    out_stream = rkmedia::REFLECTOR(Stream)::Create<rkmedia::Stream>(
+        stream_name.c_str(), params.c_str());
+    if (!out_stream) {
+      fprintf(stderr, "Create stream %s failed\n", stream_name.c_str());
+      exit(EXIT_FAILURE);
+    }
+  }
 
   while (1) {
     auto buffer = ogg_demuxer->Read();
@@ -109,10 +145,20 @@ int main(int argc, char **argv) {
               info.channels);
       continue;
     }
-    write(output_file_fd, buffer->GetPtr(), buffer->GetValidSize());
+    if (out_stream)
+      out_stream->Write(
+          buffer->GetPtr(), sample_buffer->GetSampleSize(),
+          sample_buffer->GetSamples()); // TODO: check the ret value
+    if (output_file_fd >= 0)
+      write(output_file_fd, buffer->GetPtr(), buffer->GetValidSize());
   }
 
-  close(output_file_fd);
+  if (out_stream) {
+    out_stream->Close();
+    out_stream.reset();
+  }
+  if (output_file_fd >= 0)
+    close(output_file_fd);
 
   return 0;
 }

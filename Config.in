@@ -31,4 +31,18 @@ config RV_TARGET_RKMEDIA_OGG_ENCODE
 
 endif
 
+if RV_TARGET_ALSA_LIB
+
+config RV_TARGET_RKMEDIA_ALSA_PLAYBACK
+    bool "alsa playback"
+    help
+      wrapped function of alsa playback
+
+config RV_TARGET_RKMEDIA_ALSA_CAPTURE
+    bool "alsa capture"
+    help
+      wrapped function of alsa capture
+
+endif
+
 endif

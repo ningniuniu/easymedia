@@ -38,22 +38,26 @@
       const std::map<std::string, std::string> &map) const {                   \
     static std::list<std::string> expected_data_type_list;                     \
     static std::list<std::string> out_data_type_list;                          \
-    static const char *static_keys[] = {"input_data_type",                     \
-                                        "output_data_type"};                   \
+    static const char *static_keys[] = {"input_data_type", "output_data_type", \
+                                        NULL};                                 \
     static const decltype(ExpectedInputDataType) *static_call[] = {            \
-        &ExpectedInputDataType, &OutPutDataType};                              \
-    static std::list<std::string> *static_list[] = {&expected_data_type_list,  \
-                                                    &out_data_type_list};      \
+        &ExpectedInputDataType, &OutPutDataType, NULL};                        \
+    static std::list<std::string> *static_list[] = {                           \
+        &expected_data_type_list, &out_data_type_list, NULL};                  \
     const char **keys = static_keys;                                           \
     const decltype(ExpectedInputDataType) **call = static_call;                \
     std::list<std::string> **list = static_list;                               \
     while (*keys) {                                                            \
       auto it = map.find(*keys);                                               \
-      if (it == map.end())                                                     \
-        return false;                                                          \
-      const std::string &value = it->second;                                   \
-      if (!has_intersection(value.c_str(), (*call)(), *list))                  \
-        return false;                                                          \
+      if (it == map.end()) {                                                   \
+        if ((*call)())                                                         \
+          return false;                                                        \
+      } else {                                                                 \
+        const std::string &value = it->second;                                 \
+        if (!value.empty() &&                                                  \
+            !has_intersection(value.c_str(), (*call)(), *list))                \
+          return false;                                                        \
+      }                                                                        \
       ++keys;                                                                  \
       ++call;                                                                  \
       ++list;                                                                  \

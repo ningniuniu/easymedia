@@ -140,6 +140,8 @@ std::shared_ptr<Demuxer>
 const char *FACTORY(OggVorbisDemuxer)::ExpectedInputDataType() {
   return STREAM_OGG;
 }
-const char *FACTORY(OggVorbisDemuxer)::OutPutDataType() { return AUDIO_PCM; }
+const char *FACTORY(OggVorbisDemuxer)::OutPutDataType() {
+  return AUDIO_PCM_S16;
+}
 
 } // namespace rkmedia

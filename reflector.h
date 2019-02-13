@@ -14,7 +14,10 @@
 
 #include "utils.h"
 
+// all come the external interface
 #define REFLECTOR(PRODUCT) PRODUCT##Reflector
+
+// use internally
 #define FACTORY(PRODUCT) PRODUCT##Factory
 
 // macro of declare reflector
@@ -23,7 +26,8 @@
   class PRODUCT##Factory;                                                      \
   class PRODUCT##Reflector {                                                   \
   public:                                                                      \
-    const char *FindMatchIdentifier(const char *rules);                        \
+    static const char *FindFirstMatchIdentifier(const char *rules);            \
+    static bool IsMatch(const char *identifier, const char *rules);            \
     template <class T>                                                         \
     static std::shared_ptr<T> Create(const char *request, const char *param) { \
       if (!IsDerived<T, PRODUCT>::Result) {                                    \
@@ -62,13 +66,21 @@
 #define DEFINE_REFLECTOR(PRODUCT)                                              \
   std::map<std::string, const PRODUCT##Factory *>                              \
       PRODUCT##Reflector::factories;                                           \
-  const char *PRODUCT##Reflector::FindMatchIdentifier(const char *rules) {     \
+  const char *PRODUCT##Reflector::FindFirstMatchIdentifier(                    \
+      const char *rules) {                                                     \
     for (auto &it : factories) {                                               \
       const PRODUCT##Factory *f = it.second;                                   \
       if (f->AcceptRules(rules))                                               \
         return it.first.c_str();                                               \
     }                                                                          \
     return nullptr;                                                            \
+  }                                                                            \
+  bool PRODUCT##Reflector::IsMatch(const char *identifier,                     \
+                                   const char *rules) {                        \
+    auto it = factories.find(identifier);                                      \
+    if (it == factories.end())                                                 \
+      return false;                                                            \
+    return it->second->AcceptRules(rules);                                     \
   }                                                                            \
   void PRODUCT##Reflector::RegisterFactory(std::string identifier,             \
                                            const PRODUCT##Factory *factory) {  \
@@ -79,11 +91,11 @@
       LOG("repeated identifier : %s\n", identifier.c_str());                   \
   }                                                                            \
   void PRODUCT##Reflector::DumpFactories() {                                   \
-    printf("%s:\n", #PRODUCT);                                                 \
+    printf("\n%s:\n", #PRODUCT);                                               \
     for (auto &it : factories) {                                               \
       printf(" %s", it.first.c_str());                                         \
     }                                                                          \
-    printf("\n");                                                              \
+    printf("\n\n");                                                            \
   }
 
 // macro of declare base factory
