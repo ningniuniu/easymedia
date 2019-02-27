@@ -34,7 +34,7 @@ rkmedia为了使多媒体相关开发更简单而做，将比较偏底层一些�
 
 - 编译
 
-    确保外部设置-D<FORMAT>=ON -D<FORMAT>_DEMUXER=ON  
+    确保外部设置-D\<FORMAT\>=ON -D\<FORMAT\>_DEMUXER=ON  
     比如ogg音频解封装解码oggvorbis，就是-DOGGVORBIS=ON -DOGGVORBIS_DEMUXER=ON
 
 - 范例：[ogg_decode_test.cc](../../frameworks/media/ogg/test/ogg_decode_test.cc)
