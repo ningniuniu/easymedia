@@ -18,14 +18,14 @@ config RV_TARGET_RKMEDIA_OGG
 
 if RV_TARGET_RKMEDIA_OGG
 
-config RV_TARGET_RKMEDIA_OGG_DECODE
-    bool "ogg decode"
+config RV_TARGET_RKMEDIA_OGGVORBIS_DEMUXER
+    bool "ogg vorbis demuxer_decode"
     default y
     help
       wrapped function of libvorbisfile
 
-config RV_TARGET_RKMEDIA_OGG_ENCODE
-    bool "ogg encode"
+config RV_TARGET_RKMEDIA_OGGVORBIS_MUXER
+    bool "TODO: ogg vorbis encode_muxer"
     help
       wrapped function of libvorbisenc
 

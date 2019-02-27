@@ -31,7 +31,7 @@ public:
   virtual bool IncludeDecoder() final { return true; }
   virtual bool Init(Stream *input, MediaConfig *out_cfg) override;
   virtual char **GetComment();
-  virtual std::shared_ptr<MediaBuffer> Read() override;
+  virtual std::shared_ptr<MediaBuffer> Read(size_t request_size = 0) override;
 
 private:
   OggVorbis_File vf;
@@ -96,12 +96,14 @@ static int local_free(void *arg) {
   return 0;
 }
 
-std::shared_ptr<MediaBuffer> OggVorbisDemuxer::Read() {
-  static const int buffer_len = 2048 * 4;
-  void *pcmout = malloc(buffer_len);
+std::shared_ptr<MediaBuffer> OggVorbisDemuxer::Read(size_t request_size) {
+  static const size_t buffer_len = 2048 * 4;
+  if (request_size == 0)
+    request_size = buffer_len;
+  void *pcmout = malloc(request_size);
   if (!pcmout)
     return nullptr;
-  MediaBuffer mb(pcmout, buffer_len, -1, pcmout, local_free);
+  MediaBuffer mb(pcmout, request_size, -1, pcmout, local_free);
   SampleInfo empty_info;
   memset(&empty_info, 0, sizeof(empty_info));
   std::shared_ptr<SampleBuffer> sb =
@@ -113,7 +115,7 @@ std::shared_ptr<MediaBuffer> OggVorbisDemuxer::Read() {
   }
   int current_section = -1;
   long ret =
-      ov_read(&vf, (char *)pcmout, buffer_len, 0, 2, 1, &current_section);
+      ov_read(&vf, (char *)pcmout, request_size, 0, 2, 1, &current_section);
   if (ret > 0) {
     vorbis_info *vi = ov_info(&vf, -1);
     SampleInfo &info = sb->GetSampleInfo();

@@ -8,11 +8,14 @@
 
 # vi: set noexpandtab syntax=cmake:
 
+option(OGGVORBIS "" OFF)
+if (OGGVORBIS)
 pkg_check_modules(LIBOGG REQUIRED ogg)
 pkg_check_modules(LIBVORBIS REQUIRED vorbis)
+endif()
 
-option(OGG_DECODE "compile: ogg_decode" OFF)
-if (OGG_DECODE)
+option(OGGVORBIS_DEMUXER "compile: oggvorbis_demuxer" OFF)
+if (OGGVORBIS_DEMUXER)
 set(RK_MEDIA_OGG_SOURCE_FILES ogg/ogg_vorbis_demuxer.cc)
 set(RK_MEDIA_OGG_LIBS vorbisfile)
 endif()

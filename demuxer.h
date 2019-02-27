@@ -39,7 +39,7 @@ public:
   // Demuxer set the value of MediaConfig
   virtual bool Init(Stream *input, MediaConfig *out_cfg) = 0;
   virtual char **GetComment() { return nullptr; }
-  virtual std::shared_ptr<MediaBuffer> Read() = 0;
+  virtual std::shared_ptr<MediaBuffer> Read(size_t request_size = 0) = 0;
 
 public:
   double total_time; // seconds
