@@ -138,6 +138,16 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
+  void *extra_data = nullptr;
+  size_t extra_data_size = 0;
+  mpp_enc->GetExtraData(extra_data, extra_data_size);
+  fprintf(stderr, "extra_data: %p, extra_data_size: %d\n", extra_data,
+          extra_data_size);
+  if (extra_data && extra_data_size > 0) {
+    // if there is extra data, write it first
+    write(output_file_fd, extra_data, extra_data_size);
+  }
+
   GetPixFmtNumDen(fmt, num, den);
   auto src_buffer = alloc_hw_memory(info, num, den);
   assert(src_buffer);
@@ -145,11 +155,13 @@ int main(int argc, char **argv) {
   assert(dst_buffer);
 
   ssize_t read_len;
+  // Suppose input yuv data organization keep to align up to 16 stride width and
+  // height, if not, you need reorder data organization.
   size_t size = src_buffer->GetSize();
   int index = 0;
   while ((read_len = read(input_file_fd, src_buffer->GetPtr(), size)) > 0) {
-    src_buffer->SetValidSize(size);
-    dst_buffer->SetValidSize(size);
+    src_buffer->SetValidSize(src_buffer->GetSize());
+    dst_buffer->SetValidSize(dst_buffer->GetSize());
     index++;
     if (0 != mpp_enc->Process(src_buffer, dst_buffer, nullptr)) {
       fprintf(stderr, "frame %d encode failed\n", index);
