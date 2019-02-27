@@ -125,15 +125,17 @@ endif()
 add_subdirectory(stream)
 
 add_library(rkmedia SHARED ${RK_MEDIA_SOURCE_FILES})
-set_target_properties(rkmedia
-	PROPERTIES PUBLIC_HEADER "image.h;buffer.h;codec.h;reflector.h;encoder.h")
+file(GLOB RK_MEDIA_RELEASE_HEADERS *.h)
+set_target_properties(rkmedia PROPERTIES
+					  PUBLIC_HEADER "${RK_MEDIA_RELEASE_HEADERS}")
 
 if( RK_MEDIA_DEPENDENT_LIBS )
 target_link_libraries(rkmedia ${RK_MEDIA_DEPENDENT_LIBS})
 endif()
 
-message(files: ${RK_MEDIA_SOURCE_FILES})
-message(libs : ${RK_MEDIA_DEPENDENT_LIBS})
+message(headers: "${RK_MEDIA_RELEASE_HEADERS}")
+message(files: "${RK_MEDIA_SOURCE_FILES}")
+message(libs : "${RK_MEDIA_DEPENDENT_LIBS}")
 
 install(TARGETS rkmedia
 		LIBRARY DESTINATION "lib"

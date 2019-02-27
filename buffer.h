@@ -38,11 +38,10 @@ public:
   MediaBuffer(void *buffer_ptr, size_t buffer_size, int buffer_fd = -1,
               void *user_data = nullptr, DeleteFun df = nullptr)
       : ptr(buffer_ptr), size(buffer_size), fd(buffer_fd), valid_size(0),
-        type(Type::None), user_flag(0), timestamp(0), eof(false),
-        userdata(user_data, df) {
-    // if (user_data) {
-    //   userdata.reset(user_data, df);
-    // }
+        type(Type::None), user_flag(0), timestamp(0), eof(false) {
+    if (user_data && df) {
+      userdata.reset(user_data, df);
+    }
   }
   virtual ~MediaBuffer() = default;
   virtual PixelFormat GetPixelFormat() const { return PIX_FMT_NONE; }
