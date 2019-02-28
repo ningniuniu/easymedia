@@ -21,7 +21,8 @@ namespace rkmedia {
 class AlsaPlayBackStream : public Stream {
 public:
   static const int kPresetSamples = 1024;
-  static const int kPresetSampleRate = 44100;
+  static const int kPresetSampleRate = 48000; // the same to asound.conf
+  static const int kPresetMinBufferSize = 8192;
   AlsaPlayBackStream(const char *param);
   virtual ~AlsaPlayBackStream();
   static const char *GetStreamName() { return "alsa_playback_stream"; }
@@ -178,7 +179,12 @@ static int ALSA_set_period_size(snd_pcm_t *pcm_handle, uint32_t samples,
     return -1;
   }
 
-  periods = samples * sample_size / frames;
+  // when enable dmixer in asound.conf, rv1108 need large buffersize
+  if (samples * sample_size < AlsaPlayBackStream::kPresetMinBufferSize)
+    periods = (AlsaPlayBackStream::kPresetMinBufferSize + frames - 1) / frames;
+  else
+    periods = (samples * sample_size + frames - 1) / frames;
+
   status =
       snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &periods, NULL);
   if (status < 0) {
@@ -201,6 +207,8 @@ static int ALSA_set_buffer_size(snd_pcm_t *pcm_handle, uint32_t samples,
   snd_pcm_hw_params_copy(hwparams, params);
 
   frames = samples * sample_size;
+  if (frames < AlsaPlayBackStream::kPresetMinBufferSize)
+    frames = AlsaPlayBackStream::kPresetMinBufferSize;
   status =
       snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &frames);
   if (status < 0) {
