@@ -39,13 +39,15 @@
 
 #define VIDEO_H264 "video:h264"
 
-#define STREAM_OGG "stream:ogg"
-
 #define AUDIO_PCM_U8 "audio:pcm_u8"
 #define AUDIO_PCM_S16 "audio:pcm_s16"
 #define AUDIO_PCM_S32 "audio:pcm_s32"
 
 #define AUDIO_PCM                                                              \
   TYPENEAR(AUDIO_PCM_U8) TYPENEAR(AUDIO_PCM_S16) TYPENEAR(AUDIO_PCM_S32)
+
+#define STREAM_OGG "stream:ogg"
+
+#define STREAM_FILE "stream:file"
 
 #endif // #ifndef RKMEDIA_MEDIA_TYPE_H_

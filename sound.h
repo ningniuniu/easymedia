@@ -8,6 +8,8 @@
 #ifndef RKMEDIA_SOUND_H_
 #define RKMEDIA_SOUND_H_
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,7 +26,7 @@ typedef struct {
   SampleFormat fmt;
   int channels;
   int sample_rate;
-  int samples;
+  int frames;
 } SampleInfo;
 
 #ifdef __cplusplus
@@ -33,5 +35,7 @@ typedef struct {
 
 const char *SampleFormatToString(SampleFormat fmt);
 SampleFormat StringToSampleFormat(const char *fmt_str);
+bool SampleInfoIsValid(const SampleInfo &sample_info);
+size_t GetFrameSize(const SampleInfo &sample_info);
 
 #endif // #ifndef RKMEDIA_SOUND_H_

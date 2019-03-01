@@ -9,6 +9,8 @@ rkmedia为了使多媒体相关开发更简单而做，将比较偏底层一些�
 
 目前包含了视频硬件编解码接口，媒体格式封装解封装接口，音频软件编解码接口，音频采集输出播放接口等。
 
+编译基于[cmake](https://cmake.org/documentation)构建工具。
+
 视频硬件编码
 ----------
 
@@ -58,13 +60,33 @@ rkmedia为了使多媒体相关开发更简单而做，将比较偏底层一些�
 
     确保外部设置-DALSA_PLAYBACK=ON
 
-- 范例：[ogg_decode_test.cc](../../frameworks/media/ogg/test/ogg_decode_test.cc)
+- 范例：[ogg_decode_test.cc](../../frameworks/media/ogg/test/ogg_decode_test.cc)，复用[媒体格式解封装范例](#媒体格式解封装)一样的范例
 
     使用命令：./rkogg_decode_test -i test.ogg -o alsa:default
 
 - 接口及范例流程说明
 
     * (可不调用)rkmedia::REFLECTOR(Stream)::DumpFactories()：列出当前编入输入输出模块，stream的操作方法参数与c的FILE类似
-    * rkmedia::REFLECTOR(Stream)::Create\<rkmedia::Stream\>：创建音频播放输出流实例，参数为上述的DumpFactories中列出的一个模块对应的字符串和设置打开设备的参数。参数必须如范例中所示，包含device=\*\\nformat=\*\\nchannels=\*\\nsample_rate=\*\\n
-    * Write：写入一次数据，参数为buffer对应的sample size和sample numbers
+    * rkmedia::REFLECTOR(Stream)::Create\<rkmedia::Stream\>：创建音频播放输出流实例，参数为字符串"alsa_playback_stream"和设置打开设备的参数。参数必须如范例中所示，包含device=\*\\nformat=\*\\nchannels=\*\\nsample_rate=\*\\n
+    * Write：写入一次数据，参数为buffer对应的frame size和frame numbers
     * Close：关闭输出流
+
+音频输入采集
+----------
+
+> RK目前仅支持alsa，后续可能支持pulseaudio
+
+- 编译
+
+    确保外部设置-DALSA_CAPTURE=ON
+
+- 范例：[ogg_encode_test.cc](../../frameworks/media/ogg/test/ogg_encode_test.cc)， 复用[媒体格式封装范例](#媒体格式封装)一样的范例
+
+    使用命令：./rkogg_encode_test -f s16le -c 2 -r 48000 -i alsa:default -o output_s16le_c2_r48k.pcm
+
+- 接口及范例流程说明
+
+    * (可不调用)rkmedia::REFLECTOR(Stream)::DumpFactories()：列出当前编入输入输出模块，stream的操作方法参数与c的FILE类似
+    * rkmedia::REFLECTOR(Stream)::Create\<rkmedia::Stream\>：创建音频播放采集流实例，参数为字符串"alsa_capture_stream"和设置打开设备的参数。参数必须如范例中所示，包含device=\*\\nformat=\*\\nchannels=\*\\nsample_rate=\*\\n
+    * Read：读入一次数据，参数为buffer以及其对应的frame size和frame numbers
+    * Close：关闭采集流

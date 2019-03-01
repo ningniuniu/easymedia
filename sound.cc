@@ -36,3 +36,22 @@ SampleFormat StringToSampleFormat(const char *fmt_str) {
   }
   return SAMPLE_FMT_NONE;
 }
+
+bool SampleInfoIsValid(const SampleInfo &sample_info) {
+  return (sample_info.fmt != SAMPLE_FMT_NONE) && (sample_info.channels > 0) &&
+         (sample_info.sample_rate > 0);
+}
+
+size_t GetFrameSize(const SampleInfo &sample_info) {
+  size_t sample_size = sample_info.channels;
+  switch (sample_info.fmt) {
+  case SAMPLE_FMT_U8:
+    return sample_size;
+  case SAMPLE_FMT_S16:
+    return sample_size << 1;
+  case SAMPLE_FMT_S32:
+    return sample_size << 2;
+  default:
+    return 0;
+  }
+}

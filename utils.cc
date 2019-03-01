@@ -55,6 +55,27 @@ bool parse_media_param_list(const char *param, std::list<std::string> &list,
   return true;
 }
 
+int parse_media_param_match(
+    const char *param, std::map<std::string, std::string> &map,
+    std::list<std::pair<const std::string, std::string &>> &list) {
+  if (!rkmedia::parse_media_param_map(param, map))
+    return 0;
+  int match_num = 0;
+  for (auto &key : list) {
+    const std::string &req_key = key.first;
+    for (auto &entry : map) {
+      const std::string &entry_key = entry.first;
+      if (req_key == entry_key) {
+        key.second = entry.second;
+        match_num++;
+        break;
+      }
+    }
+  }
+
+  return match_num;
+}
+
 bool has_intersection(const char *str, const char *expect,
                       std::list<std::string> *expect_list) {
   std::list<std::string> request;
@@ -70,5 +91,16 @@ bool has_intersection(const char *str, const char *expect,
     }
   }
   return false;
+}
+
+bool string_end_withs(std::string const &fullString,
+                      std::string const &ending) {
+  if (fullString.length() >= ending.length()) {
+    return (0 ==
+            fullString.compare(fullString.length() - ending.length(),
+                               ending.length(), ending));
+  } else {
+    return false;
+  }
 }
 };

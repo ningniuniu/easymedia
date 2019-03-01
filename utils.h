@@ -9,6 +9,7 @@
 #define RKMEDIA_UTILS_H_
 
 #define _UNUSED __attribute__((unused))
+#define UNUSED(x) (void)x
 
 void LOG(const char *format, ...);
 
@@ -44,8 +45,13 @@ bool parse_media_param_map(const char *param,
                            std::map<std::string, std::string> &map);
 bool parse_media_param_list(const char *param, std::list<std::string> &list,
                             const char delim = '\n');
+int parse_media_param_match(
+    const char *param, std::map<std::string, std::string> &map,
+    std::list<std::pair<const std::string, std::string &>> &list);
 bool has_intersection(const char *str, const char *expect,
                       std::list<std::string> *expect_list);
+
+bool string_end_withs(std::string const &fullString, std::string const &ending);
 }
 
 #endif // #ifndef RKMEDIA_UTILS_H_

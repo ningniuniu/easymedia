@@ -96,20 +96,8 @@ public:
   }
 
   SampleInfo &GetSampleInfo() { return sample_info; }
-  size_t GetSampleSize() const {
-    size_t sample_size = sample_info.channels;
-    switch (sample_info.fmt) {
-    case SAMPLE_FMT_U8:
-      return sample_size;
-    case SAMPLE_FMT_S16:
-      return sample_size << 1;
-    case SAMPLE_FMT_S32:
-      return sample_size << 2;
-    default:
-      return 0;
-    }
-  }
-  int GetSamples() const { return sample_info.samples; }
+  size_t GetFrameSize() const { return ::GetFrameSize(sample_info); }
+  int GetFrames() const { return sample_info.frames; }
 
 private:
   SampleInfo sample_info;

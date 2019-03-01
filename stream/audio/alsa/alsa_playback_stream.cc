@@ -20,7 +20,7 @@ namespace rkmedia {
 
 class AlsaPlayBackStream : public Stream {
 public:
-  static const int kPresetSamples = 1024;
+  static const int kPresetFrames = 1024;
   static const int kPresetSampleRate = 48000; // the same to asound.conf
   static const int kPresetMinBufferSize = 8192;
   AlsaPlayBackStream(const char *param);
@@ -45,37 +45,17 @@ private:
   SampleInfo sample_info;
   std::string device;
   snd_pcm_t *alsa_handle;
-  size_t sample_size;
+  size_t frame_size;
 };
 
 AlsaPlayBackStream::AlsaPlayBackStream(const char *param)
-    : alsa_handle(NULL), sample_size(0) {
+    : alsa_handle(NULL), frame_size(0) {
+  memset(&sample_info, 0, sizeof(sample_info));
   sample_info.fmt = SAMPLE_FMT_NONE;
   std::map<std::string, std::string> params;
-  if (!parse_media_param_map(param, params))
-    return;
-  int i = 3; // "format", "channels", "sample_rate"
-  for (auto &p : params) {
-    const std::string &key = p.first;
-    if (key == "format") {
-      SampleFormat fmt = StringToSampleFormat(p.second.c_str());
-      if (fmt == SAMPLE_FMT_NONE) {
-        LOG("unknown pcm fmt: %s\n", p.second.c_str());
-        return;
-      }
-      sample_info.fmt = fmt;
-      i--;
-    } else if (key == "channels") {
-      sample_info.channels = stoi(p.second);
-      i--;
-    } else if (key == "sample_rate") {
-      sample_info.sample_rate = stoi(p.second);
-      i--;
-    } else if (key == "device") {
-      device = p.second;
-    }
-  }
-  if (i == 0)
+  int ret = ParseAlsaParams(param, params, device, sample_info);
+  UNUSED(ret);
+  if (SampleInfoIsValid(sample_info))
     SetWriteable(true);
   else
     LOG("missing some necessary param\n");
@@ -86,7 +66,7 @@ AlsaPlayBackStream::~AlsaPlayBackStream() { assert(!alsa_handle); }
 size_t AlsaPlayBackStream::Write(const void *ptr, size_t size, size_t nmemb) {
   size_t buffer_len = size * nmemb;
   snd_pcm_sframes_t frames =
-      (size == sample_size ? nmemb : buffer_len / sample_size);
+      (size == frame_size ? nmemb : buffer_len / frame_size);
   while (frames > 0) {
     // SND_PCM_ACCESS_RW_INTERLEAVED
     int status = snd_pcm_writei(alsa_handle, ptr, frames);
@@ -112,7 +92,7 @@ size_t AlsaPlayBackStream::Write(const void *ptr, size_t size, size_t nmemb) {
   }
 
 out:
-  return (buffer_len - frames * sample_size) / size;
+  return (buffer_len - frames * frame_size) / size;
 }
 
 static int ALSA_finalize_hardware(snd_pcm_t *pcm_handle, uint32_t samples,
@@ -227,88 +207,31 @@ int AlsaPlayBackStream::Open() {
   snd_pcm_hw_params_t *hwparams = NULL;
   snd_pcm_sw_params_t *swparams = NULL;
   snd_pcm_uframes_t period_size = 0;
-  unsigned int rate = sample_info.sample_rate;
-  uint32_t samples;
-  unsigned int channels;
+  uint32_t frames;
   if (!Writeable())
     return -1;
-  snd_pcm_format_t pcm_fmt = SampleFormatToAlsaFormat(sample_info.fmt);
-  if (pcm_fmt == SND_PCM_FORMAT_UNKNOWN)
+  int status = snd_pcm_hw_params_malloc(&hwparams);
+  if (status < 0) {
+    LOG("snd_pcm_hw_params_malloc failed\n");
     return -1;
-  int status =
-      snd_pcm_open(&pcm_handle, device.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
-  if (status < 0 || !pcm_handle) {
-    LOG("audio open error: %s\n", snd_strerror(status));
-    goto err;
   }
-  snd_pcm_hw_params_alloca(&hwparams);
-  snd_pcm_sw_params_alloca(&swparams);
-  if (!hwparams || !swparams) {
-    LOG("snd_pcm_(hw/sw)_params_alloca failed\n");
-    goto err;
-  }
-  status = snd_pcm_hw_params_any(pcm_handle, hwparams);
+  status = snd_pcm_sw_params_malloc(&swparams);
   if (status < 0) {
-    LOG("Couldn't get hardware config: %s\n", snd_strerror(status));
+    LOG("snd_pcm_sw_params_malloc failed\n");
     goto err;
   }
-#ifdef DEBUG
-  {
-    snd_output_t *log = NULL;
-    snd_output_stdio_attach(&log, stderr, 0);
-    // fprintf(stderr, "HW Params of device \"%s\":\n",
-    //        snd_pcm_name(pcm_handle));
-    LOG("--------------------\n");
-    snd_pcm_hw_params_dump(hwparams, log);
-    LOG("--------------------\n");
-    snd_output_close(log);
-  }
-#endif
-  // TODO: fixed SND_PCM_ACCESS_RW_INTERLEAVED
-  status = snd_pcm_hw_params_set_access(pcm_handle, hwparams,
-                                        SND_PCM_ACCESS_RW_INTERLEAVED);
-  if (status < 0) {
-    LOG("Couldn't set interleaved access: %s\n", snd_strerror(status));
+  pcm_handle = AlsaCommonOpenSetHwParams(
+      device.c_str(), SND_PCM_STREAM_PLAYBACK, 0, sample_info, hwparams);
+  if (!pcm_handle)
     goto err;
-  }
-  status = snd_pcm_hw_params_set_format(pcm_handle, hwparams, pcm_fmt);
-  if (status < 0) {
-    LOG("Couldn't find any hardware audio formats\n");
-    ShowAlsaAvailableFormats(pcm_handle, hwparams);
-    goto err;
-  }
-  status = snd_pcm_hw_params_set_channels(pcm_handle, hwparams,
-                                          sample_info.channels);
-  if (status < 0) {
-    LOG("Couldn't set audio channels<%d>: %s\n", sample_info.channels,
-        snd_strerror(status));
-    goto err;
-  }
-  status = snd_pcm_hw_params_get_channels(hwparams, &channels);
-  if (status < 0 || channels != (unsigned int)sample_info.channels) {
-    LOG("final channels do not match expected, %d != %d. resample require.\n",
-        channels, sample_info.channels);
-    goto err;
-  }
-  status = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &rate, NULL);
-  if (status < 0) {
-    LOG("Couldn't set audio frequency<%d>: %s\n", sample_info.sample_rate,
-        snd_strerror(status));
-    goto err;
-  }
-  if (rate != (unsigned int)sample_info.sample_rate) {
-    LOG("final sample rate do not match expected, %d != %d. resample "
-        "require.\n",
-        rate, sample_info.sample_rate);
-    goto err;
-  }
-  samples = std::min<int>(
-      kPresetSamples,
-      2 << (MATH_LOG2(rate * kPresetSamples / kPresetSampleRate) - 1));
-  sample_size = channels * (snd_pcm_format_physical_width(pcm_fmt) >> 3);
-  if (ALSA_set_period_size(pcm_handle, samples, sample_size, hwparams,
+  frames = std::min<int>(kPresetFrames,
+                         2 << (MATH_LOG2(sample_info.sample_rate *
+                                         kPresetFrames / kPresetSampleRate) -
+                               1));
+  frame_size = snd_pcm_frames_to_bytes(pcm_handle, 1);
+  if (ALSA_set_period_size(pcm_handle, frames, frame_size, hwparams,
                            &period_size) < 0 &&
-      ALSA_set_buffer_size(pcm_handle, samples, sample_size, hwparams,
+      ALSA_set_buffer_size(pcm_handle, frames, frame_size, hwparams,
                            &period_size) < 0) {
     goto err;
   }
@@ -337,10 +260,16 @@ int AlsaPlayBackStream::Open() {
   /* Switch to blocking mode for playback */
   // snd_pcm_nonblock(pcm_handle, 0);
 
+  snd_pcm_hw_params_free(hwparams);
+  snd_pcm_sw_params_free(swparams);
   alsa_handle = pcm_handle;
   return 0;
 
 err:
+  if (hwparams)
+    snd_pcm_hw_params_free(hwparams);
+  if (swparams)
+    snd_pcm_sw_params_free(swparams);
   if (pcm_handle) {
     snd_pcm_drain(pcm_handle);
     snd_pcm_close(pcm_handle);

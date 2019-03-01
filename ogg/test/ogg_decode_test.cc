@@ -147,8 +147,8 @@ int main(int argc, char **argv) {
     }
     if (out_stream)
       out_stream->Write(
-          buffer->GetPtr(), sample_buffer->GetSampleSize(),
-          sample_buffer->GetSamples()); // TODO: check the ret value
+          buffer->GetPtr(), sample_buffer->GetFrameSize(),
+          sample_buffer->GetFrames()); // TODO: check the ret value
     if (output_file_fd >= 0)
       write(output_file_fd, buffer->GetPtr(), buffer->GetValidSize());
   }

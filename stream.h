@@ -63,6 +63,8 @@ public:
   void SetWriteable(bool able) { writeable = able; }
   void SetSeekable(bool able) { seekable = able; }
 
+  virtual bool Eof() { return false; }
+
 private:
   bool readable;
   bool writeable;
