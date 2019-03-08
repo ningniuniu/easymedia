@@ -103,9 +103,21 @@ if(WARNINGS_AS_ERRORS)
 	endif()
 endif(WARNINGS_AS_ERRORS)
 
+pkg_check_modules(LIBDRM libdrm)
+if ( LIBDRM_FOUND )
+add_definitions(-DLIBDRM)
+include_directories(${LIBDRM_INCLUDE_DIRS})
+set(RK_MEDIA_DEPENDENT_LIBS drm)
+endif()
+
+pkg_check_modules(LIBION libion)
+if (LIBION_FOUND)
+add_definitions(-DLIBION)
+include_directories(${LIBION_INCLUDE_DIRS})
+set(RK_MEDIA_DEPENDENT_LIBS ion)
+endif()
+
 aux_source_directory(. RK_MEDIA_SOURCE_FILES)
-# set( codec.cc demuxer.cc encoder.cc image.cc
-# 							stream.cc utils.cc)
 
 # ----------------------------------------------------------------------------
 #  Start module definition

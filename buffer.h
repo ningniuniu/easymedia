@@ -14,6 +14,7 @@
 #include <memory>
 
 #include "image.h"
+#include "media_type.h"
 #include "sound.h"
 
 typedef int (*DeleteFun)(void *arg);
@@ -23,8 +24,6 @@ namespace rkmedia {
 // wrapping existing buffer
 class MediaBuffer {
 public:
-  enum class Type { None = -1, Audio = 0, Image, Video, Text };
-
   // video flags
   static const uint32_t kIntra = (1 << 0);
   static const uint32_t kPredicted = (1 << 1);
@@ -39,9 +38,7 @@ public:
               void *user_data = nullptr, DeleteFun df = nullptr)
       : ptr(buffer_ptr), size(buffer_size), fd(buffer_fd), valid_size(0),
         type(Type::None), user_flag(0), timestamp(0), eof(false) {
-    if (user_data && df) {
-      userdata.reset(user_data, df);
-    }
+    SetUserData(user_data, df);
   }
   virtual ~MediaBuffer() = default;
   virtual PixelFormat GetPixelFormat() const { return PIX_FMT_NONE; }
@@ -64,11 +61,39 @@ public:
   void SetEOF(bool val) { eof = val; }
 
   void SetUserData(void *user_data, DeleteFun df) {
-    userdata.reset(user_data, df);
+    if (user_data) {
+      if (df)
+        userdata.reset(user_data, df);
+      else
+        userdata.reset(user_data, [](void *) {}); // do nothing when delete
+    }
   }
+
+  std::shared_ptr<void> GetUserData() { return userdata; }
 
   bool IsValid() { return valid_size > 0; }
   bool IsHwBuffer() { return fd >= 0; }
+
+  void Reset(std::shared_ptr<MediaBuffer> smb) {
+    MediaBuffer *mb = smb.get();
+    if (!mb)
+      return;
+    *this = *mb;
+  }
+
+public:
+  enum class MemType {
+    MEM_COMMON,
+#ifdef LIBION
+    MEM_ION,
+#endif
+#ifdef LIBDRM
+#error(__FILE__:__LINE__): drm TODO
+    MEM_DRM,
+#endif
+  };
+  static std::shared_ptr<rkmedia::MediaBuffer>
+  Alloc(size_t size, MemType type = MemType::MEM_COMMON);
 
 private:
   void *ptr; // buffer virtual address
@@ -97,6 +122,10 @@ public:
 
   SampleInfo &GetSampleInfo() { return sample_info; }
   size_t GetFrameSize() const { return ::GetFrameSize(sample_info); }
+  void SetFrames(int num) {
+    sample_info.frames = num;
+    SetValidSize(num * GetFrameSize());
+  }
   int GetFrames() const { return sample_info.frames; }
 
 private:

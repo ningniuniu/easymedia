@@ -12,21 +12,6 @@
 #include "mpp_inc.h"
 #include <mpp/rk_mpi.h>
 
-#define DEFINE_MPP_ENCODER_FACTORY(REAL_PRODUCT)                               \
-  DEFINE_VIDEO_ENCODER_FACTORY(REAL_PRODUCT)                                   \
-  std::shared_ptr<Encoder> FACTORY(REAL_PRODUCT)::NewProduct(                  \
-      const char *param) {                                                     \
-    REAL_PRODUCT *mpp_enc = new REAL_PRODUCT(param);                           \
-    if (!mpp_enc)                                                              \
-      return nullptr;                                                          \
-    if (!mpp_enc->Init()) {                                                    \
-      delete mpp_enc;                                                          \
-      return nullptr;                                                          \
-    }                                                                          \
-                                                                               \
-    return std::shared_ptr<Encoder>(mpp_enc);                                  \
-  }
-
 // mpp_packet_impl.h which define MPP_PACKET_FLAG_INTRA is not exposed,
 // here define the same MPP_PACKET_FLAG_INTRA.
 #ifndef MPP_PACKET_FLAG_INTRA
@@ -48,6 +33,9 @@ public:
   virtual int Process(std::shared_ptr<MediaBuffer> input,
                       std::shared_ptr<MediaBuffer> output,
                       std::shared_ptr<MediaBuffer> extra_output) override;
+
+  virtual int SendInput(std::shared_ptr<MediaBuffer> input _UNUSED) override;
+  virtual std::shared_ptr<MediaBuffer> FetchOutput() override;
 
 protected:
   // call before Init()

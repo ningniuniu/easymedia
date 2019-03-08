@@ -36,10 +36,8 @@ DECLARE_REFLECTOR(Encoder)
 #define DEFINE_ENCODER_FACTORY(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)             \
   DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetCodecName(),       \
                              FINAL_EXPOSE_PRODUCT, Encoder)                    \
-  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)
-
-#define DEFINE_VIDEO_ENCODER_FACTORY(REAL_PRODUCT)                             \
-  DEFINE_ENCODER_FACTORY(REAL_PRODUCT, VideoEncoder)
+  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)                               \
+  DEFINE_MEDIA_NEWINIT_PRODUCT(REAL_PRODUCT, Encoder)
 
 class Encoder : public Codec {
 public:
@@ -72,6 +70,9 @@ private:
   void *user_data;
 };
 
+#define DEFINE_VIDEO_ENCODER_FACTORY(REAL_PRODUCT)                             \
+  DEFINE_ENCODER_FACTORY(REAL_PRODUCT, VideoEncoder)
+
 class VideoEncoder : public Encoder {
 public:
   // changes
@@ -92,6 +93,17 @@ protected:
 private:
   std::mutex change_mtx;
   std::list<std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>> change_list;
+
+  DECLARE_PART_FINAL_EXPOSE_PRODUCT(Encoder)
+};
+
+#define DEFINE_AUDIO_ENCODER_FACTORY(REAL_PRODUCT)                             \
+  DEFINE_ENCODER_FACTORY(REAL_PRODUCT, AudioEncoder)
+
+class AudioEncoder : public Encoder {
+public:
+  virtual ~AudioEncoder() = default;
+  virtual bool InitConfig(const MediaConfig &cfg) override;
 
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Encoder)
 };

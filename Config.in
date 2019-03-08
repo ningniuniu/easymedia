@@ -25,7 +25,7 @@ config RV_TARGET_RKMEDIA_OGGVORBIS_DEMUXER
       wrapped function of libvorbisfile
 
 config RV_TARGET_RKMEDIA_OGGVORBIS_MUXER
-    bool "TODO: ogg vorbis encode_muxer"
+    bool "ogg vorbis encode_muxer"
     help
       wrapped function of libvorbisenc
 

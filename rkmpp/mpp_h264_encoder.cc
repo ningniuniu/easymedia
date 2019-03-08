@@ -354,12 +354,12 @@ int MPPH264Encoder::Process(std::shared_ptr<MediaBuffer> input,
                             std::shared_ptr<MediaBuffer> extra_output) {
   int ret = MPPEncoder::Process(input, output, extra_output);
   if (!ret)
-    output->SetType(MediaBuffer::Type::Video);
+    output->SetType(Type::Video);
 
   return ret;
 }
 
-DEFINE_MPP_ENCODER_FACTORY(MPPH264Encoder)
+DEFINE_VIDEO_ENCODER_FACTORY(MPPH264Encoder)
 const char *FACTORY(MPPH264Encoder)::ExpectedInputDataType() {
   return MppAcceptImageFmts();
 }

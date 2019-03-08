@@ -66,7 +66,9 @@ public:
       return EOF;
     }
     eof = true;
-    return fclose(file);
+    int ret = fclose(file);
+    file = NULL;
+    return ret;
   }
 
   virtual bool Eof() final { return eof; }

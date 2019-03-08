@@ -96,7 +96,7 @@ fail:
 int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
                                 MppFrame &frame) {
   MppBuffer pic_buf = nullptr;
-  if (input->GetType() != MediaBuffer::Type::Image) {
+  if (input->GetType() != Type::Image) {
     LOG("mpp encoder input source only support image buffer\n");
     return -EINVAL;
   }
@@ -344,6 +344,15 @@ int MPPEncoder::Process(MppFrame frame, MppPacket &packet, MppBuffer &mv_buf) {
   }
 
   return 0;
+}
+
+int MPPEncoder::SendInput(std::shared_ptr<MediaBuffer> input _UNUSED) {
+  errno = ENOSYS;
+  return -1;
+}
+std::shared_ptr<MediaBuffer> MPPEncoder::FetchOutput() {
+  errno = ENOSYS;
+  return nullptr;
 }
 
 int MPPEncoder::EncodeControl(int cmd, void *param) {

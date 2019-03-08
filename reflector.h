@@ -29,7 +29,8 @@
     static const char *FindFirstMatchIdentifier(const char *rules);            \
     static bool IsMatch(const char *identifier, const char *rules);            \
     template <class T>                                                         \
-    static std::shared_ptr<T> Create(const char *request, const char *param) { \
+    static std::shared_ptr<T> Create(const char *request,                      \
+                                     const char *param = nullptr) {            \
       if (!IsDerived<T, PRODUCT>::Result) {                                    \
         LOG("The template class type is not derived of required type\n");      \
         return nullptr;                                                        \

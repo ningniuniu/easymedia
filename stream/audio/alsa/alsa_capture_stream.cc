@@ -89,7 +89,7 @@ size_t AlsaCaptureStream::Read(void *ptr, size_t size, size_t nmemb) {
     gotten += status;
   }
 
-  return gotten * frame_size;
+  return gotten * frame_size / size;
 }
 
 int AlsaCaptureStream::Open() {

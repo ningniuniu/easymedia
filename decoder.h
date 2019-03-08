@@ -27,8 +27,7 @@ DECLARE_REFLECTOR(Decoder)
 #define DEFINE_AUDIO_DECODER_FACTORY(REAL_PRODUCT)                             \
   DEFINE_DECODER_FACTORY(REAL_PRODUCT, AudioDecoder)
 
-// Decoder often need thread model for maximize performance, particularly video
-class Decoder : public ThreadCodec {
+class Decoder : public Codec {
 public:
   virtual ~Decoder() = default;
 };

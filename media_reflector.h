@@ -65,4 +65,24 @@
     return true;                                                               \
   }
 
+#define DEFINE_MEDIA_NEW_PRODUCT(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)           \
+  std::shared_ptr<FINAL_EXPOSE_PRODUCT> FACTORY(REAL_PRODUCT)::NewProduct(     \
+      const char *param) {                                                     \
+    return std::make_shared<REAL_PRODUCT>(param);                              \
+  }
+
+#define DEFINE_MEDIA_NEWINIT_PRODUCT(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)       \
+  std::shared_ptr<FINAL_EXPOSE_PRODUCT> FACTORY(REAL_PRODUCT)::NewProduct(     \
+      const char *param) {                                                     \
+    REAL_PRODUCT *rp = new REAL_PRODUCT(param);                                \
+    if (!rp)                                                                   \
+      return nullptr;                                                          \
+    if (!rp->Init()) {                                                         \
+      delete rp;                                                               \
+      return nullptr;                                                          \
+    }                                                                          \
+                                                                               \
+    return std::shared_ptr<FINAL_EXPOSE_PRODUCT>(rp);                          \
+  }
+
 #endif // #ifndef RKMEDIA_MEDIA_REFLECTOR_H_

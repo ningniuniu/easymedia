@@ -25,7 +25,8 @@ DECLARE_REFLECTOR(Demuxer)
 #define DEFINE_DEMUXER_FACTORY(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)             \
   DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetDemuxName(),       \
                              FINAL_EXPOSE_PRODUCT, Demuxer)                    \
-  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)
+  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)                               \
+  DEFINE_MEDIA_NEW_PRODUCT(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)
 
 class MediaBuffer;
 class Demuxer {
@@ -37,7 +38,7 @@ public:
   // Indicate whether the demuxer do internally decoding
   virtual bool IncludeDecoder() { return false; }
   // Demuxer set the value of MediaConfig
-  virtual bool Init(Stream *input, MediaConfig *out_cfg) = 0;
+  virtual bool Init(std::shared_ptr<Stream> input, MediaConfig *out_cfg) = 0;
   virtual char **GetComment() { return nullptr; }
   virtual std::shared_ptr<MediaBuffer> Read(size_t request_size = 0) = 0;
 

@@ -14,7 +14,8 @@
 #include <string>
 
 #include "buffer.h"
-#include "demuxer.h"
+#include "encoder.h"
+#include "muxer.h"
 
 static int free_memory(void *buffer) {
   assert(buffer);
@@ -58,8 +59,12 @@ int main(int argc, char **argv) {
     case '?':
     default:
       printf("usage example: \n");
-      printf("rkogg_encode_test -f s16le -c 2 -r 48000 -i input.pcm -o output.ogg\n"
-             "rkogg_encode_test -f s16le -c 2 -r 48000 -i alsa:default -o output.ogg\n");
+      printf("rkogg_encode_test -f s16le -c 2 -r 48000 -i input.pcm -o "
+             "output.ogg\n"
+             "rkogg_encode_test -f s16le -c 2 -r 48000 -i alsa:default -o "
+             "output.pcm\n"
+             "rkogg_encode_test -f s16le -c 2 -r 48000 -i alsa:default -o "
+             "output.ogg\n");
       break;
     }
   }
@@ -67,13 +72,13 @@ int main(int argc, char **argv) {
       input_channels <= 0 || input_sample_rate <= 0)
     exit(EXIT_FAILURE);
 
+  int64_t start_time = -1;
   std::string alsa_device;
   if (input_path.find("alsa:") == 0) {
     alsa_device = input_path.substr(input_path.find(':') + 1);
     assert(!alsa_device.empty());
-  } else {
+    start_time = rkmedia::gettimeofday();
   }
-
   LOG("alsa_device: %s\n", alsa_device.c_str());
 
   MediaConfig pcm_config;
@@ -141,7 +146,38 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  sample_info.frames = 1024;
+  auto write_stream = out_stream;
+  std::shared_ptr<rkmedia::Encoder> enc;
+  std::shared_ptr<rkmedia::Muxer> mux;
+  int mux_stream_no = -1;
+  if (rkmedia::string_end_withs(output_path, ".ogg")) {
+    rkmedia::REFLECTOR(Muxer)::DumpFactories();
+    mux = rkmedia::REFLECTOR(Muxer)::Create<rkmedia::Muxer>("liboggmuxer");
+    assert(mux);
+    if (!mux->IncludeEncoder()) {
+      rkmedia::REFLECTOR(Encoder)::DumpFactories();
+      enc = rkmedia::REFLECTOR(Encoder)::Create<rkmedia::AudioEncoder>(
+          "libvorbisenc");
+      assert(enc);
+      aud_cfg.quality = 1.0;
+      if (!enc->InitConfig(pcm_config)) {
+        fprintf(stderr, "init config failed\n");
+        exit(EXIT_FAILURE);
+      }
+      if (!mux->NewMuxerStream(enc, mux_stream_no)) {
+        fprintf(stderr, "NewMuxerStream failed\n");
+        exit(EXIT_FAILURE);
+      }
+    }
+    mux->SetIoStream(write_stream);
+    write_stream = nullptr;
+    auto header = mux->WriteHeader(mux_stream_no);
+    if (!header)
+      fprintf(stderr, "warning: WriteHeader return nullptr\n");
+  }
+
+  const int read_frames = 1024;
+  sample_info.frames = read_frames;
   int buffer_size = GetFrameSize(sample_info) * sample_info.frames;
   void *ptr = malloc(buffer_size);
   assert(ptr);
@@ -154,16 +190,74 @@ int main(int argc, char **argv) {
   while (1) {
     if (in_stream->Eof())
       break;
-    size_t read_size =
-        in_stream->Read(sample_buffer->GetPtr(), sample_buffer->GetFrameSize(),
-                        sample_buffer->GetFrames());
+    if (start_time > 0 && rkmedia::gettimeofday() - start_time > 10 * 1000)
+      break;
+    size_t read_size = in_stream->Read(
+        sample_buffer->GetPtr(), sample_buffer->GetFrameSize(), read_frames);
     if (!read_size && errno != EAGAIN) {
       exit(EXIT_FAILURE); // fatal error
     }
+    sample_buffer->SetFrames(read_size);
+    if (mux) {
+      std::shared_ptr<rkmedia::MediaBuffer> mux_output;
+      if (enc) {
+        if (enc->SendInput(sample_buffer)) {
+          fprintf(stderr, "warning: enc SendInput failed\n");
+          exit(EXIT_FAILURE);
+        }
+        while (true) {
+          auto enc_output = enc->FetchOutput();
+          if (!enc_output)
+            break;
+          if (enc_output->GetValidSize() > 0) {
+            mux_output = mux->Write(enc_output, mux_stream_no);
+            if (write_stream && mux_output)
+              write_stream->Write(mux_output->GetPtr(), 1,
+                                  mux_output->GetValidSize());
+          }
+        }
+      } else {
+        mux_output = mux->Write(sample_buffer, mux_stream_no);
+        if (write_stream && mux_output)
+          write_stream->Write(mux_output->GetPtr(), 1,
+                              mux_output->GetValidSize());
+      }
+    } else {
+      // write pcm
+      write_stream->Write(
+          sample_buffer->GetPtr(), sample_buffer->GetFrameSize(),
+          read_size /
+              sample_buffer->GetFrameSize()); // TODO: check the ret value
+    }
+  }
 
-    out_stream->Write(
-        sample_buffer->GetPtr(), sample_buffer->GetFrameSize(),
-        read_size / sample_buffer->GetFrameSize()); // TODO: check the ret value
+  if (mux) {
+    std::shared_ptr<rkmedia::MediaBuffer> mux_output;
+    sample_buffer->SetFrames(0);
+    bool eof = false;
+    if (enc) {
+      while (!eof) {
+        if (enc->SendInput(sample_buffer))
+          exit(EXIT_FAILURE);
+        while (true) {
+          auto enc_output = enc->FetchOutput();
+          if (!enc_output)
+            break;
+          if (enc_output->GetValidSize() > 0) {
+            mux_output = mux->Write(enc_output, mux_stream_no);
+            eof = enc_output->IsEOF();
+            enc_output.reset();
+          }
+          if (write_stream && mux_output) {
+            write_stream->Write(mux_output->GetPtr(), 1,
+                                mux_output->GetValidSize());
+            mux_output.reset();
+          }
+        }
+      }
+    } else {
+      // TODO
+    }
   }
 
   if (in_stream) {

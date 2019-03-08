@@ -120,12 +120,12 @@ int MPPJpegEncoder::Process(std::shared_ptr<MediaBuffer> input,
                             std::shared_ptr<MediaBuffer> extra_output) {
   int ret = MPPEncoder::Process(input, output, extra_output);
   if (!ret)
-    output->SetType(MediaBuffer::Type::Image);
+    output->SetType(Type::Image);
 
   return ret;
 }
 
-DEFINE_MPP_ENCODER_FACTORY(MPPJpegEncoder)
+DEFINE_VIDEO_ENCODER_FACTORY(MPPJpegEncoder)
 const char *FACTORY(MPPJpegEncoder)::ExpectedInputDataType() {
   return MppAcceptImageFmts();
 }

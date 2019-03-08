@@ -89,4 +89,11 @@ bool VideoEncoder::InitConfig(const MediaConfig &cfg) {
 
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(VideoEncoder, Encoder)
 
+bool AudioEncoder::InitConfig(const MediaConfig &cfg) {
+  Codec::SetConfig(cfg);
+  return true;
+}
+
+DEFINE_PART_FINAL_EXPOSE_PRODUCT(AudioEncoder, Encoder)
+
 } // namespace rkmedia

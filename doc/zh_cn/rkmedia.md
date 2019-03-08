@@ -16,7 +16,7 @@ rkmedia为了使多媒体相关开发更简单而做，将比较偏底层一些�
 
 - 编译
 
-    确保外部设置-DRKMPP=ON
+    确保对应CMakeLists.txt设置-DRKMPP=ON
 
 - 范例：[mpp_enc_test.cc](../../frameworks/media/rkmpp/test/mpp_enc_test.cc)
 
@@ -36,7 +36,7 @@ rkmedia为了使多媒体相关开发更简单而做，将比较偏底层一些�
 
 - 编译
 
-    确保外部设置-D\<FORMAT\>=ON -D\<FORMAT\>_DEMUXER=ON  
+    确保对应CMakeLists.txt设置-D\<FORMAT\>=ON -D\<FORMAT\>_DEMUXER=ON  
     比如ogg音频解封装解码oggvorbis，就是-DOGGVORBIS=ON -DOGGVORBIS_DEMUXER=ON
 
 - 范例：[ogg_decode_test.cc](../../frameworks/media/ogg/test/ogg_decode_test.cc)
@@ -58,7 +58,7 @@ rkmedia为了使多媒体相关开发更简单而做，将比较偏底层一些�
 
 - 编译
 
-    确保外部设置-DALSA_PLAYBACK=ON
+    确保对应CMakeLists.txt设置-DALSA_PLAYBACK=ON
 
 - 范例：[ogg_decode_test.cc](../../frameworks/media/ogg/test/ogg_decode_test.cc)，复用[媒体格式解封装范例](#媒体格式解封装)一样的范例
 
@@ -78,7 +78,7 @@ rkmedia为了使多媒体相关开发更简单而做，将比较偏底层一些�
 
 - 编译
 
-    确保外部设置-DALSA_CAPTURE=ON
+    确保对应CMakeLists.txt设置-DALSA_CAPTURE=ON
 
 - 范例：[ogg_encode_test.cc](../../frameworks/media/ogg/test/ogg_encode_test.cc)， 复用[媒体格式封装范例](#媒体格式封装)一样的范例
 
@@ -90,3 +90,47 @@ rkmedia为了使多媒体相关开发更简单而做，将比较偏底层一些�
     * rkmedia::REFLECTOR(Stream)::Create\<rkmedia::Stream\>：创建音频播放采集流实例，参数为字符串"alsa_capture_stream"和设置打开设备的参数。参数必须如范例中所示，包含device=\*\\nformat=\*\\nchannels=\*\\nsample_rate=\*\\n
     * Read：读入一次数据，参数为buffer以及其对应的frame size和frame numbers
     * Close：关闭采集流
+
+
+音频编码
+-------
+
+- 编译
+
+    确保对应CMakeLists.txt设置-D\<FORMAT\>_ENCODER=ON  
+    比如VORBIS音频编码vorbis，就是-DOGGVORBIS=ON -DVORBIS_ENCODER=ON
+
+- 范例：[ogg_encode_test.cc](../../frameworks/media/ogg/test/ogg_encode_test.cc)
+
+    使用命令查看使用方法：./ogg_encode_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
+
+- 接口及范例流程说明
+
+    * (可不调用)rkmedia::REFLECTOR(Encoder)::DumpFactories()：列出当前编入的编码器模块
+    * rkmedia::REFLECTOR(Encoder)::Create\<rkmedia::AudioEncoder\>：创建音频编码器实例，参数为上述的DumpFactories中列出的一个模块对应的字符串，比如范例中的libvorbisenc
+    * InitConfig：初始化编码器，参数为所需编码算法对应的设置系数
+    * Process：如果该函数返回负值且errno==ENOSYS，则表示此编码器不支持该接口，需要调用下面的SendInput和FetchOutput接口
+    * SendInput：传入裸数据SampleBuffer，如果frames为0，则表示告知编码器传入数据结束
+    * FetchOutput：获取编码后的数据，由于有些编码器，比如libvorbisenc，输入一次，会输出多帧，所以这里需要while循环获取直到无数据
+
+媒体格式封装
+------------
+
+- 编译
+
+    确保对应CMakeLists.txt设置-D\<FORMAT\>_MUXER=ON  
+    比如OGG音频封装ogg，就是-DOGGVORBIS=ON -DOGG_MUXER=ON
+
+- 范例：[ogg_encode_test.cc](../../frameworks/media/ogg/test/ogg_encode_test.cc)
+
+    使用命令查看使用方法：./rkogg_encode_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
+
+- 接口及范例流程说明
+
+    * (可不调用)rkmedia::REFLECTOR(Muxer)::DumpFactories()：列出当前编入的格式封装模块
+    * rkmedia::REFLECTOR(Muxer)::Create\<rkmedia::Muxer\>：创建格式封装实例，参数为上述的DumpFactories中列出的一个模块对应的字符串，比如范例中的liboggmuxer
+    * IncludeEncoder()：判断是否此解封装模块已包含了编码功能。如果没有，需要按章节[音频编码](#音频编码)所述创建编码器实例先做编码再传入做封装
+    * NewMuxerStream：创建一路数据流，返回数据流对应序号于参数stream_no
+    * SetIoStream：托管封装后数据写入的io stream。如果调用了该函数，则封装后立刻调用此io stream的Write方法写入数据；否则需要外部程序自行处理输出的封装数据
+    * WriteHeader：获取封装格式头信息数据
+    * Write：传入编码后的数据和对应数据流的序号，输出封装数据

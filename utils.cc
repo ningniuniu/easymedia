@@ -93,6 +93,15 @@ bool has_intersection(const char *str, const char *expect,
   return false;
 }
 
+bool string_start_withs(std::string const &fullString,
+                        std::string const &starting) {
+  if (fullString.length() >= starting.length()) {
+    return (0 == fullString.find(starting));
+  } else {
+    return false;
+  }
+}
+
 bool string_end_withs(std::string const &fullString,
                       std::string const &ending) {
   if (fullString.length() >= ending.length()) {

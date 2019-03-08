@@ -44,6 +44,7 @@ typedef struct {
   SampleInfo sample_info;
   // uint64_t channel_layout;
   int bit_rate;
+  float quality; // vorbis: 0.0 ~ 1.0;
 } AudioConfig;
 
 typedef union {

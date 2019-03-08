@@ -8,6 +8,8 @@
 #ifndef RKMEDIA_MEDIA_TYPE_H_
 #define RKMEDIA_MEDIA_TYPE_H_
 
+enum class Type { None = -1, Audio = 0, Image, Video, Text };
+
 // My fixed convention:
 //  definition = "=", value separator = ",", definition separator = "\n"
 //  for example,
@@ -38,6 +40,8 @@
 #define IMAGE_JPEG "image:jpeg"
 
 #define VIDEO_H264 "video:h264"
+
+#define AUDIO_VORBIS "audio:vorbis"
 
 #define AUDIO_PCM_U8 "audio:pcm_u8"
 #define AUDIO_PCM_S16 "audio:pcm_s16"

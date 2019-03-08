@@ -29,7 +29,8 @@ public:
   virtual ~OggVorbisDemuxer();
   static const char *GetDemuxName() { return "oggvorbis"; }
   virtual bool IncludeDecoder() final { return true; }
-  virtual bool Init(Stream *input, MediaConfig *out_cfg) override;
+  virtual bool Init(std::shared_ptr<Stream> input,
+                    MediaConfig *out_cfg) override;
   virtual char **GetComment();
   virtual std::shared_ptr<MediaBuffer> Read(size_t request_size = 0) override;
 
@@ -43,7 +44,8 @@ OggVorbisDemuxer::OggVorbisDemuxer(const char *param) : Demuxer(param) {
 
 OggVorbisDemuxer::~OggVorbisDemuxer() { ov_clear(&vf); }
 
-bool OggVorbisDemuxer::Init(Stream *input, MediaConfig *out_cfg) {
+bool OggVorbisDemuxer::Init(std::shared_ptr<Stream> input,
+                            MediaConfig *out_cfg) {
   int ret = 0;
 
   if (!input) {
@@ -59,7 +61,7 @@ bool OggVorbisDemuxer::Init(Stream *input, MediaConfig *out_cfg) {
         NULL, // as stream open outsides, user should close it outsides too
         input->c_operations.tell,
     };
-    ret = ov_open_callbacks(input, &vf, NULL, 0, callbacks);
+    ret = ov_open_callbacks(input.get(), &vf, NULL, 0, callbacks);
   }
   if (ret) {
     LOG("input invalid, access trouble or not an Ogg bitstream: ret=%d\n", ret);
@@ -135,10 +137,6 @@ std::shared_ptr<MediaBuffer> OggVorbisDemuxer::Read(size_t request_size) {
 }
 
 DEFINE_DEMUXER_FACTORY(OggVorbisDemuxer, Demuxer)
-std::shared_ptr<Demuxer>
-    FACTORY(OggVorbisDemuxer)::NewProduct(const char *param) {
-  return std::make_shared<OggVorbisDemuxer>(param);
-}
 const char *FACTORY(OggVorbisDemuxer)::ExpectedInputDataType() {
   return STREAM_OGG;
 }
