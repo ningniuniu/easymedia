@@ -8,6 +8,7 @@
 #include "encoder.h"
 
 #include <assert.h>
+#include <deque>
 
 extern "C" {
 #include <vorbis/vorbisenc.h>
@@ -45,7 +46,7 @@ private:
   vorbis_dsp_state vd;
   vorbis_block vb;
 
-  std::list<std::shared_ptr<MediaBuffer>> cached_ogg_packets;
+  std::deque<std::shared_ptr<MediaBuffer>> cached_ogg_packets;
   static const int MAX_CACHED_SIZE = 8;
 };
 

@@ -57,7 +57,8 @@ bool OggVorbisDemuxer::Init(std::shared_ptr<Stream> input,
     ret = ov_fopen(path.c_str(), &vf);
   } else {
     ov_callbacks callbacks = {
-        input->c_operations.read, input->c_operations.seek,
+        input->c_operations.read,
+        input->c_operations.seek,
         NULL, // as stream open outsides, user should close it outsides too
         input->c_operations.tell,
     };

@@ -29,7 +29,7 @@ config RV_TARGET_RKMEDIA_OGGVORBIS_MUXER
     help
       wrapped function of libvorbisenc
 
-endif
+endif # RV_TARGET_RKMEDIA_OGG
 
 if RV_TARGET_ALSA_LIB
 
@@ -43,6 +43,30 @@ config RV_TARGET_RKMEDIA_ALSA_CAPTURE
     help
       wrapped function of alsa capture
 
-endif
+endif # RV_TARGET_ALSA_LIB
 
-endif
+config RV_TARGET_RKMEDIA_LIVE555
+    bool "live555"
+    select RV_TARGET_LIVE555
+    help
+      live555 is an rtsp server and client
+
+if RV_TARGET_RKMEDIA_LIVE555
+
+config RV_TARGET_RKMEDIA_RTSP_SERVER
+    bool "rtsp server"
+    help
+      live555 rtsp server
+
+if RV_TARGET_RKMEDIA_RTSP_SERVER
+
+config RV_TARGET_RKMEDIA_RTSP_SERVER_H264
+    bool "rtsp server h264 session"
+    help
+      live555 rtsp server h264 session
+
+endif # RV_TARGET_RKMEDIA_RTSP_SERVER
+
+endif # RV_TARGET_RKMEDIA_LIVE555
+
+endif # RV_TARGET_RKMEDIA

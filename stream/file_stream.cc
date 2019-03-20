@@ -71,7 +71,13 @@ public:
     return ret;
   }
 
-  virtual bool Eof() final { return eof; }
+  virtual bool Eof() final {
+    if (!file) {
+      errno = EBADF;
+      return true;
+    }
+    return eof ? eof : !!feof(file);
+  }
 
 private:
   std::string path;
@@ -83,9 +89,10 @@ private:
 FileStream::FileStream(const char *param) : file(NULL), eof(true) {
   std::map<std::string, std::string> params;
   std::list<std::pair<const std::string, std::string &>> req_list;
-  req_list.push_back(std::pair<const std::string, std::string &>("path", path));
   req_list.push_back(
-      std::pair<const std::string, std::string &>("mode", open_mode));
+      std::pair<const std::string, std::string &>(KEY_PATH, path));
+  req_list.push_back(
+      std::pair<const std::string, std::string &>(KEY_OPEN_MODE, open_mode));
   int ret = parse_media_param_match(param, params, req_list);
   UNUSED(ret);
 }
@@ -106,7 +113,7 @@ public:
 
 DEFINE_STREAM_FACTORY(FileWriteStream, Stream)
 std::shared_ptr<Stream>
-    FACTORY(FileWriteStream)::NewProduct(const char *param) {
+FACTORY(FileWriteStream)::NewProduct(const char *param) {
   std::shared_ptr<Stream> ret = std::make_shared<FileWriteStream>(param);
   if (ret && ret->Open() < 0)
     return nullptr;

@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include <memory>
 
@@ -25,10 +26,11 @@ namespace rkmedia {
 class MediaBuffer {
 public:
   // video flags
-  static const uint32_t kIntra = (1 << 0);
-  static const uint32_t kPredicted = (1 << 1);
-  static const uint32_t kBiPredictive = (1 << 2);
-  static const uint32_t kBiDirectional = (1 << 3);
+  static const uint32_t kExtraIntra = (1 << 0); // special, such as sps pps
+  static const uint32_t kIntra = (1 << 1);
+  static const uint32_t kPredicted = (1 << 2);
+  static const uint32_t kBiPredictive = (1 << 3);
+  static const uint32_t kBiDirectional = (1 << 4);
 
   MediaBuffer()
       : ptr(nullptr), size(0), fd(-1), valid_size(0), type(Type::None),
@@ -56,6 +58,13 @@ public:
   uint32_t GetUserFlag() const { return user_flag; }
   void SetUserFlag(uint32_t flag) { user_flag = flag; }
   int64_t GetTimeStamp() const { return timestamp; }
+  struct timeval GetTimeVal() const {
+    // timestamp always milliseconds ?
+    struct timeval ret;
+    ret.tv_sec = timestamp / 1000;
+    ret.tv_usec = (timestamp % 1000) * 1000;
+    return ret;
+  }
   void SetTimeStamp(int64_t ts) { timestamp = ts; }
   bool IsEOF() const { return eof; }
   void SetEOF(bool val) { eof = val; }
@@ -74,14 +83,6 @@ public:
   bool IsValid() { return valid_size > 0; }
   bool IsHwBuffer() { return fd >= 0; }
 
-  void Reset(std::shared_ptr<MediaBuffer> smb) {
-    MediaBuffer *mb = smb.get();
-    if (!mb)
-      return;
-    *this = *mb;
-  }
-
-public:
   enum class MemType {
     MEM_COMMON,
 #ifdef LIBION
@@ -92,10 +93,15 @@ public:
     MEM_DRM,
 #endif
   };
-  static std::shared_ptr<rkmedia::MediaBuffer>
-  Alloc(size_t size, MemType type = MemType::MEM_COMMON);
+  static std::shared_ptr<MediaBuffer> Alloc(size_t size,
+                                            MemType type = MemType::MEM_COMMON);
+  static std::shared_ptr<MediaBuffer>
+  Clone(MediaBuffer &src, MemType dst_type = MemType::MEM_COMMON);
 
 private:
+  // copy attributs except buffer
+  void CopyAttribute(MediaBuffer &src_attr);
+
   void *ptr; // buffer virtual address
   size_t size;
   int fd;            // buffer fd
@@ -107,6 +113,8 @@ private:
 
   std::shared_ptr<void> userdata;
 };
+
+MediaBuffer::MemType StringToMemType(const char *s);
 
 // Audio sample buffer
 class SampleBuffer : public MediaBuffer {

@@ -134,3 +134,26 @@ rkmedia为了使多媒体相关开发更简单而做，将比较偏底层一些�
     * SetIoStream：托管封装后数据写入的io stream。如果调用了该函数，则封装后立刻调用此io stream的Write方法写入数据；否则需要外部程序自行处理输出的封装数据
     * WriteHeader：获取封装格式头信息数据
     * Write：传入编码后的数据和对应数据流的序号，输出封装数据
+
+rtsp服务端（基于live555）
+----------------------
+
+- 编译
+
+    确保对应CMakeLists.txt设置-DLIVE555=ON -DLIVE555_SERVER=ON -DLIVE555_SERVER_H264=ON
+
+- 范例：[rtsp_server_test.cc](../../frameworks/media/live555/server/test/rtsp_server_test.cc)
+
+    拷贝对应的h264单帧数据[h264_frames](../../frameworks/media/live555/server/test/h264_frames)到板端文件夹备用。  
+    使用命令查看使用方法：./rtsp_server_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
+
+- 范例流程说明
+
+    以开启SIMPLE宏为例说明，此为纯粹的RTSP服务端功能范例。
+
+    * split_h264_separate：分割多个slice为单独的slice，因为live555一次只接受一个slice。如范例中，sps和pps在一起，需要调用此函数进行分割
+    * SetUserFlag/SetValidSize/SetTimeStamp：此三项必须设置，是后续必须的参数
+    * rkmedia::REFLECTOR(Flow)::Create\<rkmedia::Flow\>(
+      \"live555_rtsp_server\", param.c_str())：创建rtsp server，参数必须包括KEY_INPUTDATATYPE/KEY_CHANNEL_NAME，
+      KEY_PORT_NUM（端口号）还有KEY_USERNAME/KEY_USERPASSWORD（用户名和密码）非必须。
+    * rtsp_flow->SendInput(buf, 0)：送数据给rtsp服务端，第二个参数一般为0，表示送入rtsp服务端数据链0槽位，之后rtsp服务端内部会从0槽位获取数据。

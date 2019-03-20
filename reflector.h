@@ -43,11 +43,14 @@
       auto it = factories.find(identifier);                                    \
       if (it != factories.end()) {                                             \
         const PRODUCT##Factory *f = it->second;                                \
-        if (!T::Compatible(f))                                                 \
+        if (!T::Compatible(f)) {                                               \
+          LOG("%s is not compatible with the template\n", request);            \
           return nullptr;                                                      \
+        }                                                                      \
         return std::static_pointer_cast<T>(                                    \
             const_cast<PRODUCT##Factory *>(f)->NewProduct(param));             \
       }                                                                        \
+      LOG("%s is not Integrated\n", request);                                  \
       return nullptr;                                                          \
     }                                                                          \
     static void RegisterFactory(std::string identifier,                        \
@@ -124,6 +127,9 @@
     PRODUCT##Factory(const PRODUCT##Factory &) = delete;                       \
     PRODUCT##Factory &operator=(const PRODUCT##Factory &) = delete;            \
   };
+
+#define DEFINE_FACTORY_COMMON_PARSE(PRODUCT)                                   \
+  const char *PRODUCT##Factory::Parse(const char *request) { return request; }
 
 #define FACTORY_IDENTIFIER_DEFINITION(IDENTIFIER)                              \
   const char *Identifier() const override { return IDENTIFIER; }

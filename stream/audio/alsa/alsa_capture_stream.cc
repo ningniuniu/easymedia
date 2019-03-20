@@ -158,7 +158,7 @@ int AlsaCaptureStream::Close() {
 
 DEFINE_STREAM_FACTORY(AlsaCaptureStream, Stream)
 std::shared_ptr<Stream>
-    FACTORY(AlsaCaptureStream)::NewProduct(const char *param) {
+FACTORY(AlsaCaptureStream)::NewProduct(const char *param) {
   std::shared_ptr<Stream> ret = std::make_shared<AlsaCaptureStream>(param);
   if (ret && ret->Open() < 0)
     return nullptr;

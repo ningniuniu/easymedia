@@ -7,13 +7,32 @@
 
 #include "buffer.h"
 
+#include <assert.h>
 #include <fcntl.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include "key_string.h"
 #include "utils.h"
 
 namespace rkmedia {
+
+MediaBuffer::MemType StringToMemType(const char *s) {
+  if (s) {
+#ifdef LIBION
+    if (!strcmp(s, KEY_MEM_ION))
+      return MediaBuffer::MemType::MEM_ION;
+#endif
+#ifdef LIBDRM
+    if (!strcmp(s, KEY_MEM_DRM))
+      return MediaBuffer::MemType::MEM_DRM;
+#endif
+    LOG("warning: %s is not supported or not integrated, fallback to common\n",
+        s);
+  }
+  return MediaBuffer::MemType::MEM_COMMON;
+}
 
 static int free_common_memory(void *buffer) {
   if (buffer)
@@ -109,7 +128,7 @@ static std::shared_ptr<rkmedia::MediaBuffer> alloc_ion_memory(size_t size) {
   }
 
   return std::make_shared<rkmedia::MediaBuffer>(ptr, size, fd, buffer,
-                                                free_hw_memory);
+                                                free_ion_memory);
 }
 #endif
 
@@ -131,4 +150,30 @@ std::shared_ptr<rkmedia::MediaBuffer> MediaBuffer::Alloc(size_t size,
     return nullptr;
   }
 }
+
+std::shared_ptr<MediaBuffer> MediaBuffer::Clone(MediaBuffer &src,
+                                                MemType dst_type) {
+  size_t size = src.GetValidSize();
+  if (!size)
+    return nullptr;
+  auto new_buffer = Alloc(size, dst_type);
+  if (!new_buffer) {
+    LOG_NO_MEMORY();
+    return nullptr;
+  }
+  if (src.IsHwBuffer() && new_buffer->IsHwBuffer())
+    LOG_TODO(); // TODO: fd -> fd by RGA
+  memcpy(new_buffer->GetPtr(), src.GetPtr(), size);
+  new_buffer->CopyAttribute(src);
+  return new_buffer;
 }
+
+void MediaBuffer::CopyAttribute(MediaBuffer &src_attr) {
+  valid_size = src_attr.GetValidSize();
+  type = src_attr.GetType();
+  user_flag = src_attr.GetUserFlag();
+  timestamp = src_attr.GetTimeStamp();
+  eof = src_attr.IsEOF();
+}
+
+} // namespace rkmedia

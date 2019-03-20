@@ -9,6 +9,7 @@
 
 #include <string.h>
 
+#include "key_string.h"
 #include "media_type.h"
 #include "utils.h"
 
@@ -55,3 +56,37 @@ size_t GetFrameSize(const SampleInfo &sample_info) {
     return 0;
   }
 }
+
+namespace rkmedia {
+
+bool ParseSampleInfoFromMap(std::map<std::string, std::string> &params,
+                            SampleInfo &si) {
+  std::string value;
+  CHECK_EMPTY(value, params, KEY_INPUTDATATYPE)
+  si.fmt = StringToSampleFormat(value.c_str());
+  if (si.fmt == SAMPLE_FMT_NONE) {
+    LOG("unsupport sample fmt %d\n", value.c_str());
+    return false;
+  }
+  CHECK_EMPTY(value, params, KEY_CHANNELS)
+  si.channels = std::stoi(value);
+  CHECK_EMPTY(value, params, KEY_SAMPLE_RATE)
+  si.sample_rate = std::stoi(value);
+  CHECK_EMPTY(value, params, KEY_FRAMES)
+  si.frames = std::stoi(value);
+  return true;
+}
+
+std::string to_param_string(const SampleInfo &si) {
+  std::string s;
+  const char *fmt = SampleFormatToString(si.fmt);
+  if (!fmt)
+    return s;
+  PARAM_STRING_APPEND(s, KEY_INPUTDATATYPE, fmt);
+  PARAM_STRING_APPEND_TO(s, KEY_CHANNELS, si.channels);
+  PARAM_STRING_APPEND_TO(s, KEY_SAMPLE_RATE, si.sample_rate);
+  PARAM_STRING_APPEND_TO(s, KEY_FRAMES, si.frames);
+  return s;
+}
+
+} // namespace rkmedia

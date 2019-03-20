@@ -8,6 +8,7 @@
 #ifndef RKMEDIA_MEDIA_REFLECTOR_H_
 #define RKMEDIA_MEDIA_REFLECTOR_H_
 
+#include "key_string.h"
 #include "reflector.h"
 
 #include <algorithm>
@@ -31,14 +32,14 @@
       static const char *ExpectedInputDataType();                              \
       static const char *OutPutDataType();                                     \
                                                                                \
-      )
+  )
 
 #define DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)                         \
   bool REAL_PRODUCT##Factory::AcceptRules(                                     \
       const std::map<std::string, std::string> &map) const {                   \
     static std::list<std::string> expected_data_type_list;                     \
     static std::list<std::string> out_data_type_list;                          \
-    static const char *static_keys[] = {"input_data_type", "output_data_type", \
+    static const char *static_keys[] = {KEY_INPUTDATATYPE, KEY_OUTPUTDATATYPE, \
                                         NULL};                                 \
     static const decltype(ExpectedInputDataType) *static_call[] = {            \
         &ExpectedInputDataType, &OutPutDataType, NULL};                        \

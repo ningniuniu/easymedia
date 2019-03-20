@@ -11,16 +11,6 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C" {
-#endif
-
-const uint8_t *find_h264_startcode(const uint8_t *p, const uint8_t *end);
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
 
 #include "codec.h"
 #include "media_reflector.h"

@@ -65,4 +65,49 @@ const char *FACTORY(Stream)::Parse(const char *request) {
 
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(Stream, Stream)
 
+bool Stream::ReadImage(void *ptr, const ImageInfo &info) {
+  size_t read_size;
+  if (info.width == info.vir_width && info.height == info.vir_height) {
+    int num, den;
+    GetPixFmtNumDen(info.pix_fmt, num, den);
+    read_size = info.width * info.height * num / den;
+    if (!read_size)
+      return false;
+    size_t ret = Read(ptr, 1, read_size);
+    if (ret != read_size) {
+      // LOG("read ori stream failed, %d != %d\n", ret, read_size);
+      return false;
+    }
+    return true;
+  }
+  int row = 0;
+  uint8_t *buf_y = (uint8_t *)ptr;
+  uint8_t *buf_u = buf_y + info.vir_width * info.vir_height;
+  // uint8_t *buf_v = buf_u + info.vir_width * info.vir_height / 4;
+  switch (info.pix_fmt) {
+  case PIX_FMT_NV12:
+    for (row = 0; row < info.height; row++) {
+      read_size = Read(buf_y + row * info.vir_width, 1, info.width);
+      if ((int)read_size != info.width) {
+        // LOG("read ori yuv stream luma failed, %d != %d\n",
+        // read_size,info.width);
+        return false;
+      }
+    }
+    for (row = 0; row < info.height / 2; row++) {
+      read_size = Read(buf_u + row * info.vir_width, 1, info.width);
+      if ((int)read_size != info.width) {
+        // LOG("read ori yuv stream cb failed, %d != %d\n", read_size,
+        // info.width);
+        return false;
+      }
+    }
+    break;
+  default:
+    LOG("TODO: read image fmt %d\n", info.pix_fmt);
+    return false;
+  }
+  return true;
+}
+
 } // namespace rkmedia

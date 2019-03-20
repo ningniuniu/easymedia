@@ -292,7 +292,7 @@ int AlsaPlayBackStream::Close() {
 
 DEFINE_STREAM_FACTORY(AlsaPlayBackStream, Stream)
 std::shared_ptr<Stream>
-    FACTORY(AlsaPlayBackStream)::NewProduct(const char *param) {
+FACTORY(AlsaPlayBackStream)::NewProduct(const char *param) {
   std::shared_ptr<Stream> ret = std::make_shared<AlsaPlayBackStream>(param);
   if (ret && ret->Open() < 0)
     return nullptr;

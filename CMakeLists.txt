@@ -103,6 +103,13 @@ if(WARNINGS_AS_ERRORS)
 	endif()
 endif(WARNINGS_AS_ERRORS)
 
+option(FLOW "compile: flow" ON)
+option(STREAM "compile: stream" ON)
+option(ENCODER "compile: encoder" ON)
+option(DECODER "compile: decoder" ON)
+option(MUXER "compile: muxer" ON)
+option(DEMUXER "compile: demuxer" ON)
+
 pkg_check_modules(LIBDRM libdrm)
 if ( LIBDRM_FOUND )
 add_definitions(-DLIBDRM)
@@ -134,7 +141,15 @@ if ( OGG )
 add_subdirectory(ogg)
 endif()
 
+option(LIVE555 "compile: live555" OFF)
+if ( LIVE555 )
+include_directories(${CMAKE_INSTALL_PREFIX}/include/groupsock)
+include_directories(${CMAKE_INSTALL_PREFIX}/include/UsageEnvironment)
+add_subdirectory(live555)
+endif()
+
 add_subdirectory(stream)
+add_subdirectory(flow)
 
 add_library(rkmedia SHARED ${RK_MEDIA_SOURCE_FILES})
 file(GLOB RK_MEDIA_RELEASE_HEADERS *.h)
@@ -145,9 +160,9 @@ if( RK_MEDIA_DEPENDENT_LIBS )
 target_link_libraries(rkmedia ${RK_MEDIA_DEPENDENT_LIBS})
 endif()
 
-message(headers: "${RK_MEDIA_RELEASE_HEADERS}")
-message(files: "${RK_MEDIA_SOURCE_FILES}")
-message(libs : "${RK_MEDIA_DEPENDENT_LIBS}")
+# message(headers: "${RK_MEDIA_RELEASE_HEADERS}")
+# message(files: "${RK_MEDIA_SOURCE_FILES}")
+# message(libs : "${RK_MEDIA_DEPENDENT_LIBS}")
 
 install(TARGETS rkmedia
 		LIBRARY DESTINATION "lib"

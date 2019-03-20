@@ -19,4 +19,4 @@ const char *FACTORY(Muxer)::Parse(const char *request) {
 Muxer::Muxer(const char *param _UNUSED) {}
 
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(Muxer, Muxer)
-}
+} // namespace rkmedia

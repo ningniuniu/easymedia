@@ -41,7 +41,7 @@ protected:
   // call before Init()
   void SetMppCodeingType(MppCodingType type) { coding_type = type; }
   virtual bool
-      CheckConfigChange(std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>) {
+  CheckConfigChange(std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>) {
     return true;
   }
   // Control before encoding.

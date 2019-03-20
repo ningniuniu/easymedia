@@ -38,4 +38,12 @@ SampleFormat StringToSampleFormat(const char *fmt_str);
 bool SampleInfoIsValid(const SampleInfo &sample_info);
 size_t GetFrameSize(const SampleInfo &sample_info);
 
+#include <map>
+#include <string>
+namespace rkmedia {
+bool ParseSampleInfoFromMap(std::map<std::string, std::string> &params,
+                            SampleInfo &si);
+std::string to_param_string(const SampleInfo &si);
+} // namespace rkmedia
+
 #endif // #ifndef RKMEDIA_SOUND_H_

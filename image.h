@@ -46,5 +46,16 @@ typedef struct {
 #endif
 
 void GetPixFmtNumDen(const PixelFormat &fmt, int &num, int &den);
+PixelFormat GetPixFmtByString(const char *type);
+const char *PixFmtToString(PixelFormat fmt);
+
+#include <map>
+#include <string>
+
+namespace rkmedia {
+bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
+                           ImageInfo &ii);
+std::string to_param_string(const ImageInfo &ii);
+} // namespace rkmedia
 
 #endif // #ifndef RKMEDIA_IMAGE_H_

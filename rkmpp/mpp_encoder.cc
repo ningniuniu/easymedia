@@ -111,8 +111,11 @@ int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
   size_t size = input->GetValidSize();
 
   mpp_assert(size > 0);
+  mpp_frame_set_pts(frame, hw_buffer->GetTimeStamp());
+  mpp_frame_set_dts(frame, hw_buffer->GetTimeStamp());
   mpp_frame_set_width(frame, hw_buffer->GetWidth());
   mpp_frame_set_height(frame, hw_buffer->GetHeight());
+  mpp_frame_set_fmt(frame, ConvertToMppPixFmt(fmt));
 
   if (fmt == PIX_FMT_YUYV422 || fmt == PIX_FMT_UYVY422)
     mpp_frame_set_hor_stride(frame, hw_buffer->GetVirWidth() * 2);
@@ -193,6 +196,7 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
   size_t packet_len = 0;
   RK_U32 packet_flag = 0;
   RK_U32 out_eof = 0;
+  RK_S64 pts = 0;
 
   if (!input)
     return 0;
@@ -242,6 +246,9 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
                     ? MediaBuffer::kIntra
                     : MediaBuffer::kPredicted;
   out_eof = mpp_packet_get_eos(packet);
+  pts = mpp_packet_get_pts(packet);
+  if (pts <= 0)
+    pts = mpp_packet_get_dts(packet);
   if (output->IsValid()) {
     if (!import_packet) {
       // !!time-consuming operation
@@ -260,6 +267,7 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
   }
   output->SetValidSize(packet_len);
   output->SetUserFlag(packet_flag);
+  output->SetTimeStamp(pts);
   output->SetEOF(out_eof ? true : false);
 
   if (mv_buf) {
@@ -270,6 +278,7 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
     }
     extra_output->SetValidSize(mpp_buffer_get_size(mv_buf));
     extra_output->SetUserFlag(packet_flag);
+    extra_output->SetTimeStamp(pts);
   }
 
 ENCODE_OUT:

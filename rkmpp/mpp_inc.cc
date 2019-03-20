@@ -16,21 +16,21 @@ MppFrameFormat ConvertToMppPixFmt(const PixelFormat &fmt) {
   // static const MppFrameFormat invalid_mpp_fmt =
   // static_cast<MppFrameFormat>(-1);
   static_assert(PIX_FMT_YUV420P == 0, "The index should greater than 0\n");
-  static MppFrameFormat mpp_fmts[PIX_FMT_NB] =
-      {[PIX_FMT_YUV420P] = MPP_FMT_YUV420P,
-       [PIX_FMT_NV12] = MPP_FMT_YUV420SP,
-       [PIX_FMT_NV21] = MPP_FMT_YUV420SP_VU,
-       [PIX_FMT_YUV422P] = MPP_FMT_YUV422P,
-       [PIX_FMT_NV16] = MPP_FMT_YUV422SP,
-       [PIX_FMT_NV61] = MPP_FMT_YUV422SP_VU,
-       [PIX_FMT_YUYV422] = MPP_FMT_YUV422_YUYV,
-       [PIX_FMT_UYVY422] = MPP_FMT_YUV422_UYVY,
-       [PIX_FMT_RGB565] = MPP_FMT_RGB565,
-       [PIX_FMT_BGR565] = MPP_FMT_BGR565,
-       [PIX_FMT_RGB888] = MPP_FMT_RGB888,
-       [PIX_FMT_BGR888] = MPP_FMT_BGR888,
-       [PIX_FMT_ARGB8888] = MPP_FMT_ARGB8888,
-       [PIX_FMT_ABGR8888] = MPP_FMT_ABGR8888};
+  static MppFrameFormat mpp_fmts[PIX_FMT_NB] = {
+      [PIX_FMT_YUV420P] = MPP_FMT_YUV420P,
+      [PIX_FMT_NV12] = MPP_FMT_YUV420SP,
+      [PIX_FMT_NV21] = MPP_FMT_YUV420SP_VU,
+      [PIX_FMT_YUV422P] = MPP_FMT_YUV422P,
+      [PIX_FMT_NV16] = MPP_FMT_YUV422SP,
+      [PIX_FMT_NV61] = MPP_FMT_YUV422SP_VU,
+      [PIX_FMT_YUYV422] = MPP_FMT_YUV422_YUYV,
+      [PIX_FMT_UYVY422] = MPP_FMT_YUV422_UYVY,
+      [PIX_FMT_RGB565] = MPP_FMT_RGB565,
+      [PIX_FMT_BGR565] = MPP_FMT_BGR565,
+      [PIX_FMT_RGB888] = MPP_FMT_RGB888,
+      [PIX_FMT_BGR888] = MPP_FMT_BGR888,
+      [PIX_FMT_ARGB8888] = MPP_FMT_ARGB8888,
+      [PIX_FMT_ABGR8888] = MPP_FMT_ABGR8888};
   assert(fmt >= 0 && fmt < PIX_FMT_NB);
   return mpp_fmts[fmt];
 }

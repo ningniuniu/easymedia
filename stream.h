@@ -24,6 +24,7 @@ typedef struct {
 }
 #endif
 
+#include "image.h"
 #include "media_reflector.h"
 
 namespace rkmedia {
@@ -64,6 +65,8 @@ public:
   void SetSeekable(bool able) { seekable = able; }
 
   virtual bool Eof() { return false; }
+
+  bool ReadImage(void *ptr, const ImageInfo &info);
 
 private:
   bool readable;

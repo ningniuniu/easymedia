@@ -22,6 +22,7 @@ enum class Type { None = -1, Audio = 0, Image, Video, Text };
 #define TYPE_NOTHING nullptr
 #define TYPE_ANYTHING ""
 
+#define IMAGE_PREFIX "image:"
 #define IMAGE_YUV420P "image:yuv420p"
 #define IMAGE_NV12 "image:nv12"
 #define IMAGE_NV21 "image:nv21"
@@ -39,8 +40,10 @@ enum class Type { None = -1, Audio = 0, Image, Video, Text };
 
 #define IMAGE_JPEG "image:jpeg"
 
+#define VIDEO_PREFIX "video:"
 #define VIDEO_H264 "video:h264"
 
+#define AUDIO_PREFIX "audio:"
 #define AUDIO_VORBIS "audio:vorbis"
 
 #define AUDIO_PCM_U8 "audio:pcm_u8"
