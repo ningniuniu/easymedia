@@ -145,7 +145,8 @@ rtsp服务端（基于live555）
 - 范例：[rtsp_server_test.cc](../../frameworks/media/live555/server/test/rtsp_server_test.cc)
 
     拷贝对应的h264单帧数据[h264_frames](../../frameworks/media/live555/server/test/h264_frames)到板端文件夹备用。  
-    使用命令查看使用方法：./rtsp_server_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
+    使用命令查看使用方法：./rtsp_server_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。  
+    在pc端播放验证时，注意最好板端是用有线网络，在很多EVB板子上无线wifi经常导致丢包问题。
 
 - 范例流程说明
 
