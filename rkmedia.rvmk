@@ -63,6 +63,27 @@ RKMEDIA_CONF_OPTS += -DLIVE555_SERVER_H264=ON
 endif
 RKMEDIA_CONFIGURE_DEP_CONFIGS += RV_TARGET_RKMEDIA_RTSP_SERVER_H264
 
+NINJA := $(shell which ninja || type -p ninja)
+NINJA_VERSION := $(shell ninja --version)
+MIN_NINJA_VERSION := 1.5.1
+
+ifeq ($(firstword $(sort $(NINJA_VERSION) $(MIN_NINJA_VERSION))),$(MIN_NINJA_VERSION))
+RKMEDIA_CONF_OPTS += -G Ninja
+
+ifeq ($(QUIET),)
+RKMEDIA_MAKE_OPTS += -v
+endif
+
+define RKMEDIA_BUILD_CMDS
+$(TARGET_MAKE_ENV) $($(PKG)_MAKE_ENV) $(NINJA) $($(PKG)_MAKE_OPTS) -C $($(PKG)_BUILDDIR)
+endef
+
+define RKMEDIA_INSTALL_TARGET_CMDS
+$(NINJA) -C $($(PKG)_BUILDDIR) install
+endef
+
+endif
+
 RKMEDIA_TARGET_FILES = $(RKMEDIA_BUILDDIR)/librkmedia.so
 
 $(eval $(rv-generic-cmake))
