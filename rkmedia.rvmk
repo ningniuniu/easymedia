@@ -64,6 +64,8 @@ endif
 RKMEDIA_CONFIGURE_DEP_CONFIGS += RV_TARGET_RKMEDIA_RTSP_SERVER_H264
 
 NINJA := $(shell which ninja || type -p ninja)
+
+ifneq ($(NINJA),)
 NINJA_VERSION := $(shell ninja --version)
 MIN_NINJA_VERSION := 1.5.1
 
@@ -83,6 +85,7 @@ $(NINJA) -C $($(PKG)_BUILDDIR) install
 endef
 
 endif
+endif # ifneq ($(NINJA),)
 
 RKMEDIA_TARGET_FILES = $(RKMEDIA_BUILDDIR)/librkmedia.so
 
