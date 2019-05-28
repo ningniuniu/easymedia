@@ -1,51 +1,24 @@
 /*
- * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
- * author: Hertz Wang wangh@rock-chips.com
+ * Copyright (C) 2017 Hertz Wang wangh@rock-chips.com
  *
- * SPDX-License-Identifier: LGPL-2.1-or-later
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
  *
- * Anti 996 License Version
-
- * Permission is hereby granted to any individual or legal entity obtaining a
- * copy of this licensed work (including the source code, documentation and/or
- * related items, hereinafter collectively referred to as the "licensed work"),
- * free of charge, to deal with the licensed work for any purpose, including
- * without limitation, the rights to use, reproduce, modify, prepare derivative
- * works of, publish, distribute and sublicense the licensed work, subject to
- * the following conditions:
-
- * 1. The individual or the legal entity must conspicuously display, without
- * modification, this License on each redistributed or derivative copy of the
- * Licensed Work.
-
- * 2. The individual or the legal entity must strictly comply with all
- * applicable laws, regulations, rules and standards of the jurisdiction
- * relating to labor and employment where the individual is physically located
- * or where the individual was born or naturalized; or where the legal entity
- * is registered or is operating (whichever is stricter). In case that the
- * jurisdiction has no such laws, regulations, rules and standards or its laws,
- * regulations, rules and standards are unenforceable, the individual or the
- * legal entity are required to comply with Core International Labor Standards.
-
- * 3. The individual or the legal entity shall not induce or force its
- * employee(s), whether full-time or part-time, or its independent contractor(s)
- * , in any methods, to agree in oral or written form, to directly or indirectly
- * restrict, weaken or relinquish his or her rights or remedies under such laws,
- * regulations, rules and standards relating to labor and employment as
- * mentioned above, no matter whether such written or oral agreement are
- * enforceable under the laws of the said jurisdiction, nor shall such
- * individual or the legal entity limit, in any methods, the rights of its
- * employee(s) or independent contractor(s) from reporting or complaining to
- * the copyright holder or relevant authorities monitoring the compliance of
- * the license about its violation(s) of the said license.
-
- * THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN ANY
- * WAY CONNECTION WITH THE LICENSED WORK OR THE USE OR OTHER DEALINGS IN THE
- * LICENSED WORK.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see http://www.gnu.org/licenses
+ *
+ * Any non-GPL usage of this software or parts of this software is strictly
+ * forbidden.
+ *
+ * Commercial non-GPL licensing of this software is possible.
+ * For more info contact Rockchip Electronics Co., Ltd.
  */
 
 #include <assert.h>
@@ -299,8 +272,8 @@ int main(int argc, char **argv) {
   PARAM_STRING_APPEND(param, KEY_PATH, input_path);
   PARAM_STRING_APPEND(param, KEY_OPEN_MODE, "re"); // read and close-on-exec
   PARAM_STRING_APPEND(param, KEY_MEM_TYPE,
-                      KEY_MEM_ION); // we will assign rkmpp as encoder, which
-                                    // need hardware buffer
+                      KEY_MEM_HARDWARE); // we will assign rkmpp as encoder,
+                                         // which need hardware buffer
   param += rkmedia::to_param_string(info);
   PARAM_STRING_APPEND_TO(param, KEY_FPS, fps); // rhythm reading
   PARAM_STRING_APPEND_TO(param, KEY_LOOP_TIME, 99999);
