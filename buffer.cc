@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Hertz Wang wangh@rock-chips.com
+ * Copyright (C) 2017 Hertz Wang 1989wanghang@163.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@
  * Any non-GPL usage of this software or parts of this software is strictly
  * forbidden.
  *
- * Commercial non-GPL licensing of this software is possible.
- * For more info contact Rockchip Electronics Co., Ltd.
  */
 
 #include "buffer.h"

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Hertz Wang wangh@rock-chips.com
+ * Copyright (C) 2017 Hertz Wang 1989wanghang@163.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@
  * Any non-GPL usage of this software or parts of this software is strictly
  * forbidden.
  *
- * Commercial non-GPL licensing of this software is possible.
- * For more info contact Rockchip Electronics Co., Ltd.
  */
 
 #ifndef RKMEDIA_DECODER_H_
@@ -38,7 +36,8 @@ DECLARE_REFLECTOR(Decoder)
 #define DEFINE_DECODER_FACTORY(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)             \
   DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetCodecName(),       \
                              FINAL_EXPOSE_PRODUCT, Decoder)                    \
-  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)
+  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT) \
+  DEFINE_MEDIA_NEWINIT_PRODUCT(REAL_PRODUCT, Decoder)
 
 #define DEFINE_AUDIO_DECODER_FACTORY(REAL_PRODUCT)                             \
   DEFINE_DECODER_FACTORY(REAL_PRODUCT, AudioDecoder)
