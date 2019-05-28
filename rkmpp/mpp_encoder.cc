@@ -28,7 +28,7 @@
 
 #include "buffer.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 MPPEncoder::MPPEncoder()
     : coding_type(MPP_VIDEO_CodingAutoDetect), ctx(nullptr), mpi(nullptr) {}
@@ -390,4 +390,4 @@ int MPPEncoder::EncodeControl(int cmd, void *param) {
   return 0;
 }
 
-} // namespace rkmedia
+} // namespace easymedia

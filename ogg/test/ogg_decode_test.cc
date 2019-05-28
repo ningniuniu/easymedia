@@ -51,8 +51,8 @@ int main(int argc, char **argv) {
     case '?':
     default:
       printf("usage example: \n");
-      printf("rkogg_decode_test -i input.ogg -o output.pcm\n"
-             "rkogg_decode_test -i input.ogg -o alsa:default\n");
+      printf("ogg_decode_test -i input.ogg -o output.pcm\n"
+             "ogg_decode_test -i input.ogg -o alsa:default\n");
       break;
     }
   }
@@ -74,13 +74,13 @@ int main(int argc, char **argv) {
   LOG("alsa_device: %s, output_file_fd: %d\n", alsa_device.c_str(),
       output_file_fd);
 
-  rkmedia::REFLECTOR(Demuxer)::DumpFactories();
+  easymedia::REFLECTOR(Demuxer)::DumpFactories();
 
   // here we use fixed demuxer "oggvorbis"
   std::string codec_name("oggvorbis");
   std::string param = "path=";
   param += input_path;
-  auto ogg_demuxer = rkmedia::REFLECTOR(Demuxer)::Create<rkmedia::Demuxer>(
+  auto ogg_demuxer = easymedia::REFLECTOR(Demuxer)::Create<easymedia::Demuxer>(
       codec_name.c_str(), param.c_str());
 
   if (!ogg_demuxer) {
@@ -115,15 +115,15 @@ int main(int argc, char **argv) {
   printf("channel num : %d , sample rate %d, average bit rate: %d\n",
          sample_info.channels, sample_info.sample_rate, aud_cfg.bit_rate);
 
-  std::shared_ptr<rkmedia::Stream> out_stream;
+  std::shared_ptr<easymedia::Stream> out_stream;
   if (!alsa_device.empty()) {
-    rkmedia::REFLECTOR(Stream)::DumpFactories();
+    easymedia::REFLECTOR(Stream)::DumpFactories();
 
     std::string stream_name("alsa_playback_stream");
     std::string fmt_str = SampleFormatToString(sample_info.fmt);
     std::string rule = "input_data_type=" + fmt_str + "\n";
-    if (!rkmedia::REFLECTOR(Stream)::IsMatch(stream_name.c_str(),
-                                             rule.c_str())) {
+    if (!easymedia::REFLECTOR(Stream)::IsMatch(stream_name.c_str(),
+                                               rule.c_str())) {
       fprintf(stderr, "unsupport data type\n");
       exit(EXIT_FAILURE);
     }
@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
     params += "channels=" + std::to_string(sample_info.channels) + "\n";
     params += "sample_rate=" + std::to_string(sample_info.sample_rate) + "\n";
     LOG("params:\n%s\n", params.c_str());
-    out_stream = rkmedia::REFLECTOR(Stream)::Create<rkmedia::Stream>(
+    out_stream = easymedia::REFLECTOR(Stream)::Create<easymedia::Stream>(
         stream_name.c_str(), params.c_str());
     if (!out_stream) {
       fprintf(stderr, "Create stream %s failed\n", stream_name.c_str());
@@ -148,8 +148,8 @@ int main(int argc, char **argv) {
     if (buffer->IsEOF())
       break;
     assert(buffer->GetSampleFormat() != SAMPLE_FMT_NONE);
-    std::shared_ptr<rkmedia::SampleBuffer> sample_buffer =
-        std::static_pointer_cast<rkmedia::SampleBuffer>(buffer);
+    std::shared_ptr<easymedia::SampleBuffer> sample_buffer =
+        std::static_pointer_cast<easymedia::SampleBuffer>(buffer);
     SampleInfo &info = sample_buffer->GetSampleInfo();
     if ((info.channels != sample_info.channels) ||
         (info.sample_rate != sample_info.sample_rate)) {

@@ -23,7 +23,7 @@
 
 #include <assert.h>
 
-namespace rkmedia {
+namespace easymedia {
 
 LockMutex::LockMutex()
 #ifdef DEBUG
@@ -70,4 +70,4 @@ void SpinLockMutex::unlock() {
   flag.clear(std::memory_order_release);
 }
 
-} // namespace rkmedia
+} // namespace easymedia

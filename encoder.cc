@@ -21,7 +21,7 @@
 
 #include "encoder.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 DEFINE_REFLECTOR(Encoder)
 
@@ -65,4 +65,4 @@ bool AudioEncoder::InitConfig(const MediaConfig &cfg) {
 
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(AudioEncoder, Encoder)
 
-} // namespace rkmedia
+} // namespace easymedia

@@ -29,7 +29,7 @@
 #include "media_type.h"
 #include "ogg_utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 class OggMuxer : public Muxer {
 public:
@@ -223,4 +223,4 @@ DEFINE_COMMON_MUXER_FACTORY(OggMuxer)
 const char *FACTORY(OggMuxer)::ExpectedInputDataType() { return AUDIO_VORBIS; }
 const char *FACTORY(OggMuxer)::OutPutDataType() { return STREAM_OGG; }
 
-} // namespace rkmedia
+} // namespace easymedia

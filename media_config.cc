@@ -25,7 +25,7 @@
 #include "media_type.h"
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 bool ParseMediaConfigFromMap(std::map<std::string, std::string> &params,
                              MediaConfig &mc) {
@@ -147,4 +147,4 @@ std::string to_param_string(const MediaConfig &mc,
   return ret;
 }
 
-} // namespace rkmedia
+} // namespace easymedia

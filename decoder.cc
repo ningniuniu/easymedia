@@ -21,7 +21,7 @@
 
 #include "decoder.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 DEFINE_REFLECTOR(Decoder)
 
@@ -34,4 +34,4 @@ const char *FACTORY(Decoder)::Parse(const char *request) {
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(AudioDecoder, Decoder)
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(VideoDecoder, Decoder)
 
-} // namespace rkmedia
+} // namespace easymedia

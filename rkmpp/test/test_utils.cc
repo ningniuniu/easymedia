@@ -73,8 +73,8 @@ static int free_hw_memory(void *buffer) {
   return 0;
 }
 
-std::shared_ptr<rkmedia::MediaBuffer> alloc_hw_memory(ImageInfo &info, int num,
-                                                      int den) {
+std::shared_ptr<easymedia::MediaBuffer> alloc_hw_memory(ImageInfo &info,
+                                                        int num, int den) {
   size_t size = info.vir_width * info.vir_height * num / den;
 #ifdef LIBION
   int client = ion_open();
@@ -115,7 +115,7 @@ std::shared_ptr<rkmedia::MediaBuffer> alloc_hw_memory(ImageInfo &info, int num,
     return nullptr;
   }
 
-  return std::make_shared<rkmedia::ImageBuffer>(
-      rkmedia::MediaBuffer(ptr, size, fd, buffer, free_hw_memory), info);
+  return std::make_shared<easymedia::ImageBuffer>(
+      easymedia::MediaBuffer(ptr, size, fd, buffer, free_hw_memory), info);
 #endif
 }

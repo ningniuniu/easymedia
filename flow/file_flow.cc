@@ -24,7 +24,7 @@
 #include "stream.h"
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 class FileReadFlow : public Flow {
 public:
@@ -191,4 +191,4 @@ DEFINE_FLOW_FACTORY(FileReadFlow, Flow)
 const char *FACTORY(FileReadFlow)::ExpectedInputDataType() { return nullptr; }
 const char *FACTORY(FileReadFlow)::OutPutDataType() { return ""; }
 
-} // namespace rkmedia
+} // namespace easymedia

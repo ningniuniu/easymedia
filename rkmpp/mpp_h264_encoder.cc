@@ -26,7 +26,7 @@
 #include "media_type.h"
 #include "mpp_encoder.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 class MPPH264Encoder : public MPPEncoder {
 public:
@@ -379,4 +379,4 @@ const char *FACTORY(MPPH264Encoder)::ExpectedInputDataType() {
 }
 const char *FACTORY(MPPH264Encoder)::OutPutDataType() { return VIDEO_H264; }
 
-} // namespace rkmedia
+} // namespace easymedia

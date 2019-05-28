@@ -28,7 +28,7 @@
 #include "live555_media_input.hh"
 #include <liveMedia/OnDemandServerMediaSubsession.hh>
 
-namespace rkmedia {
+namespace easymedia {
 class H264ServerMediaSubsession : public OnDemandServerMediaSubsession {
 public:
   static H264ServerMediaSubsession *createNew(UsageEnvironment &env,
@@ -73,6 +73,6 @@ private:
   enum { INITIAL, GETTING_SDP_LINES, GET_SDP_LINES_TIMEOUT, GOT_SDP_LINES };
   int sdpState;
 };
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_H264_SERVER_MEDIA_SUBSESSION_HH_

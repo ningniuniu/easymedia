@@ -30,7 +30,7 @@
 #include "buffer.h"
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 // A common "FramedSource" subclass, used for reading from a cached buffer list:
 
 class ListSource : public FramedSource {
@@ -430,4 +430,4 @@ bool AudioFramedSource::readFromList(bool flush _UNUSED) {
   return false;
 }
 
-} // namespace rkmedia
+} // namespace easymedia

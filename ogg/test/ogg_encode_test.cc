@@ -73,11 +73,11 @@ int main(int argc, char **argv) {
     case '?':
     default:
       printf("usage example: \n");
-      printf("rkogg_encode_test -f s16le -c 2 -r 48000 -i input.pcm -o "
+      printf("ogg_encode_test -f s16le -c 2 -r 48000 -i input.pcm -o "
              "output.ogg\n"
-             "rkogg_encode_test -f s16le -c 2 -r 48000 -i alsa:default -o "
+             "ogg_encode_test -f s16le -c 2 -r 48000 -i alsa:default -o "
              "output.pcm\n"
-             "rkogg_encode_test -f s16le -c 2 -r 48000 -i alsa:default -o "
+             "ogg_encode_test -f s16le -c 2 -r 48000 -i alsa:default -o "
              "output.ogg\n");
       break;
     }
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
   if (input_path.find("alsa:") == 0) {
     alsa_device = input_path.substr(input_path.find(':') + 1);
     assert(!alsa_device.empty());
-    start_time = rkmedia::gettimeofday();
+    start_time = easymedia::gettimeofday();
   }
   LOG("alsa_device: %s\n", alsa_device.c_str());
 
@@ -113,17 +113,17 @@ int main(int argc, char **argv) {
   sample_info.sample_rate = input_sample_rate;
   sample_info.frames = 0;
 
-  rkmedia::REFLECTOR(Stream)::DumpFactories();
+  easymedia::REFLECTOR(Stream)::DumpFactories();
 
   std::string stream_name;
   std::string params;
-  std::shared_ptr<rkmedia::Stream> in_stream;
+  std::shared_ptr<easymedia::Stream> in_stream;
   if (!alsa_device.empty()) {
     stream_name = "alsa_capture_stream";
     std::string fmt_str = SampleFormatToString(sample_info.fmt);
     std::string rule = "output_data_type=" + fmt_str + "\n";
-    if (!rkmedia::REFLECTOR(Stream)::IsMatch(stream_name.c_str(),
-                                             rule.c_str())) {
+    if (!easymedia::REFLECTOR(Stream)::IsMatch(stream_name.c_str(),
+                                               rule.c_str())) {
       fprintf(stderr, "unsupport data type\n");
       exit(EXIT_FAILURE);
     }
@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
     params += "channels=" + std::to_string(sample_info.channels) + "\n";
     params += "sample_rate=" + std::to_string(sample_info.sample_rate) + "\n";
     LOG("params:\n%s\n", params.c_str());
-  } else if (rkmedia::string_end_withs(input_path, ".pcm")) {
+  } else if (easymedia::string_end_withs(input_path, ".pcm")) {
     stream_name = "file_read_stream";
     params = "path=";
     params += input_path + "\n";
@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
     assert(0);
   }
 
-  in_stream = rkmedia::REFLECTOR(Stream)::Create<rkmedia::Stream>(
+  in_stream = easymedia::REFLECTOR(Stream)::Create<easymedia::Stream>(
       stream_name.c_str(), params.c_str());
   if (!in_stream) {
     fprintf(stderr, "Create stream %s failed\n", stream_name.c_str());
@@ -153,24 +153,24 @@ int main(int argc, char **argv) {
   params = "path=";
   params += output_path + "\n";
   params += "mode=we\n"; // write and close-on-exec
-  std::shared_ptr<rkmedia::Stream> out_stream = rkmedia::REFLECTOR(
-      Stream)::Create<rkmedia::Stream>(stream_name.c_str(), params.c_str());
+  std::shared_ptr<easymedia::Stream> out_stream = easymedia::REFLECTOR(
+      Stream)::Create<easymedia::Stream>(stream_name.c_str(), params.c_str());
   if (!out_stream) {
     fprintf(stderr, "Create stream %s failed\n", stream_name.c_str());
     exit(EXIT_FAILURE);
   }
 
   auto write_stream = out_stream;
-  std::shared_ptr<rkmedia::Encoder> enc;
-  std::shared_ptr<rkmedia::Muxer> mux;
+  std::shared_ptr<easymedia::Encoder> enc;
+  std::shared_ptr<easymedia::Muxer> mux;
   int mux_stream_no = -1;
-  if (rkmedia::string_end_withs(output_path, ".ogg")) {
-    rkmedia::REFLECTOR(Muxer)::DumpFactories();
-    mux = rkmedia::REFLECTOR(Muxer)::Create<rkmedia::Muxer>("liboggmuxer");
+  if (easymedia::string_end_withs(output_path, ".ogg")) {
+    easymedia::REFLECTOR(Muxer)::DumpFactories();
+    mux = easymedia::REFLECTOR(Muxer)::Create<easymedia::Muxer>("liboggmuxer");
     assert(mux);
     if (!mux->IncludeEncoder()) {
-      rkmedia::REFLECTOR(Encoder)::DumpFactories();
-      enc = rkmedia::REFLECTOR(Encoder)::Create<rkmedia::AudioEncoder>(
+      easymedia::REFLECTOR(Encoder)::DumpFactories();
+      enc = easymedia::REFLECTOR(Encoder)::Create<easymedia::AudioEncoder>(
           "libvorbisenc");
       assert(enc);
       aud_cfg.quality = 1.0;
@@ -195,16 +195,16 @@ int main(int argc, char **argv) {
   int buffer_size = GetFrameSize(sample_info) * sample_info.frames;
   void *ptr = malloc(buffer_size);
   assert(ptr);
-  std::shared_ptr<rkmedia::SampleBuffer> sample_buffer =
-      std::make_shared<rkmedia::SampleBuffer>(
-          rkmedia::MediaBuffer(ptr, buffer_size, -1, ptr, free_memory),
+  std::shared_ptr<easymedia::SampleBuffer> sample_buffer =
+      std::make_shared<easymedia::SampleBuffer>(
+          easymedia::MediaBuffer(ptr, buffer_size, -1, ptr, free_memory),
           sample_info);
   assert(sample_buffer);
 
   while (1) {
     if (in_stream->Eof())
       break;
-    if (start_time > 0 && rkmedia::gettimeofday() - start_time > 10 * 1000)
+    if (start_time > 0 && easymedia::gettimeofday() - start_time > 10 * 1000)
       break;
     size_t read_size = in_stream->Read(
         sample_buffer->GetPtr(), sample_buffer->GetFrameSize(), read_frames);
@@ -213,7 +213,7 @@ int main(int argc, char **argv) {
     }
     sample_buffer->SetFrames(read_size);
     if (mux) {
-      std::shared_ptr<rkmedia::MediaBuffer> mux_output;
+      std::shared_ptr<easymedia::MediaBuffer> mux_output;
       if (enc) {
         if (enc->SendInput(sample_buffer)) {
           fprintf(stderr, "warning: enc SendInput failed\n");
@@ -246,7 +246,7 @@ int main(int argc, char **argv) {
   }
 
   if (mux) {
-    std::shared_ptr<rkmedia::MediaBuffer> mux_output;
+    std::shared_ptr<easymedia::MediaBuffer> mux_output;
     sample_buffer->SetFrames(0);
     bool eof = false;
     if (enc) {

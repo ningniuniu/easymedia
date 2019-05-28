@@ -1,6 +1,6 @@
 # -----------------------------------------
 #
-# Hertz Wang wangh@rock-chips.com
+# Hertz Wang 1989wanghang@163.com
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -8,10 +8,10 @@
 
 # vi: set noexpandtab syntax=cmake:
 
-set(RK_MEDIA_STREAM_SOURCE_FILES stream/file_stream.cc)
-set(RK_MEDIA_STREAM_LIBS )
+set(EASY_MEDIA_STREAM_SOURCE_FILES stream/file_stream.cc)
+set(EASY_MEDIA_STREAM_LIBS )
 
 add_subdirectory(audio)
 
-set(RK_MEDIA_SOURCE_FILES ${RK_MEDIA_SOURCE_FILES} ${RK_MEDIA_STREAM_SOURCE_FILES} PARENT_SCOPE)
-set(RK_MEDIA_DEPENDENT_LIBS ${RK_MEDIA_DEPENDENT_LIBS} ${RK_MEDIA_STREAM_LIBS} PARENT_SCOPE)
+set(EASY_MEDIA_SOURCE_FILES ${EASY_MEDIA_SOURCE_FILES} ${EASY_MEDIA_STREAM_SOURCE_FILES} PARENT_SCOPE)
+set(EASY_MEDIA_DEPENDENT_LIBS ${EASY_MEDIA_DEPENDENT_LIBS} ${EASY_MEDIA_STREAM_LIBS} PARENT_SCOPE)

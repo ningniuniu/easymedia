@@ -26,7 +26,7 @@
 #include <condition_variable>
 #include <mutex>
 
-namespace rkmedia {
+namespace easymedia {
 
 class LockMutex {
 public:
@@ -90,6 +90,6 @@ private:
   LockMutex &m_lm;
 };
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_LOCK_H_

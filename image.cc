@@ -90,7 +90,7 @@ const char *PixFmtToString(PixelFormat fmt) {
   return nullptr;
 }
 
-namespace rkmedia {
+namespace easymedia {
 bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
                            ImageInfo &info) {
   std::string value;
@@ -124,4 +124,4 @@ std::string to_param_string(const ImageInfo &info) {
   return s;
 }
 
-} // namespace rkmedia
+} // namespace easymedia

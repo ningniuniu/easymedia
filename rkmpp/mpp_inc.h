@@ -25,6 +25,12 @@
 #include "image.h"
 #include <mpp/mpp_frame.h>
 
+// mpp_packet_impl.h which define MPP_PACKET_FLAG_INTRA is not exposed,
+// here define the same MPP_PACKET_FLAG_INTRA.
+#ifndef MPP_PACKET_FLAG_INTRA
+#define MPP_PACKET_FLAG_INTRA (0x00000008)
+#endif
+
 MppFrameFormat ConvertToMppPixFmt(const PixelFormat &fmt);
 PixelFormat ConvertToPixFmt(const MppFrameFormat &mfmt);
 const char *MppAcceptImageFmts();

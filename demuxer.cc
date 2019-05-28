@@ -24,7 +24,7 @@
 #include "buffer.h"
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 DEFINE_REFLECTOR(Demuxer)
 
@@ -47,4 +47,4 @@ Demuxer::Demuxer(const char *param) : total_time(0.0f) {
 
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(Demuxer, Demuxer)
 
-} // namespace rkmedia
+} // namespace easymedia

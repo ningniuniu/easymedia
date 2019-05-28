@@ -25,7 +25,7 @@
 #include "media_type.h"
 #include "mpp_encoder.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 class MPPJpegEncoder : public MPPEncoder {
 public:
@@ -145,4 +145,4 @@ const char *FACTORY(MPPJpegEncoder)::ExpectedInputDataType() {
 }
 const char *FACTORY(MPPJpegEncoder)::OutPutDataType() { return IMAGE_JPEG; }
 
-} // namespace rkmedia
+} // namespace easymedia

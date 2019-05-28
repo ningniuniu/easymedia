@@ -27,7 +27,7 @@
 #include "buffer.h"
 #include "media_type.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 static bool encode(Flow *f, MediaBufferVector &input_vector);
 
@@ -96,7 +96,7 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
   PARAM_STRING_APPEND(rule, KEY_INPUTDATATYPE, value);
   CHECK_EMPTY_SETERRNO(value, params, KEY_OUTPUTDATATYPE, EINVAL)
   PARAM_STRING_APPEND(rule, KEY_OUTPUTDATATYPE, value);
-  if (!rkmedia::REFLECTOR(Encoder)::IsMatch(ccodec_name, rule.c_str())) {
+  if (!easymedia::REFLECTOR(Encoder)::IsMatch(ccodec_name, rule.c_str())) {
     LOG("Unsupport for video encoder %s : [%s]\n", ccodec_name, rule.c_str());
     errno = EINVAL;
     return;
@@ -109,7 +109,7 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
   }
 
   std::string &codec_param = params[KEY_CODEC_PARAM];
-  auto encoder = rkmedia::REFLECTOR(Encoder)::Create<rkmedia::VideoEncoder>(
+  auto encoder = easymedia::REFLECTOR(Encoder)::Create<easymedia::VideoEncoder>(
       ccodec_name, codec_param.empty() ? nullptr : codec_param.c_str());
   if (!encoder) {
     LOG("Fail to create video encoder %s<%s>\n", ccodec_name,
@@ -166,4 +166,4 @@ DEFINE_FLOW_FACTORY(VideoEncoderFlow, Flow)
 const char *FACTORY(VideoEncoderFlow)::ExpectedInputDataType() { return ""; }
 const char *FACTORY(VideoEncoderFlow)::OutPutDataType() { return ""; }
 
-} // namespace rkmedia
+} // namespace easymedia

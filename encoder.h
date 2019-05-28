@@ -29,7 +29,7 @@
 #include "codec.h"
 #include "media_reflector.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 DECLARE_FACTORY(Encoder)
 
@@ -112,7 +112,7 @@ public:
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Encoder)
 };
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif
 

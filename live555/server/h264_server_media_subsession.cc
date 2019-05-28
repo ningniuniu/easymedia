@@ -26,7 +26,7 @@
 
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 H264ServerMediaSubsession *
 H264ServerMediaSubsession::createNew(UsageEnvironment &env,
                                      Live555MediaInput &wisInput) {
@@ -178,4 +178,4 @@ RTPSink *H264ServerMediaSubsession::createNewRTPSink(
   return rtp_sink;
 }
 
-} // namespace rkmedia
+} // namespace easymedia

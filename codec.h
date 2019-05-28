@@ -33,7 +33,7 @@
 
 #include "media_config.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 class MediaBuffer;
 class Codec {
@@ -75,6 +75,6 @@ const uint8_t *find_h264_startcode(const uint8_t *p, const uint8_t *end);
 std::list<std::shared_ptr<MediaBuffer>>
 split_h264_separate(const uint8_t *buffer, size_t length, int64_t timestamp);
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_CODEC_H_

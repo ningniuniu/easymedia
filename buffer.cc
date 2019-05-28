@@ -30,7 +30,7 @@
 #include "key_string.h"
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 MediaBuffer::MemType StringToMemType(const char *s) {
   if (s) {
@@ -54,12 +54,13 @@ static int free_common_memory(void *buffer) {
   return 0;
 }
 
-static std::shared_ptr<rkmedia::MediaBuffer> alloc_common_memory(size_t size) {
+static std::shared_ptr<easymedia::MediaBuffer>
+alloc_common_memory(size_t size) {
   void *buffer = malloc(size);
   if (!buffer)
     return nullptr;
-  return std::make_shared<rkmedia::MediaBuffer>(buffer, size, -1, buffer,
-                                                free_common_memory);
+  return std::make_shared<easymedia::MediaBuffer>(buffer, size, -1, buffer,
+                                                  free_common_memory);
 }
 
 #ifdef LIBION
@@ -102,7 +103,7 @@ static int free_ion_memory(void *buffer) {
   return 0;
 }
 
-static std::shared_ptr<rkmedia::MediaBuffer> alloc_ion_memory(size_t size) {
+static std::shared_ptr<easymedia::MediaBuffer> alloc_ion_memory(size_t size) {
   int client = ion_open();
   if (client < 0) {
     LOG("ion_open() failed: %m\n");
@@ -141,13 +142,13 @@ static std::shared_ptr<rkmedia::MediaBuffer> alloc_ion_memory(size_t size) {
     return nullptr;
   }
 
-  return std::make_shared<rkmedia::MediaBuffer>(ptr, size, fd, buffer,
-                                                free_ion_memory);
+  return std::make_shared<easymedia::MediaBuffer>(ptr, size, fd, buffer,
+                                                  free_ion_memory);
 }
 #endif
 
-std::shared_ptr<rkmedia::MediaBuffer> MediaBuffer::Alloc(size_t size,
-                                                         MemType type) {
+std::shared_ptr<easymedia::MediaBuffer> MediaBuffer::Alloc(size_t size,
+                                                           MemType type) {
   switch (type) {
   case MemType::MEM_COMMON:
     return alloc_common_memory(size);
@@ -190,4 +191,4 @@ void MediaBuffer::CopyAttribute(MediaBuffer &src_attr) {
   eof = src_attr.IsEOF();
 }
 
-} // namespace rkmedia
+} // namespace easymedia

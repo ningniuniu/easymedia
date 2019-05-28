@@ -71,7 +71,7 @@ size_t GetFrameSize(const SampleInfo &sample_info) {
   }
 }
 
-namespace rkmedia {
+namespace easymedia {
 
 bool ParseSampleInfoFromMap(std::map<std::string, std::string> &params,
                             SampleInfo &si) {
@@ -103,4 +103,4 @@ std::string to_param_string(const SampleInfo &si) {
   return s;
 }
 
-} // namespace rkmedia
+} // namespace easymedia

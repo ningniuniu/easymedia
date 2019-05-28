@@ -30,7 +30,7 @@
 
 #include "lock.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 class MediaBuffer;
 class VideoFramedSource;
@@ -60,7 +60,7 @@ private:
     Source();
     ~Source();
     bool Init(ListReductionPtr func = nullptr);
-    void Push(std::shared_ptr<rkmedia::MediaBuffer> &);
+    void Push(std::shared_ptr<easymedia::MediaBuffer> &);
     std::shared_ptr<MediaBuffer> Pop();
     int GetReadFd() { return wakeFds[0]; }
     int GetWriteFd() { return wakeFds[1]; }
@@ -92,6 +92,6 @@ inline void setVideoRTPSinkBufferSize() {
   OutPacketBuffer::maxSize = VIDEO_MAX_FRAME_SIZE;
 }
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_LIVE555_MEDIA_INPUT_HH_

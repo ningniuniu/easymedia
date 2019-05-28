@@ -36,7 +36,7 @@ void LOG(const char *format, ...) {
   fprintf(stderr, "%s", line);
 }
 
-namespace rkmedia {
+namespace easymedia {
 
 bool parse_media_param_map(const char *param,
                            std::map<std::string, std::string> &map) {
@@ -72,7 +72,7 @@ bool parse_media_param_list(const char *param, std::list<std::string> &list,
 int parse_media_param_match(
     const char *param, std::map<std::string, std::string> &map,
     std::list<std::pair<const std::string, std::string &>> &list) {
-  if (!rkmedia::parse_media_param_map(param, map))
+  if (!easymedia::parse_media_param_map(param, map))
     return 0;
   int match_num = 0;
   for (auto &key : list) {
@@ -126,4 +126,4 @@ bool string_end_withs(std::string const &fullString,
   }
 }
 
-}; // namespace rkmedia
+}; // namespace easymedia
