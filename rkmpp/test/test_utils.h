@@ -25,7 +25,7 @@
 #include "buffer.h"
 
 // alloc hardware memory
-std::shared_ptr<rkmedia::MediaBuffer> alloc_hw_memory(ImageInfo &info, int num,
-                                                      int den);
+std::shared_ptr<easymedia::MediaBuffer> alloc_hw_memory(ImageInfo &info,
+                                                        int num, int den);
 
 #endif // #ifdef RKMEDIA_TEST_UTILS_H_

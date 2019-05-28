@@ -54,7 +54,7 @@ int ParseAlsaParams(const char *param,
                     std::map<std::string, std::string> &params,
                     std::string &device, SampleInfo &sample_info) {
   int ret = 0;
-  if (!rkmedia::parse_media_param_map(param, params))
+  if (!easymedia::parse_media_param_map(param, params))
     return 0;
   // "format", "channels", "sample_rate"; "device"
   for (auto &p : params) {

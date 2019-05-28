@@ -26,7 +26,7 @@
 #include "media_reflector.h"
 #include "stream.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 DECLARE_FACTORY(Muxer)
 
@@ -73,6 +73,6 @@ protected:
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Muxer)
 };
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_MUXER_H_

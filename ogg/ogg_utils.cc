@@ -26,7 +26,7 @@
 
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 bool PackOggPackets(const std::list<ogg_packet> &ogg_packets, void **out_buffer,
                     size_t *out_size) {
@@ -104,4 +104,4 @@ int ogg_packet_free(ogg_packet *p) {
   return 0;
 }
 
-} // namespace rkmedia
+} // namespace easymedia

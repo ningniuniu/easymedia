@@ -56,7 +56,7 @@ public:
 #include <string>
 #include <thread>
 
-namespace rkmedia {
+namespace easymedia {
 
 #define CHECK_EMPTY_SETERRNO_RETURN(v_type, v, map, k, seterrno, ret)          \
   v_type v = map[k];                                                           \
@@ -138,6 +138,6 @@ public:
 #endif
 };
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_UTILS_H_

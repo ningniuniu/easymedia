@@ -30,7 +30,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace rkmedia {
+namespace easymedia {
 
 DECLARE_FACTORY(Flow)
 // usage: REFLECTOR(Flow)::Create<T>(flowname, param)
@@ -104,7 +104,7 @@ protected:
     FlowInputMap(std::shared_ptr<Flow> &f, int i) : flow(f), index_of_in(i) {}
     std::shared_ptr<Flow> flow; // weak_ptr?
     int index_of_in;
-    bool operator==(const std::shared_ptr<rkmedia::Flow> f) {
+    bool operator==(const std::shared_ptr<easymedia::Flow> f) {
       return flow == f;
     }
   };
@@ -179,6 +179,6 @@ private:
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Flow)
 };
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_FLOW_H_

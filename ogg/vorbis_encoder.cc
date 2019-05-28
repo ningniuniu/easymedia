@@ -32,7 +32,7 @@ extern "C" {
 
 #include "buffer.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 // A encoder which call the libvorbisenc interface.
 class VorbisEncoder : public AudioEncoder {
@@ -131,8 +131,8 @@ bool VorbisEncoder::InitConfig(const MediaConfig &cfg) {
 
 int VorbisEncoder::SendInput(std::shared_ptr<MediaBuffer> input) {
   assert(input->GetType() == Type::Audio);
-  std::shared_ptr<rkmedia::SampleBuffer> sample_buffer =
-      std::static_pointer_cast<rkmedia::SampleBuffer>(input);
+  std::shared_ptr<easymedia::SampleBuffer> sample_buffer =
+      std::static_pointer_cast<easymedia::SampleBuffer>(input);
   SampleInfo &info = sample_buffer->GetSampleInfo();
   if (info.channels != 2 || info.fmt != SAMPLE_FMT_S16) {
     LOG("libvorbisenc only support s16 with 2ch\n");
@@ -224,4 +224,4 @@ const char *FACTORY(VorbisEncoder)::ExpectedInputDataType() {
 }
 const char *FACTORY(VorbisEncoder)::OutPutDataType() { return AUDIO_VORBIS; }
 
-} // namespace rkmedia
+} // namespace easymedia

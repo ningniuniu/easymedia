@@ -66,10 +66,10 @@ const char *PixFmtToString(PixelFormat fmt);
 #include <map>
 #include <string>
 
-namespace rkmedia {
+namespace easymedia {
 bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
                            ImageInfo &ii);
 std::string to_param_string(const ImageInfo &ii);
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_IMAGE_H_

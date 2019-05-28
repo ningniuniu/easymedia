@@ -28,7 +28,7 @@
 #include "media_reflector.h"
 #include "stream.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 DECLARE_FACTORY(Demuxer)
 
@@ -65,6 +65,6 @@ protected:
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Demuxer)
 };
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_DEMUXER_H_

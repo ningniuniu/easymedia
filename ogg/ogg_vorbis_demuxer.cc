@@ -33,7 +33,7 @@ extern "C" {
 }
 #pragma GCC diagnostic pop
 
-namespace rkmedia {
+namespace easymedia {
 
 // libvorbisfile has already provided a convenient demux and decode functions
 // without call the interfaces of libvorbis and libogg
@@ -159,4 +159,4 @@ const char *FACTORY(OggVorbisDemuxer)::OutPutDataType() {
   return AUDIO_PCM_S16;
 }
 
-} // namespace rkmedia
+} // namespace easymedia

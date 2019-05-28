@@ -87,6 +87,6 @@ endef
 endif
 endif # ifneq ($(NINJA),)
 
-RKMEDIA_TARGET_FILES = $(RKMEDIA_BUILDDIR)/librkmedia.so
+RKMEDIA_TARGET_FILES = $(RKMEDIA_BUILDDIR)/libeasymedia.so
 
 $(eval $(rv-generic-cmake))

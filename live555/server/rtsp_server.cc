@@ -36,7 +36,7 @@
 #include "media_reflector.h"
 #include "media_type.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 static bool SendVideoToServer(Flow *f, MediaBufferVector &input_vector);
 // static bool SendAudioToServer(Flow *f, MediaBufferVector &input_vector);
@@ -231,4 +231,4 @@ DEFINE_FLOW_FACTORY(RtspServerFlow, Flow)
 const char *FACTORY(RtspServerFlow)::ExpectedInputDataType() { return ""; }
 const char *FACTORY(RtspServerFlow)::OutPutDataType() { return ""; }
 
-} // namespace rkmedia
+} // namespace easymedia

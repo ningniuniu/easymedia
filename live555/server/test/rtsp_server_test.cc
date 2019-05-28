@@ -91,8 +91,8 @@ int main(int argc, char **argv) {
   }
   if (input_dir_path.empty() || channel_name.empty())
     assert(0);
-  std::list<std::shared_ptr<rkmedia::MediaBuffer>> spspps;
-  std::vector<std::shared_ptr<rkmedia::MediaBuffer>> buffer_list;
+  std::list<std::shared_ptr<easymedia::MediaBuffer>> spspps;
+  std::vector<std::shared_ptr<easymedia::MediaBuffer>> buffer_list;
   buffer_list.resize(MAX_FILE_NUM);
   // 1. read all file to buffer list
   int file_index = 0;
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
     len = ftell(f);
     assert(len > 0);
     rewind(f);
-    auto buffer = rkmedia::MediaBuffer::Alloc(len);
+    auto buffer = easymedia::MediaBuffer::Alloc(len);
     assert(buffer);
     ssize_t read_size = fread(buffer->GetPtr(), 1, len, f);
     assert(read_size == len);
@@ -124,8 +124,8 @@ int main(int argc, char **argv) {
     if (file_index == 0) {
       // 0.h264_frame must be sps pps
       // As live only accept one slice one time, separate sps and pps
-      spspps = rkmedia::split_h264_separate((const uint8_t *)buffer->GetPtr(),
-                                            len, rkmedia::gettimeofday());
+      spspps = easymedia::split_h264_separate((const uint8_t *)buffer->GetPtr(),
+                                              len, easymedia::gettimeofday());
       file_index++;
       continue;
     }
@@ -140,9 +140,9 @@ int main(int argc, char **argv) {
       assert(0 && "not h264 data");
     }
     if (nal_type == 5)
-      buffer->SetUserFlag(rkmedia::MediaBuffer::kIntra);
+      buffer->SetUserFlag(easymedia::MediaBuffer::kIntra);
     buffer->SetValidSize(len);
-    // buffer->SetTimeStamp(rkmedia::gettimeofday()); // ms
+    // buffer->SetTimeStamp(easymedia::gettimeofday()); // ms
     buffer_list[file_index - 1] = buffer;
     file_index++;
   }
@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
     PARAM_STRING_APPEND(param, KEY_USERPASSWORD, user_pwd);
   }
   printf("\nparam :\n%s\n", param.c_str());
-  auto rtsp_flow = rkmedia::REFLECTOR(Flow)::Create<rkmedia::Flow>(
+  auto rtsp_flow = easymedia::REFLECTOR(Flow)::Create<easymedia::Flow>(
       flow_name.c_str(), param.c_str());
   if (!rtsp_flow || errno != 0) {
     fprintf(stderr, "Create flow %s failed\n", flow_name.c_str());
@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
     if (buffer_idx == 0) {
       // send sps and pps
       for (auto &buf : spspps) {
-        buf->SetTimeStamp(rkmedia::gettimeofday());
+        buf->SetTimeStamp(easymedia::gettimeofday());
         rtsp_flow->SendInput(buf, 0);
       }
       buffer_idx++;
@@ -183,13 +183,13 @@ int main(int argc, char **argv) {
       buffer_idx = 0;
       continue;
     }
-    buf->SetTimeStamp(rkmedia::gettimeofday());
+    buf->SetTimeStamp(easymedia::gettimeofday());
     rtsp_flow->SendInput(buf, 0);
     buffer_idx++;
     loop++;
     if (buffer_idx >= MAX_FILE_NUM)
       buffer_idx = 0;
-    rkmedia::msleep(33);
+    easymedia::msleep(33);
   }
   LOG("rtsp server test reclaiming\n");
   rtsp_flow.reset();
@@ -213,7 +213,7 @@ int main(int argc, char **argv) {
     case 'i':
       input_path = optarg;
       printf("input file path: %s\n", input_path.c_str());
-      if (!rkmedia::string_end_withs(input_path, "nv12")) {
+      if (!easymedia::string_end_withs(input_path, "nv12")) {
         fprintf(stderr, "input file must be *.nv12");
         exit(EXIT_FAILURE);
       }
@@ -255,7 +255,7 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   printf("width, height: %d, %d\n", w, h);
 
-  rkmedia::REFLECTOR(Flow)::DumpFactories();
+  easymedia::REFLECTOR(Flow)::DumpFactories();
   int w_align = UPALIGNTO16(w);
   int h_align = UPALIGNTO16(h);
   int fps = 30;
@@ -272,13 +272,13 @@ int main(int argc, char **argv) {
   PARAM_STRING_APPEND(param, KEY_MEM_TYPE,
                       KEY_MEM_HARDWARE); // we will assign rkmpp as encoder,
                                          // which need hardware buffer
-  param += rkmedia::to_param_string(info);
+  param += easymedia::to_param_string(info);
   PARAM_STRING_APPEND_TO(param, KEY_FPS, fps); // rhythm reading
   PARAM_STRING_APPEND_TO(param, KEY_LOOP_TIME, 99999);
   printf("\nparam 1:\n%s\n", param.c_str());
   // 1. source
   flow_name = "file_read_flow";
-  auto file_flow = rkmedia::REFLECTOR(Flow)::Create<rkmedia::Flow>(
+  auto file_flow = easymedia::REFLECTOR(Flow)::Create<easymedia::Flow>(
       flow_name.c_str(), param.c_str());
   if (!file_flow || errno != 0) {
     fprintf(stderr, "Create flow %s failed\n", flow_name.c_str());
@@ -308,9 +308,9 @@ int main(int argc, char **argv) {
   // vid_cfg.rc_quality = "aq_only"; vid_cfg.rc_mode = "vbr";
   vid_cfg.rc_quality = "best";
   vid_cfg.rc_mode = "cbr";
-  param.append(rkmedia::to_param_string(enc_config, VIDEO_H264));
+  param.append(easymedia::to_param_string(enc_config, VIDEO_H264));
   printf("\nparam 2:\n%s\n", param.c_str());
-  auto enc_flow = rkmedia::REFLECTOR(Flow)::Create<rkmedia::Flow>(
+  auto enc_flow = easymedia::REFLECTOR(Flow)::Create<easymedia::Flow>(
       flow_name.c_str(), param.c_str());
   if (!enc_flow || errno != 0) {
     fprintf(stderr, "Create flow %s failed\n", flow_name.c_str());
@@ -328,7 +328,7 @@ int main(int argc, char **argv) {
     PARAM_STRING_APPEND(param, KEY_USERPASSWORD, user_pwd);
   }
   printf("\nparam 3:\n%s\n", param.c_str());
-  auto rtsp_flow = rkmedia::REFLECTOR(Flow)::Create<rkmedia::Flow>(
+  auto rtsp_flow = easymedia::REFLECTOR(Flow)::Create<easymedia::Flow>(
       flow_name.c_str(), param.c_str());
   if (!rtsp_flow || errno != 0) {
     fprintf(stderr, "Create flow %s failed\n", flow_name.c_str());
@@ -341,7 +341,7 @@ int main(int argc, char **argv) {
   LOG("rtsp server test initial finish\n");
   signal(SIGINT, sigterm_handler);
   while (!quit) {
-    rkmedia::msleep(10);
+    easymedia::msleep(10);
   }
   LOG("rtsp server test reclaiming\n");
   file_flow->RemoveDownFlow(enc_flow);

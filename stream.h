@@ -41,7 +41,7 @@ typedef struct {
 #include "image.h"
 #include "media_reflector.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 DECLARE_FACTORY(Stream)
 
@@ -90,6 +90,6 @@ private:
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Stream)
 };
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_STREAM_H_

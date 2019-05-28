@@ -70,13 +70,13 @@ typedef union {
 #include <map>
 #include <string>
 
-namespace rkmedia {
+namespace easymedia {
 bool ParseMediaConfigFromMap(std::map<std::string, std::string> &params,
                              MediaConfig &mc);
 std::string to_param_string(const ImageConfig &img_cfg);
 std::string to_param_string(const VideoConfig &vid_cfg);
 std::string to_param_string(const AudioConfig &aud_cfg);
 std::string to_param_string(const MediaConfig &mc, const std::string &out_type);
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_MEDIA_CONFIG_H_

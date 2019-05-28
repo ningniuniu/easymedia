@@ -34,7 +34,7 @@
 
 typedef int (*DeleteFun)(void *arg);
 
-namespace rkmedia {
+namespace easymedia {
 
 // wrapping existing buffer
 class MediaBuffer {
@@ -179,6 +179,6 @@ private:
   ImageInfo image_info;
 };
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // RKMEDIA_BUFFER_H_

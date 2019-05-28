@@ -26,7 +26,7 @@
 #include "buffer.h"
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 Codec::~Codec() {
   if (extra_data) {
@@ -152,4 +152,4 @@ split_h264_separate(const uint8_t *buffer, size_t length, int64_t timestamp) {
   return std::move(l);
 }
 
-} // namespace rkmedia
+} // namespace easymedia

@@ -105,11 +105,11 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  rkmedia::REFLECTOR(Encoder)::DumpFactories();
+  easymedia::REFLECTOR(Encoder)::DumpFactories();
 
   // rkmpp_h264 / rkmpp_jpeg
   std::string mpp_codec = std::string("rkmpp_") + output_format;
-  auto mpp_enc = rkmedia::REFLECTOR(Encoder)::Create<rkmedia::VideoEncoder>(
+  auto mpp_enc = easymedia::REFLECTOR(Encoder)::Create<easymedia::VideoEncoder>(
       mpp_codec.c_str(), nullptr);
 
   if (!mpp_enc) {
@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
     }
     size_t out_len = dst_buffer->GetValidSize();
     fprintf(stderr, "frame %d encoded, type %s, out %d bytes\n", index,
-            dst_buffer->GetUserFlag() & rkmedia::MediaBuffer::kIntra
+            dst_buffer->GetUserFlag() & easymedia::MediaBuffer::kIntra
                 ? "I frame"
                 : "P frame",
             out_len);

@@ -28,7 +28,7 @@
 #include "buffer.h"
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 template <int in_index, int out_index>
 static bool void_transaction(Flow *f, MediaBufferVector &input_vector) {
@@ -559,4 +559,4 @@ bool Flow::Input::ASyncFullDropCurrentBehavior(volatile bool &pred _UNUSED) {
   return false;
 }
 
-} // namespace rkmedia
+} // namespace easymedia

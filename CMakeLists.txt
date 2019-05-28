@@ -1,6 +1,6 @@
 # -----------------------------------------
 #
-# Hertz Wang wangh@rock-chips.com
+# Hertz Wang 1989wanghang@163.com
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -27,7 +27,7 @@ if(NOT COMMAND find_host_program)
 	endmacro()
 endif()
 
-project (rkmedia)
+project (easymedia)
 
 cmake_minimum_required (VERSION 3.1.0 FATAL_ERROR)
 include(CheckIncludeFiles)
@@ -114,17 +114,17 @@ pkg_check_modules(LIBDRM libdrm)
 if ( LIBDRM_FOUND )
 add_definitions(-DLIBDRM)
 include_directories(${LIBDRM_INCLUDE_DIRS})
-set(RK_MEDIA_DEPENDENT_LIBS drm)
+set(EASY_MEDIA_DEPENDENT_LIBS drm)
 endif()
 
 pkg_check_modules(LIBION libion)
 if (LIBION_FOUND)
 add_definitions(-DLIBION)
 include_directories(${LIBION_INCLUDE_DIRS})
-set(RK_MEDIA_DEPENDENT_LIBS ion)
+set(EASY_MEDIA_DEPENDENT_LIBS ion)
 endif()
 
-aux_source_directory(. RK_MEDIA_SOURCE_FILES)
+aux_source_directory(. EASY_MEDIA_SOURCE_FILES)
 
 # ----------------------------------------------------------------------------
 #  Start module definition
@@ -151,19 +151,19 @@ endif()
 add_subdirectory(stream)
 add_subdirectory(flow)
 
-add_library(rkmedia SHARED ${RK_MEDIA_SOURCE_FILES})
-file(GLOB RK_MEDIA_RELEASE_HEADERS *.h)
-set_target_properties(rkmedia PROPERTIES
-					  PUBLIC_HEADER "${RK_MEDIA_RELEASE_HEADERS}")
+add_library(easymedia SHARED ${EASY_MEDIA_SOURCE_FILES})
+file(GLOB EASY_MEDIA_RELEASE_HEADERS *.h)
+set_target_properties(easymedia PROPERTIES
+					  PUBLIC_HEADER "${EASY_MEDIA_RELEASE_HEADERS}")
 
-if( RK_MEDIA_DEPENDENT_LIBS )
-target_link_libraries(rkmedia ${RK_MEDIA_DEPENDENT_LIBS})
+if( EASY_MEDIA_DEPENDENT_LIBS )
+target_link_libraries(easymedia ${EASY_MEDIA_DEPENDENT_LIBS})
 endif()
 
-# message(headers: "${RK_MEDIA_RELEASE_HEADERS}")
-# message(files: "${RK_MEDIA_SOURCE_FILES}")
-# message(libs : "${RK_MEDIA_DEPENDENT_LIBS}")
+# message(headers: "${EASY_MEDIA_RELEASE_HEADERS}")
+# message(files: "${EASY_MEDIA_SOURCE_FILES}")
+# message(libs : "${EASY_MEDIA_DEPENDENT_LIBS}")
 
-install(TARGETS rkmedia
+install(TARGETS easymedia
 		LIBRARY DESTINATION "lib"
-		PUBLIC_HEADER DESTINATION "include/rkmedia")
+		PUBLIC_HEADER DESTINATION "include/easymedia")

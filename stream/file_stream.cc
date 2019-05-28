@@ -28,7 +28,7 @@
 #include "media_type.h"
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 #define CHECK_FILE(f)                                                          \
   if (!f) {                                                                    \
@@ -168,4 +168,4 @@ const char *FACTORY(FileReadStream)::ExpectedInputDataType() {
 
 const char *FACTORY(FileReadStream)::OutPutDataType() { return TYPE_ANYTHING; }
 
-} // namespace rkmedia
+} // namespace easymedia

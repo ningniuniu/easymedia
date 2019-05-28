@@ -28,7 +28,7 @@ extern "C" {
 
 #include <list>
 
-namespace rkmedia {
+namespace easymedia {
 
 bool PackOggPackets(const std::list<ogg_packet> &ogg_packets, void **out_buffer,
                     size_t *out_size);
@@ -38,6 +38,6 @@ bool UnpackOggData(void *in_buffer, size_t in_size,
 ogg_packet *ogg_packet_clone(const ogg_packet &orig);
 int ogg_packet_free(ogg_packet *p);
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // #ifndef RKMEDIA_OGG_UTILS_H_

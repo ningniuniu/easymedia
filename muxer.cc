@@ -21,7 +21,7 @@
 
 #include "muxer.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 DEFINE_REFLECTOR(Muxer)
 // define the base factory missing definition
@@ -33,4 +33,4 @@ const char *FACTORY(Muxer)::Parse(const char *request) {
 Muxer::Muxer(const char *param _UNUSED) {}
 
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(Muxer, Muxer)
-} // namespace rkmedia
+} // namespace easymedia

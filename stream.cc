@@ -26,7 +26,7 @@
 
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 static size_t local_read(void *ptr, size_t size, size_t nmemb, void *stream) {
   Stream *s = static_cast<Stream *>(stream);
@@ -124,4 +124,4 @@ bool Stream::ReadImage(void *ptr, const ImageInfo &info) {
   return true;
 }
 
-} // namespace rkmedia
+} // namespace easymedia

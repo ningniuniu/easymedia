@@ -30,7 +30,7 @@
 #include "media_type.h"
 #include "utils.h"
 
-namespace rkmedia {
+namespace easymedia {
 
 class AlsaPlayBackStream : public Stream {
 public:
@@ -319,4 +319,4 @@ const char *FACTORY(AlsaPlayBackStream)::ExpectedInputDataType() {
 
 const char *FACTORY(AlsaPlayBackStream)::OutPutDataType() { return nullptr; }
 
-} // namespace rkmedia
+} // namespace easymedia

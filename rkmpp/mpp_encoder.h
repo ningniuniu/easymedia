@@ -26,13 +26,8 @@
 #include "mpp_inc.h"
 #include <mpp/rk_mpi.h>
 
-// mpp_packet_impl.h which define MPP_PACKET_FLAG_INTRA is not exposed,
-// here define the same MPP_PACKET_FLAG_INTRA.
-#ifndef MPP_PACKET_FLAG_INTRA
-#define MPP_PACKET_FLAG_INTRA (0x00000008)
-#endif
+namespace easymedia {
 
-namespace rkmedia {
 // A encoder which call the mpp interface directly.
 // Mpp is always video process module.
 class MPPEncoder : public VideoEncoder {
@@ -48,7 +43,7 @@ public:
                       std::shared_ptr<MediaBuffer> output,
                       std::shared_ptr<MediaBuffer> extra_output) override;
 
-  virtual int SendInput(std::shared_ptr<MediaBuffer> input _UNUSED) override;
+  virtual int SendInput(std::shared_ptr<MediaBuffer> input) override;
   virtual std::shared_ptr<MediaBuffer> FetchOutput() override;
 
 protected:
@@ -75,6 +70,6 @@ private:
   MppApi *mpi;
 };
 
-} // namespace rkmedia
+} // namespace easymedia
 
 #endif // MPP_H264_ENCODER_H
