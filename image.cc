@@ -59,6 +59,13 @@ void GetPixFmtNumDen(const PixelFormat &fmt, int &num, int &den) {
   }
 }
 
+int CalPixFmtSize(const PixelFormat &fmt, const int width, const int height) {
+  int num = 0;
+  int den = 0;
+  GetPixFmtNumDen(fmt, num, den);
+  return width * height * num / den;
+}
+
 static const struct PixFmtStringEntry {
   PixelFormat fmt;
   const char *type_str;

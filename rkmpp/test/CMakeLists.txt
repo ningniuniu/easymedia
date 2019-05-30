@@ -22,12 +22,20 @@ endif()
 
 set(RKMPP_TEST_DEPENDENT_LIBS ${RKMPP_TEST_DEPENDENT_LIBS} easymedia)
 
-
 set (CMAKE_CXX_STANDARD 11)
 
-aux_source_directory(./ RKMPP_TEST_SRC_FILES)
-add_executable(rkmpp_test ${RKMPP_TEST_SRC_FILES})
-add_dependencies(rkmpp_test easymedia)
-target_link_libraries(rkmpp_test ${RKMPP_TEST_DEPENDENT_LIBS})
+if( RKMPP_ENCODER )
+set(RKMPP_ENC_TEST_SRC_FILES mpp_enc_test.cc test_utils.cc)
+add_executable(rkmpp_enc_test ${RKMPP_ENC_TEST_SRC_FILES})
+add_dependencies(rkmpp_enc_test easymedia)
+target_link_libraries(rkmpp_enc_test ${RKMPP_TEST_DEPENDENT_LIBS})
+install(TARGETS rkmpp_enc_test RUNTIME DESTINATION "bin")
+endif()
 
-install(TARGETS rkmpp_test RUNTIME DESTINATION "bin")
+if( RKMPP_DECODER )
+set(RKMPP_DEC_TEST_SRC_FILES mpp_dec_test.cc)
+add_executable(rkmpp_dec_test ${RKMPP_DEC_TEST_SRC_FILES})
+add_dependencies(rkmpp_dec_test easymedia)
+target_link_libraries(rkmpp_dec_test ${RKMPP_TEST_DEPENDENT_LIBS} pthread)
+install(TARGETS rkmpp_dec_test RUNTIME DESTINATION "bin")
+endif()

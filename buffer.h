@@ -101,14 +101,17 @@ public:
     MEM_COMMON,
 #ifdef LIBION
     MEM_ION,
+    MEM_HARD_WARE = MEM_ION
 #endif
 #ifdef LIBDRM
 #error(__FILE__:__LINE__): drm TODO
     MEM_DRM,
+    MEM_HARD_WARE = MEM_DRM
 #endif
   };
   static std::shared_ptr<MediaBuffer> Alloc(size_t size,
                                             MemType type = MemType::MEM_COMMON);
+  static MediaBuffer Alloc2(size_t size, MemType type = MemType::MEM_COMMON);
   static std::shared_ptr<MediaBuffer>
   Clone(MediaBuffer &src, MemType dst_type = MemType::MEM_COMMON);
 
@@ -157,10 +160,9 @@ private:
 // Image buffer
 class ImageBuffer : public MediaBuffer {
 public:
-  ImageBuffer() {
-    SetType(Type::Image);
-    memset(&image_info, 0, sizeof(image_info));
-    image_info.pix_fmt = PIX_FMT_NONE;
+  ImageBuffer() { ResetValues(); }
+  ImageBuffer(const MediaBuffer &buffer) : MediaBuffer(buffer) {
+    ResetValues();
   }
   ImageBuffer(const MediaBuffer &buffer, const ImageInfo &info)
       : MediaBuffer(buffer), image_info(info) {
@@ -174,8 +176,14 @@ public:
   int GetHeight() const { return image_info.height; }
   int GetVirWidth() const { return image_info.vir_width; }
   int GetVirHeight() const { return image_info.vir_height; }
+  ImageInfo &GetImageInfo() { return image_info; }
 
 private:
+  void ResetValues() {
+    SetType(Type::Image);
+    memset(&image_info, 0, sizeof(image_info));
+    image_info.pix_fmt = PIX_FMT_NONE;
+  }
   ImageInfo image_info;
 };
 

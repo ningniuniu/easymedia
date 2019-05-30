@@ -54,13 +54,11 @@ static int free_common_memory(void *buffer) {
   return 0;
 }
 
-static std::shared_ptr<easymedia::MediaBuffer>
-alloc_common_memory(size_t size) {
+static MediaBuffer alloc_common_memory(size_t size) {
   void *buffer = malloc(size);
   if (!buffer)
-    return nullptr;
-  return std::make_shared<easymedia::MediaBuffer>(buffer, size, -1, buffer,
-                                                  free_common_memory);
+    return MediaBuffer();
+  return MediaBuffer(buffer, size, -1, buffer, free_common_memory);
 }
 
 #ifdef LIBION
@@ -103,52 +101,62 @@ static int free_ion_memory(void *buffer) {
   return 0;
 }
 
-static std::shared_ptr<easymedia::MediaBuffer> alloc_ion_memory(size_t size) {
+static MediaBuffer alloc_ion_memory(size_t size) {
+  ion_user_handle_t handle;
+  int ret;
+  int fd;
+  void *ptr;
+  IonBuffer *buffer;
   int client = ion_open();
   if (client < 0) {
     LOG("ion_open() failed: %m\n");
-    return nullptr;
+    goto err;
   }
-  ion_user_handle_t handle;
-  int ret = ion_alloc(client, size, 0, ION_HEAP_TYPE_DMA_MASK, 0, &handle);
+  ret = ion_alloc(client, size, 0, ION_HEAP_TYPE_DMA_MASK, 0, &handle);
   if (ret) {
     LOG("ion_alloc() failed: %m\n");
     ion_close(client);
-    return nullptr;
+    goto err;
   }
-  int fd;
   ret = ion_share(client, handle, &fd);
   if (ret < 0) {
     LOG("ion_share() failed: %m\n");
     ion_free(client, handle);
     ion_close(client);
-    return nullptr;
+    goto err;
   }
-  void *ptr =
+  ptr =
       mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_LOCKED, fd, 0);
   if (!ptr) {
     LOG("ion mmap() failed: %m\n");
     ion_free(client, handle);
     ion_close(client);
     close(fd);
-    return nullptr;
+    goto err;
   }
-  IonBuffer *buffer = new IonBuffer(client, handle, fd, ptr, size);
+  buffer = new IonBuffer(client, handle, fd, ptr, size);
   if (!buffer) {
     ion_free(client, handle);
     ion_close(client);
     close(fd);
     munmap(ptr, size);
-    return nullptr;
+    goto err;
   }
 
-  return std::make_shared<easymedia::MediaBuffer>(ptr, size, fd, buffer,
-                                                  free_ion_memory);
+  return MediaBuffer(ptr, size, fd, buffer, free_ion_memory);
+err:
+  return MediaBuffer();
 }
 #endif
 
-std::shared_ptr<easymedia::MediaBuffer> MediaBuffer::Alloc(size_t size,
-                                                           MemType type) {
+std::shared_ptr<MediaBuffer> MediaBuffer::Alloc(size_t size, MemType type) {
+  MediaBuffer &&mb = Alloc2(size, type);
+  if (mb.GetSize() == 0)
+    return nullptr;
+  return std::make_shared<MediaBuffer>(mb);
+}
+
+MediaBuffer MediaBuffer::Alloc2(size_t size, MemType type) {
   switch (type) {
   case MemType::MEM_COMMON:
     return alloc_common_memory(size);
@@ -162,7 +170,7 @@ std::shared_ptr<easymedia::MediaBuffer> MediaBuffer::Alloc(size_t size,
 #endif
   default:
     LOG("unknown memtype\n");
-    return nullptr;
+    return MediaBuffer();
   }
 }
 

@@ -93,3 +93,70 @@ const char *MppAcceptImageFmts() {
                   TYPENEAR(IMAGE_BGR888) TYPENEAR(IMAGE_ARGB8888)
                       TYPENEAR(IMAGE_ABGR8888);
 }
+
+namespace easymedia {
+MPP_RET init_mpp_buffer(MppBuffer &buffer, std::shared_ptr<MediaBuffer> &mb,
+                        size_t frame_size) {
+  MPP_RET ret;
+  int fd = mb->GetFD();
+  void *ptr = mb->GetPtr();
+  size_t size = mb->GetValidSize();
+
+  if (fd >= 0) {
+    MppBufferInfo info;
+
+    memset(&info, 0, sizeof(info));
+    info.type = MPP_BUFFER_TYPE_ION;
+    info.size = size;
+    info.fd = fd;
+    info.ptr = ptr;
+
+    ret = mpp_buffer_import(&buffer, &info);
+    if (ret) {
+      LOG("import input picture buffer failed\n");
+      goto fail;
+    }
+  } else {
+    if (frame_size == 0)
+      return MPP_OK;
+    if (size == 0) {
+      size = frame_size;
+      assert(frame_size > 0);
+    }
+    ret = mpp_buffer_get(NULL, &buffer, size);
+    if (ret) {
+      LOG("allocate output stream buffer failed\n");
+      goto fail;
+    }
+  }
+
+  return MPP_OK;
+
+fail:
+  if (buffer) {
+    mpp_buffer_put(buffer);
+    buffer = nullptr;
+  }
+  return ret;
+}
+
+MPP_RET init_mpp_buffer_with_content(MppBuffer &buffer,
+                                     std::shared_ptr<MediaBuffer> &mb) {
+  size_t size = mb->GetValidSize();
+  MPP_RET ret = init_mpp_buffer(buffer, mb, size);
+  if (ret)
+    return ret;
+  int fd = mb->GetFD();
+  void *ptr = mb->GetPtr();
+  // As init_mpp_buffer is a no time-consuming function and do not memcpy
+  // content to a virtual buffer, do memcpy here.
+  if (fd < 0 && ptr) {
+    // !!time-consuming operation
+    LOG("extra time-consuming memcpy to mpp, size=%d!\n", size);
+    memcpy(mpp_buffer_get_ptr(buffer), ptr, size);
+    // sync between cpu and device if cached?
+  }
+  return MPP_OK;
+}
+
+} // namespace easymedia

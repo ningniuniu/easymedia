@@ -429,6 +429,9 @@ bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
 #ifdef DEBUG
   c->SetMarkName(mark);
   c->SetExpectProcessTime(exp_process_time);
+#else
+  UNUSED(mark);
+  UNUSED(exp_process_time);
 #endif
   c->Start();
   return true;

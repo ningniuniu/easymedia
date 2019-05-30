@@ -74,11 +74,11 @@ int main(int argc, char **argv) {
     case '?':
     default:
       printf("usage example: \n");
-      printf("rkmpp_test -i input.yuv -o output.h264 -w 320 -h 240 -f "
+      printf("rkmpp_enc_test -i input.yuv -o output.h264 -w 320 -h 240 -f "
              "nv12_h264\n");
-      printf(
-          "rkmpp_test -i input.yuv -o output.jpg -w 320 -h 240 -f nv12_jpeg\n");
-      break;
+      printf("rkmpp_enc_test -i input.yuv -o output.jpg -w 320 -h 240 -f "
+             "nv12_jpeg\n");
+      exit(0);
     }
   }
   if (input_path.empty() || output_path.empty())

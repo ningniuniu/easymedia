@@ -60,6 +60,7 @@ typedef struct {
 #endif
 
 void GetPixFmtNumDen(const PixelFormat &fmt, int &num, int &den);
+int CalPixFmtSize(const PixelFormat &fmt, const int width, const int height);
 PixelFormat GetPixFmtByString(const char *type);
 const char *PixFmtToString(PixelFormat fmt);
 

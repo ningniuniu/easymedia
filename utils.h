@@ -134,7 +134,7 @@ private:
   const char *func;
 #else
 public:
-  AutoPrintLine(const char *f _UNUSED) = default;
+  AutoPrintLine(const char *f _UNUSED) {}
 #endif
 };
 

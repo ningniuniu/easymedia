@@ -62,8 +62,6 @@ public:
   virtual int SendInput(std::shared_ptr<MediaBuffer> input) = 0;
   virtual std::shared_ptr<MediaBuffer> FetchOutput() = 0;
 
-  // virtual std::shared_ptr<MediaBuffer> GenEmptyOutPutBuffer();
-
 private:
   MediaConfig config;
   void *extra_data;
