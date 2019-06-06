@@ -45,7 +45,7 @@ DECLARE_REFLECTOR(Muxer)
 
 class MediaBuffer;
 class Encoder;
-class Muxer {
+class _API Muxer {
 public:
   Muxer(const char *param);
   virtual ~Muxer() = default;

@@ -43,7 +43,7 @@ DECLARE_REFLECTOR(Demuxer)
   DEFINE_MEDIA_NEW_PRODUCT(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)
 
 class MediaBuffer;
-class Demuxer {
+class _API Demuxer {
 public:
   Demuxer(const char *param);
   virtual ~Demuxer() = default;

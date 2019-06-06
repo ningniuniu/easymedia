@@ -59,10 +59,13 @@ typedef struct {
 }
 #endif
 
-void GetPixFmtNumDen(const PixelFormat &fmt, int &num, int &den);
-int CalPixFmtSize(const PixelFormat &fmt, const int width, const int height);
-PixelFormat GetPixFmtByString(const char *type);
-const char *PixFmtToString(PixelFormat fmt);
+#include "utils.h"
+
+_API void GetPixFmtNumDen(const PixelFormat &fmt, int &num, int &den);
+_API int CalPixFmtSize(const PixelFormat &fmt, const int width,
+                       const int height);
+_API PixelFormat GetPixFmtByString(const char *type);
+_API const char *PixFmtToString(PixelFormat fmt);
 
 #include <map>
 #include <string>
@@ -70,7 +73,7 @@ const char *PixFmtToString(PixelFormat fmt);
 namespace easymedia {
 bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
                            ImageInfo &ii);
-std::string to_param_string(const ImageInfo &ii);
+_API std::string to_param_string(const ImageInfo &ii);
 } // namespace easymedia
 
 #endif // #ifndef RKMEDIA_IMAGE_H_

@@ -77,7 +77,7 @@ private:
 #define DEFINE_VIDEO_ENCODER_FACTORY(REAL_PRODUCT)                             \
   DEFINE_ENCODER_FACTORY(REAL_PRODUCT, VideoEncoder)
 
-class VideoEncoder : public Encoder {
+class _API VideoEncoder : public Encoder {
 public:
   // changes
   static const uint32_t kQPChange = (1 << 0);
@@ -104,7 +104,7 @@ private:
 #define DEFINE_AUDIO_ENCODER_FACTORY(REAL_PRODUCT)                             \
   DEFINE_ENCODER_FACTORY(REAL_PRODUCT, AudioEncoder)
 
-class AudioEncoder : public Encoder {
+class _API AudioEncoder : public Encoder {
 public:
   virtual ~AudioEncoder() = default;
   virtual bool InitConfig(const MediaConfig &cfg) override;

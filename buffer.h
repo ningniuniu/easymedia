@@ -37,7 +37,7 @@ typedef int (*DeleteFun)(void *arg);
 namespace easymedia {
 
 // wrapping existing buffer
-class MediaBuffer {
+class _API MediaBuffer {
 public:
   // video flags
   static const uint32_t kExtraIntra = (1 << 0); // special, such as sps pps
@@ -101,12 +101,12 @@ public:
     MEM_COMMON,
 #ifdef LIBION
     MEM_ION,
-    MEM_HARD_WARE = MEM_ION
+    MEM_HARD_WARE = MEM_ION,
 #endif
 #ifdef LIBDRM
 #error(__FILE__:__LINE__): drm TODO
     MEM_DRM,
-    MEM_HARD_WARE = MEM_DRM
+    MEM_HARD_WARE = MEM_DRM,
 #endif
   };
   static std::shared_ptr<MediaBuffer> Alloc(size_t size,
@@ -134,7 +134,7 @@ private:
 MediaBuffer::MemType StringToMemType(const char *s);
 
 // Audio sample buffer
-class SampleBuffer : public MediaBuffer {
+class _API SampleBuffer : public MediaBuffer {
 public:
   SampleBuffer(const MediaBuffer &buffer, const SampleInfo &info)
       : MediaBuffer(buffer), sample_info(info) {
@@ -158,7 +158,7 @@ private:
 };
 
 // Image buffer
-class ImageBuffer : public MediaBuffer {
+class _API ImageBuffer : public MediaBuffer {
 public:
   ImageBuffer() { ResetValues(); }
   ImageBuffer(const MediaBuffer &buffer) : MediaBuffer(buffer) {

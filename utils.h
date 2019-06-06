@@ -25,7 +25,10 @@
 #define _UNUSED __attribute__((unused))
 #define UNUSED(x) (void)x
 
-void LOG(const char *format, ...);
+#define _LOCAL __attribute__((visibility("hidden")))
+#define _API __attribute__((visibility("default")))
+
+_API void LOG(const char *format, ...);
 
 #define LOG_NO_MEMORY()                                                        \
   fprintf(stderr, "No memory %s: %d\n", __FUNCTION__, __LINE__)
@@ -90,19 +93,20 @@ int parse_media_param_match(
 bool has_intersection(const char *str, const char *expect,
                       std::list<std::string> *expect_list);
 
-bool string_start_withs(std::string const &fullString,
-                        std::string const &starting);
-bool string_end_withs(std::string const &fullString, std::string const &ending);
+_API bool string_start_withs(std::string const &fullString,
+                             std::string const &starting);
+_API bool string_end_withs(std::string const &fullString,
+                           std::string const &ending);
 
 // return milliseconds
-inline int64_t gettimeofday() {
+_API inline int64_t gettimeofday() {
   std::chrono::milliseconds ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::system_clock::now().time_since_epoch());
   return ms.count();
 }
 
-inline void msleep(int ms) {
+_API inline void msleep(int ms) {
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 

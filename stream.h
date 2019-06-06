@@ -55,7 +55,7 @@ DECLARE_REFLECTOR(Stream)
   DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)
 
 // interface
-class Stream {
+class _API Stream {
 public:
   static StreamOperation c_operations;
 

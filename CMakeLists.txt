@@ -83,6 +83,8 @@ add_definitions(-fno-rtti)
 add_definitions(-fPIC)
 #set (CMAKE_SHARED_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
 
+add_definitions(-fvisibility=hidden -fvisibility-inlines-hidden)
+
 include_directories(./)
 
 # ----------------------------------------------------------------------------

@@ -47,7 +47,7 @@ public:
   virtual ~Decoder() = default;
 };
 
-class AudioDecoder : public Decoder {
+class _API AudioDecoder : public Decoder {
 public:
   virtual ~AudioDecoder() = default;
 
@@ -57,7 +57,7 @@ public:
 #define DEFINE_VIDEO_DECODER_FACTORY(REAL_PRODUCT)                             \
   DEFINE_DECODER_FACTORY(REAL_PRODUCT, VideoDecoder)
 
-class VideoDecoder : public Decoder {
+class _API VideoDecoder : public Decoder {
 public:
   virtual ~VideoDecoder() = default;
 

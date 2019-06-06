@@ -24,6 +24,8 @@
 
 #include <stddef.h>
 
+#include "utils.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,17 +49,17 @@ typedef struct {
 }
 #endif
 
-const char *SampleFormatToString(SampleFormat fmt);
-SampleFormat StringToSampleFormat(const char *fmt_str);
-bool SampleInfoIsValid(const SampleInfo &sample_info);
-size_t GetFrameSize(const SampleInfo &sample_info);
+_API const char *SampleFormatToString(SampleFormat fmt);
+_API SampleFormat StringToSampleFormat(const char *fmt_str);
+_API bool SampleInfoIsValid(const SampleInfo &sample_info);
+_API size_t GetFrameSize(const SampleInfo &sample_info);
 
 #include <map>
 #include <string>
 namespace easymedia {
 bool ParseSampleInfoFromMap(std::map<std::string, std::string> &params,
                             SampleInfo &si);
-std::string to_param_string(const SampleInfo &si);
+std::string _API to_param_string(const SampleInfo &si);
 } // namespace easymedia
 
 #endif // #ifndef RKMEDIA_SOUND_H_

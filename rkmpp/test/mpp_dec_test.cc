@@ -226,8 +226,8 @@ int main(int argc, char **argv) {
     if (len <= 0)
       exit(EXIT_FAILURE);
     // auto input = easymedia::MediaBuffer::Alloc(len);
-    auto input = easymedia::MediaBuffer::Alloc(len,
-     easymedia::MediaBuffer::MemType::MEM_HARD_WARE);
+    auto input = easymedia::MediaBuffer::Alloc(
+        len, easymedia::MediaBuffer::MemType::MEM_HARD_WARE);
     assert(input);
     size_t out_len = UPALIGNTO16(width) * UPALIGNTO16(height) * 4;
     auto mb = easymedia::MediaBuffer::Alloc2(
@@ -327,7 +327,7 @@ int main(int argc, char **argv) {
       if (async)
         break;
     }
-try_get_frame:
+  try_get_frame:
     if (!async) {
       if (!get_output_and_process(mpp_dec.get()))
         break;

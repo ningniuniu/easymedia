@@ -38,7 +38,7 @@
 #define DECLARE_REFLECTOR(PRODUCT)                                             \
   class PRODUCT;                                                               \
   class PRODUCT##Factory;                                                      \
-  class PRODUCT##Reflector {                                                   \
+  class _API PRODUCT##Reflector {                                              \
   public:                                                                      \
     static const char *FindFirstMatchIdentifier(const char *rules);            \
     static bool IsMatch(const char *identifier, const char *rules);            \
@@ -122,7 +122,7 @@
   class PRODUCT##Factory {                                                     \
   public:                                                                      \
     virtual const char *Identifier() const = 0;                                \
-    static const char *Parse(const char *request);                             \
+    static _API const char *Parse(const char *request);                        \
     virtual std::shared_ptr<PRODUCT> NewProduct(const char *param) = 0;        \
     bool AcceptRules(const char *rules) const {                                \
       std::map<std::string, std::string> map;                                  \
