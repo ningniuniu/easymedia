@@ -24,7 +24,6 @@
 
 #include "encoder.h"
 #include "mpp_inc.h"
-#include <mpp/rk_mpi.h>
 
 namespace easymedia {
 
@@ -33,7 +32,7 @@ namespace easymedia {
 class MPPEncoder : public VideoEncoder {
 public:
   MPPEncoder();
-  virtual ~MPPEncoder();
+  virtual ~MPPEncoder() = default;
 
   virtual bool Init() override;
   virtual bool InitConfig(const MediaConfig &cfg) override;
@@ -66,8 +65,7 @@ protected:
 
 private:
   MppCodingType coding_type;
-  MppCtx ctx;
-  MppApi *mpi;
+  std::shared_ptr<MPPContext> mpp_ctx;
 };
 
 } // namespace easymedia

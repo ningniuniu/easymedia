@@ -21,6 +21,7 @@
 
 #include "mpp_encoder.h"
 
+#include <assert.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -30,23 +31,21 @@
 
 namespace easymedia {
 
-MPPEncoder::MPPEncoder()
-    : coding_type(MPP_VIDEO_CodingAutoDetect), ctx(nullptr), mpi(nullptr) {}
-
-MPPEncoder::~MPPEncoder() {
-  if (mpi) {
-    mpi->reset(ctx);
-    mpp_destroy(ctx);
-    ctx = NULL;
-  }
-}
+MPPEncoder::MPPEncoder() : coding_type(MPP_VIDEO_CodingAutoDetect) {}
 
 bool MPPEncoder::Init() {
+  mpp_ctx = std::make_shared<MPPContext>();
+  if (!mpp_ctx)
+    return false;
+  MppCtx ctx = NULL;
+  MppApi *mpi = NULL;
   int ret = mpp_create(&ctx, &mpi);
   if (ret) {
     LOG("mpp_create failed\n");
     return false;
   }
+  mpp_ctx->ctx = ctx;
+  mpp_ctx->mpi = mpi;
   ret = mpp_init(ctx, MPP_CTX_ENC, coding_type);
   if (ret != MPP_OK) {
     LOG("mpp_init failed with type %d\n", coding_type);
@@ -140,9 +139,23 @@ int MPPEncoder::PrepareMppExtraBuffer(std::shared_ptr<MediaBuffer> extra_output,
   return 0;
 }
 
-static int free_mpp_packet(MppPacket packet) {
-  if (packet)
-    mpp_packet_deinit(&packet);
+class MPPPacketContext {
+public:
+  MPPPacketContext(std::shared_ptr<MPPContext> ctx, MppPacket p)
+      : mctx(ctx), packet(p) {}
+  ~MPPPacketContext() {
+    if (packet)
+      mpp_packet_deinit(&packet);
+  }
+
+private:
+  std::shared_ptr<MPPContext> mctx;
+  MppPacket packet;
+};
+
+static int __free_mpppacketcontext(void *p) {
+  assert(p);
+  delete (MPPPacketContext *)p;
   return 0;
 }
 
@@ -219,10 +232,16 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
       // sync to cpu?
     }
   } else {
+    MPPPacketContext *ctx = new MPPPacketContext(mpp_ctx, packet);
+    if (!ctx) {
+      LOG_NO_MEMORY();
+      ret = -ENOMEM;
+      goto ENCODE_OUT;
+    }
     output->SetFD(mpp_buffer_get_fd(mpp_packet_get_buffer(packet)));
     output->SetPtr(mpp_packet_get_data(packet));
     output->SetSize(mpp_packet_get_size(packet));
-    output->SetUserData(packet, free_mpp_packet);
+    output->SetUserData(ctx, __free_mpppacketcontext);
     packet = nullptr;
   }
   output->SetValidSize(packet_len);
@@ -253,8 +272,9 @@ ENCODE_OUT:
 }
 
 int MPPEncoder::Process(MppFrame frame, MppPacket &packet, MppBuffer &mv_buf) {
-  MppTask task = nullptr;
-
+  MppTask task = NULL;
+  MppCtx ctx = mpp_ctx->ctx;
+  MppApi *mpi = mpp_ctx->mpi;
   int ret = mpi->poll(ctx, MPP_PORT_INPUT, MPP_POLL_BLOCK);
   if (ret) {
     LOG("input poll ret %d\n", ret);
@@ -326,10 +346,10 @@ std::shared_ptr<MediaBuffer> MPPEncoder::FetchOutput() {
 
 int MPPEncoder::EncodeControl(int cmd, void *param) {
   MpiCmd mpi_cmd = (MpiCmd)cmd;
-  int ret = mpi->control(ctx, mpi_cmd, (MppParam)param);
+  int ret = mpp_ctx->mpi->control(mpp_ctx->ctx, mpi_cmd, (MppParam)param);
 
   if (ret) {
-    LOG("mpp control ctx %p cmd 0x%08x param %p failed\n", ctx, cmd, param);
+    LOG("mpp control cmd 0x%08x param %p failed\n", cmd, param);
     return ret;
   }
 

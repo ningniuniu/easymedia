@@ -24,7 +24,7 @@
 
 #include "buffer.h"
 #include "image.h"
-#include <mpp/mpp_frame.h>
+#include <mpp/rk_mpi.h>
 
 // mpp_packet_impl.h which define MPP_PACKET_FLAG_INTRA is not exposed,
 // here define the same MPP_PACKET_FLAG_INTRA.
@@ -37,6 +37,15 @@ PixelFormat ConvertToPixFmt(const MppFrameFormat &mfmt);
 const char *MppAcceptImageFmts();
 
 namespace easymedia {
+
+struct MPPContext {
+  MPPContext();
+  ~MPPContext();
+  MppCtx ctx;
+  MppApi *mpi;
+  MppBufferGroup frame_group;
+};
+
 // no time-consuming, init a mppbuffer with MediaBuffer
 MPP_RET init_mpp_buffer(MppBuffer &buffer, std::shared_ptr<MediaBuffer> &mb,
                         size_t frame_size);

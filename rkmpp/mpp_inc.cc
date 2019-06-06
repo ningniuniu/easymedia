@@ -95,6 +95,20 @@ const char *MppAcceptImageFmts() {
 }
 
 namespace easymedia {
+
+MPPContext::MPPContext() : ctx(NULL), mpi(NULL), frame_group(NULL) {}
+MPPContext::~MPPContext() {
+  if (mpi) {
+    mpi->reset(ctx);
+    mpp_destroy(ctx);
+    ctx = NULL;
+  }
+  if (frame_group) {
+    mpp_buffer_group_put(frame_group);
+    frame_group = NULL;
+  }
+}
+
 MPP_RET init_mpp_buffer(MppBuffer &buffer, std::shared_ptr<MediaBuffer> &mb,
                         size_t frame_size) {
   MPP_RET ret;

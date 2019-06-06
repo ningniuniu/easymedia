@@ -24,7 +24,6 @@
 
 #include "decoder.h"
 #include "mpp_inc.h"
-#include <mpp/rk_mpi.h>
 
 namespace easymedia {
 
@@ -32,7 +31,7 @@ namespace easymedia {
 class MPPDecoder : public VideoDecoder {
 public:
   MPPDecoder(const char *param);
-  virtual ~MPPDecoder();
+  virtual ~MPPDecoder() = default;
   static const char *GetCodecName() { return "rkmpp"; }
 
   virtual bool Init() override;
@@ -48,9 +47,7 @@ private:
   RK_U32 need_split;
   RK_U32 timeout;
   MppCodingType coding_type;
-  MppCtx ctx;
-  MppApi *mpi;
-  MppBufferGroup frame_group;
+  std::shared_ptr<MPPContext> mpp_ctx;
   bool support_sync;
   static const RK_S32 kFRAMEGROUP_MAX_FRAMES = 16;
 };

@@ -34,7 +34,7 @@ namespace easymedia {
 MPPDecoder::MPPDecoder(const char *param)
     : fg_limit_num(kFRAMEGROUP_MAX_FRAMES), need_split(1),
       timeout(MPP_POLL_NON_BLOCK), coding_type(MPP_VIDEO_CodingUnused),
-      ctx(NULL), mpi(NULL), frame_group(NULL), support_sync(false) {
+      support_sync(false) {
   MediaConfig &cfg = GetConfig();
   ImageInfo &img_info = cfg.img_cfg.image_info;
   img_info.pix_fmt = PIX_FMT_NONE;
@@ -75,18 +75,6 @@ MPPDecoder::MPPDecoder(const char *param)
   }
 }
 
-MPPDecoder::~MPPDecoder() {
-  if (mpi) {
-    mpi->reset(ctx);
-    mpp_destroy(ctx);
-    ctx = NULL;
-  }
-  if (frame_group) {
-    mpp_buffer_group_put(frame_group);
-    frame_group = NULL;
-  }
-}
-
 static MppCodingType get_codingtype(const std::string &data_type) {
   if (data_type == VIDEO_H264)
     return MPP_VIDEO_CodingAVC;
@@ -102,12 +90,20 @@ bool MPPDecoder::Init() {
     return false;
   if (coding_type == MPP_VIDEO_CodingMJPEG)
     support_sync = true;
-
+  mpp_ctx = std::make_shared<MPPContext>();
+  if (!mpp_ctx)
+    return false;
+  MppCtx ctx = NULL;
+  MppApi *mpi = NULL;
   MPP_RET ret = mpp_create(&ctx, &mpi);
   if (MPP_OK != ret) {
     LOG("mpp_create failed\n");
     return false;
   }
+  mpp_ctx->ctx = ctx;
+  mpp_ctx->mpi = mpi;
+  assert(ctx);
+  assert(mpi);
 
   MppParam param = NULL;
 
@@ -134,17 +130,18 @@ bool MPPDecoder::Init() {
   }
 
   if (fg_limit_num > 0) {
-    ret = mpp_buffer_group_get_internal(&frame_group, MPP_BUFFER_TYPE_ION);
+    ret = mpp_buffer_group_get_internal(&mpp_ctx->frame_group,
+                                        MPP_BUFFER_TYPE_ION);
     if (ret != MPP_OK) {
       LOG("Failed to retrieve buffer group (ret = %d)\n", ret);
       return false;
     }
-    ret = mpi->control(ctx, MPP_DEC_SET_EXT_BUF_GROUP, frame_group);
+    ret = mpi->control(ctx, MPP_DEC_SET_EXT_BUF_GROUP, mpp_ctx->frame_group);
     if (ret != MPP_OK) {
       LOG("Failed to assign buffer group (ret = %d)\n", ret);
       return false;
     }
-    ret = mpp_buffer_group_limit_config(frame_group, 0, fg_limit_num);
+    ret = mpp_buffer_group_limit_config(mpp_ctx->frame_group, 0, fg_limit_num);
     if (ret != MPP_OK) {
       LOG("Failed to set buffer group limit (ret = %d)\n", ret);
       return false;
@@ -155,13 +152,29 @@ bool MPPDecoder::Init() {
   return true;
 }
 
-static int __mpp_frame_deinit(void *p) {
-  MppFrame mppframe = p;
-  return mpp_frame_deinit(&mppframe);
+class MPPFrameContext {
+public:
+  MPPFrameContext(std::shared_ptr<MPPContext> ctx, MppFrame f)
+      : mctx(ctx), frame(f) {}
+  ~MPPFrameContext() {
+    if (frame)
+      mpp_frame_deinit(&frame);
+  }
+
+private:
+  std::shared_ptr<MPPContext> mctx;
+  MppFrame frame;
+};
+
+static int __free_mppframecontext(void *p) {
+  assert(p);
+  delete (MPPFrameContext *)p;
+  return 0;
 }
 
 // frame may be deinit here or depends on ImageBuffer
 static int SetImageBufferWithMppFrame(std::shared_ptr<ImageBuffer> ib,
+                                      std::shared_ptr<MPPContext> mctx,
                                       MppFrame &frame) {
   const MppBuffer buffer = mpp_frame_get_buffer(frame);
   if (!buffer) {
@@ -178,10 +191,15 @@ static int SetImageBufferWithMppFrame(std::shared_ptr<ImageBuffer> ib,
   auto pts = mpp_frame_get_pts(frame);
   bool eos = mpp_frame_get_eos(frame) ? true : false;
   if (!ib->IsValid()) {
+    MPPFrameContext *ctx = new MPPFrameContext(mctx, frame);
+    if (!ctx) {
+      LOG_NO_MEMORY();
+      return -ENOMEM;
+    }
     ib->SetFD(mpp_buffer_get_fd(buffer));
     ib->SetPtr(mpp_buffer_get_ptr(buffer));
     ib->SetSize(mpp_buffer_get_size(buffer));
-    ib->SetUserData(frame, __mpp_frame_deinit);
+    ib->SetUserData(ctx, __free_mppframecontext);
   } else {
     assert(ib->GetSize() >= size);
     if (!ib->IsHwBuffer()) {
@@ -221,6 +239,8 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
   MppFrame frame = NULL;
   MppTask task = NULL;
   MppFrame frame_out = NULL;
+  MppCtx ctx = mpp_ctx->ctx;
+  MppApi *mpi = mpp_ctx->mpi;
 
   ret = init_mpp_buffer_with_content(mpp_buf, input);
   if (ret) {
@@ -300,7 +320,7 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
   if (ret)
     LOG("mpp task output enqueue failed\n");
   if (SetImageBufferWithMppFrame(std::static_pointer_cast<ImageBuffer>(output),
-                                 frame))
+                                 mpp_ctx, frame))
     goto out;
 
   return 0;
@@ -334,7 +354,7 @@ int MPPDecoder::SendInput(std::shared_ptr<MediaBuffer> input _UNUSED) {
     LOG("send eos packet to MPP\n");
     mpp_packet_set_eos(packet);
   }
-  ret = mpi->decode_put_packet(ctx, packet);
+  ret = mpp_ctx->mpi->decode_put_packet(mpp_ctx->ctx, packet);
   if (ret != MPP_OK) {
     if (ret == MPP_ERR_BUFFER_FULL) {
       // LOG("Buffer full writing %d bytes to decoder\n", size);
@@ -351,6 +371,8 @@ int MPPDecoder::SendInput(std::shared_ptr<MediaBuffer> input _UNUSED) {
 
 std::shared_ptr<MediaBuffer> MPPDecoder::FetchOutput() {
   MppFrame mppframe = NULL;
+  MppCtx ctx = mpp_ctx->ctx;
+  MppApi *mpi = mpp_ctx->mpi;
   errno = 0;
   MPP_RET ret = mpi->decode_get_frame(ctx, &mppframe);
   if (ret != MPP_OK) {
@@ -399,7 +421,7 @@ std::shared_ptr<MediaBuffer> MPPDecoder::FetchOutput() {
       errno = ENOMEM;
       goto out;
     }
-    if (SetImageBufferWithMppFrame(mb, mppframe))
+    if (SetImageBufferWithMppFrame(mb, mpp_ctx, mppframe))
       goto out;
 
     return mb;
