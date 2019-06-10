@@ -169,3 +169,8 @@ endif()
 install(TARGETS easymedia
 		LIBRARY DESTINATION "lib"
 		PUBLIC_HEADER DESTINATION "include/easymedia")
+
+set(LIBRARY_VERSION 1.0.1)
+CONFIGURE_FILE("libeasymedia.pc.cmake"
+		"libeasymedia.pc" @ONLY)
+install(FILES "libeasymedia.pc" DESTINATION "lib/pkgconfig/")
