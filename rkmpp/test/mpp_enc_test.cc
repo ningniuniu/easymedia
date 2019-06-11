@@ -19,6 +19,13 @@
  *
  */
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+#ifndef DEBUG
+#define DEBUG
+#endif
+
 #include <assert.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -27,8 +34,8 @@
 
 #include <string>
 
+#include "buffer.h"
 #include "encoder.h"
-#include "test_utils.h"
 
 static char optstr[] = "?i:o:w:h:f:";
 
@@ -117,7 +124,6 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  int num, den;
   ImageInfo info = {fmt, w, h, UPALIGNTO16(w), UPALIGNTO16(h)};
   MediaConfig enc_config;
 
@@ -156,17 +162,24 @@ int main(int argc, char **argv) {
   size_t extra_data_size = 0;
   mpp_enc->GetExtraData(extra_data, extra_data_size);
   fprintf(stderr, "extra_data: %p, extra_data_size: %d\n", extra_data,
-          extra_data_size);
+          (int)extra_data_size);
   if (extra_data && extra_data_size > 0) {
     // if there is extra data, write it first
     write(output_file_fd, extra_data, extra_data_size);
   }
 
-  GetPixFmtNumDen(fmt, num, den);
-  auto src_buffer = alloc_hw_memory(info, num, den);
-  assert(src_buffer);
-  auto dst_buffer = alloc_hw_memory(info, num, den);
-  assert(dst_buffer);
+  size_t len = CalPixFmtSize(fmt, info.vir_width, info.vir_height);
+  auto &&src_mb = easymedia::MediaBuffer::Alloc2(
+      len, easymedia::MediaBuffer::MemType::MEM_HARD_WARE);
+  assert(src_mb.GetSize() > 0);
+  auto src_buffer = std::make_shared<easymedia::ImageBuffer>(src_mb);
+  assert(src_buffer && src_buffer->GetSize() == len);
+
+  auto &&dst_mb = easymedia::MediaBuffer::Alloc2(
+      len, easymedia::MediaBuffer::MemType::MEM_HARD_WARE);
+  assert(dst_mb.GetSize() > 0);
+  auto dst_buffer = std::make_shared<easymedia::ImageBuffer>(dst_mb);
+  assert(dst_buffer && dst_buffer->GetSize() == len);
 
   ssize_t read_len;
   // Suppose input yuv data organization keep to align up to 16 stride width and
@@ -186,7 +199,7 @@ int main(int argc, char **argv) {
             dst_buffer->GetUserFlag() & easymedia::MediaBuffer::kIntra
                 ? "I frame"
                 : "P frame",
-            out_len);
+            (int)out_len);
     write(output_file_fd, dst_buffer->GetPtr(), out_len);
   }
 

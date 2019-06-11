@@ -71,12 +71,8 @@
 #define KEY_MEM_TYPE "mem_type"
 #define KEY_MEM_ION "ion"
 #define KEY_MEM_DRM "drm"
-#ifdef LIBION
-#define KEY_MEM_HARDWARE KEY_MEM_ION
-#endif
-#ifdef LIBDRM
-#define KEY_MEM_HARDWARE KEY_MEM_DRM
-#endif
+#define KEY_MEM_HARDWARE "hw_mem"
+
 #define KEY_MEM_SIZE_PERTIME "size_pertime"
 
 #define KEY_LOOP_TIME "loop_time"

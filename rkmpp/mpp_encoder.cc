@@ -22,10 +22,7 @@
 #include "mpp_encoder.h"
 
 #include <assert.h>
-#include <string.h>
 #include <unistd.h>
-
-#include <mpp/mpp_log.h>
 
 #include "buffer.h"
 
@@ -75,7 +72,7 @@ int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
   }
   ImageBuffer *hw_buffer = static_cast<ImageBuffer *>(input.get());
 
-  mpp_assert(input->GetValidSize() > 0);
+  assert(input->GetValidSize() > 0);
   mpp_frame_set_pts(frame, hw_buffer->GetTimeStamp());
   mpp_frame_set_dts(frame, hw_buffer->GetTimeStamp());
   mpp_frame_set_width(frame, hw_buffer->GetWidth());
@@ -226,7 +223,7 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
     if (!import_packet) {
       // !!time-consuming operation
       void *ptr = output->GetPtr();
-      mpp_assert(ptr);
+      assert(ptr);
       LOG("extra time-consuming memcpy to cpu!\n");
       memcpy(ptr, mpp_packet_get_data(packet), packet_len);
       // sync to cpu?
@@ -252,7 +249,7 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
   if (mv_buf) {
     if (extra_output->GetFD() < 0) {
       void *ptr = extra_output->GetPtr();
-      mpp_assert(ptr);
+      assert(ptr);
       memcpy(ptr, mpp_buffer_get_ptr(mv_buf), mpp_buffer_get_size(mv_buf));
     }
     extra_output->SetValidSize(mpp_buffer_get_size(mv_buf));
@@ -323,7 +320,7 @@ int MPPEncoder::Process(MppFrame frame, MppPacket &packet, MppBuffer &mv_buf) {
       packet = packet_out;
       packet_out = nullptr;
     } else {
-      mpp_assert(packet == packet_out);
+      assert(packet == packet_out);
     }
     // should not go follow
     if (packet_out && packet != packet_out) {

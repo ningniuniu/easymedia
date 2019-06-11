@@ -22,10 +22,7 @@
 #include "mpp_decoder.h"
 
 #include <assert.h>
-#include <string.h>
 #include <unistd.h>
-
-#include <mpp/mpp_log.h>
 
 #include "buffer.h"
 
@@ -290,7 +287,7 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
     LOG("mpp task input dequeue failed (ret = %d)\n", ret);
     goto out;
   }
-  mpp_assert(task);
+  assert(task);
   mpp_task_meta_set_packet(task, KEY_INPUT_PACKET, packet);
   if (frame)
     mpp_task_meta_set_frame(task, KEY_OUTPUT_FRAME, frame);
@@ -313,7 +310,7 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
   if (!task)
     goto out;
   mpp_task_meta_get_frame(task, KEY_OUTPUT_FRAME, &frame_out);
-  mpp_assert(frame_out == frame); // one in, one out
+  assert(frame_out == frame); // one in, one out
   if (mpp_frame_get_errinfo(frame_out))
     goto out;
   ret = mpi->enqueue(ctx, MPP_PORT_OUTPUT, task);

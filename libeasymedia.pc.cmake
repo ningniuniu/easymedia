@@ -8,4 +8,4 @@ Description: Easy Media interface library
 Version: @LIBRARY_VERSION@
 Libs: -L${libdir} -leasymedia
 Libs.private:
-Cflags: -I${includedir}/easymedia
+Cflags: -I${includedir}

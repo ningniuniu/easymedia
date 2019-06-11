@@ -24,7 +24,7 @@
 
 #include "buffer.h"
 #include "image.h"
-#include <mpp/rk_mpi.h>
+#include <rk_mpi.h>
 
 // mpp_packet_impl.h which define MPP_PACKET_FLAG_INTRA is not exposed,
 // here define the same MPP_PACKET_FLAG_INTRA.

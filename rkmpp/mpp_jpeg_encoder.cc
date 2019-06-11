@@ -19,8 +19,6 @@
  *
  */
 
-#include <mpp/mpp_log.h>
-
 #include "buffer.h"
 #include "media_type.h"
 #include "mpp_encoder.h"

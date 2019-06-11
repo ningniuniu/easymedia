@@ -14,6 +14,8 @@ set(RTSP_SERVER_TEST_DEPENDENT_LIBS ${RTSP_SERVER_TEST_DEPENDENT_LIBS} easymedia
 
 set (CMAKE_CXX_STANDARD 11)
 
+add_definitions(-DDEBUG)
+
 aux_source_directory(./ RTSP_SERVER_TEST_SRC_FILES)
 add_executable(rtsp_server_test ${RTSP_SERVER_TEST_SRC_FILES})
 add_dependencies(rtsp_server_test easymedia)

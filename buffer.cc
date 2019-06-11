@@ -35,11 +35,11 @@ namespace easymedia {
 MediaBuffer::MemType StringToMemType(const char *s) {
   if (s) {
 #ifdef LIBION
-    if (!strcmp(s, KEY_MEM_ION))
+    if (!strcmp(s, KEY_MEM_ION) || !strcmp(s, KEY_MEM_HARDWARE))
       return MediaBuffer::MemType::MEM_ION;
 #endif
 #ifdef LIBDRM
-    if (!strcmp(s, KEY_MEM_DRM))
+    if (!strcmp(s, KEY_MEM_DRM) || !strcmp(s, KEY_MEM_HARDWARE))
       return MediaBuffer::MemType::MEM_DRM;
 #endif
     LOG("warning: %s is not supported or not integrated, fallback to common\n",

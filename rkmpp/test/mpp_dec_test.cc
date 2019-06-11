@@ -19,6 +19,9 @@
  *
  */
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #ifndef DEBUG
 #define DEBUG
 #endif
@@ -237,7 +240,7 @@ int main(int argc, char **argv) {
     assert(output && output->GetSize() == out_len);
     output->SetValidSize(output->GetSize());
     ssize_t rsize = fread(input->GetPtr(), 1, len, single_file);
-    fprintf(stderr, "fread size = %d\n", rsize);
+    fprintf(stderr, "fread size = %d\n", (int)rsize);
     assert(rsize == len);
     input->SetValidSize(rsize);
     int ret = mpp_dec->Process(input, output);
@@ -302,7 +305,7 @@ int main(int argc, char **argv) {
         buffer = easymedia::MediaBuffer::Alloc(read_size);
         assert(buffer);
         ssize_t rsize = fread(buffer->GetPtr(), 1, read_size, f);
-        fprintf(stderr, "fread size = %d\n", rsize);
+        fprintf(stderr, "fread size = %d\n", (int)rsize);
         buffer->SetValidSize(rsize);
       }
       if (f != single_file)

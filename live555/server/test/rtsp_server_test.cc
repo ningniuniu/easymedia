@@ -19,6 +19,13 @@
  *
  */
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+#ifndef DEBUG
+#define DEBUG
+#endif
+
 #include <assert.h>
 #include <signal.h>
 #include <stdio.h>
@@ -26,11 +33,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "flow.h"
-#include "key_string.h"
-#include "media_config.h"
-#include "media_type.h"
-#include "utils.h"
+#include <easymedia/flow.h>
+#include <easymedia/key_string.h>
+#include <easymedia/media_config.h>
+#include <easymedia/media_type.h>
+#include <easymedia/utils.h>
 
 static bool quit = false;
 
@@ -43,8 +50,8 @@ static void sigterm_handler(int sig) {
 
 #if SIMPLE
 
-#include "buffer.h"
-#include "codec.h"
+#include <easymedia/buffer.h>
+#include <easymedia/codec.h>
 
 #define MAX_FILE_NUM 10
 static char optstr[] = "?d:p:c:u:";
