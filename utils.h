@@ -47,6 +47,8 @@ _API void LOG(const char *format, ...);
 
 #define MATH_LOG2(x) (31 - __builtin_clz((x) | 1))
 
+#define PAGE_SIZE (sysconf(_SC_PAGESIZE))
+
 template <typename T, typename TBase> class IsDerived {
 public:
   static int t(TBase *base) { return 1; }

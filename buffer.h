@@ -104,7 +104,6 @@ public:
     MEM_HARD_WARE = MEM_ION,
 #endif
 #ifdef LIBDRM
-#error(__FILE__:__LINE__): drm TODO
     MEM_DRM,
     MEM_HARD_WARE = MEM_DRM,
 #endif
