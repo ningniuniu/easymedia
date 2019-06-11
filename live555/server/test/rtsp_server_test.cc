@@ -33,11 +33,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <easymedia/flow.h>
-#include <easymedia/key_string.h>
-#include <easymedia/media_config.h>
-#include <easymedia/media_type.h>
-#include <easymedia/utils.h>
+#include "flow.h"
+#include "key_string.h"
+#include "media_config.h"
+#include "media_type.h"
+#include "utils.h"
 
 static bool quit = false;
 
@@ -50,8 +50,8 @@ static void sigterm_handler(int sig) {
 
 #if SIMPLE
 
-#include <easymedia/buffer.h>
-#include <easymedia/codec.h>
+#include "buffer.h"
+#include "codec.h"
 
 #define MAX_FILE_NUM 10
 static char optstr[] = "?d:p:c:u:";
