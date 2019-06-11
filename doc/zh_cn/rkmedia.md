@@ -16,11 +16,11 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
 
 - 编译
 
-    确保对应CMakeLists.txt设置-DRKMPP=ON
+    确保对应CMakeLists.txt设置-DRKMPP=ON -DRKMPP_ENCODER=ON
 
 - 范例：[mpp_enc_test.cc](../../frameworks/media/rkmpp/test/mpp_enc_test.cc)
 
-    使用命令查看使用方法：./rkmpp_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
+    使用命令查看使用方法：./rkmpp_enc_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
 
 - 接口及范例流程说明
 
@@ -30,6 +30,27 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
     * GetExtraData：获取参数信息数据，h264的pps和sps数据在此返回的buffer里
     * Process：执行编码，参数为原始未压缩图像数据buffer、压缩图像输出的buffer以及额外的输出buffer（如需要h264中的mv数据，在此buffer输出）  
     注意的是，调用此函数前，需要给所有buffer SetValidSize表明buffer可访问的长度空间。最后输出buffer的数据长度以GetValidSize体现。
+
+视频硬件解码
+----------
+
+- 编译
+
+    确保对应CMakeLists.txt设置-DRKMPP=ON -DRKMPP_DECODER=ON
+
+- 范例：[mpp_dec_test.cc](../../frameworks/media/rkmpp/test/mpp_dec_test.cc)
+
+    使用命令查看使用方法：./rkmpp_dec_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
+
+- 接口及范例流程说明
+
+    * (可不调用)easymedia::REFLECTOR(Decoder)::DumpFactories() ：列出当前编入的解码模块
+    * easymedia::REFLECTOR(Decoder)::Create\<easymedia::VideoDecoder\> ：创建视频编码器实例，参数为上述的DumpFactories中列出的一个模块对应的字符串，以及其他一些设置参数，具体参考mpp_dec_test.cc里的注解
+    * Process：同步解码，目前仅jpeg解码支持，参数为压缩图像数据buffer、raw格式数据输出的imagebuffer（必须分配空间）  
+    注意的是，调用此函数前，需要给所有buffer SetValidSize表明buffer可访问的长度空间。最后输出buffer的数据长度以GetValidSize体现。
+    * SendInput：将压缩图像数据送给解码器，同样需要SetValidSize表明数据长度。函数返回值如果返回-EAGAIN，表示此帧数据未被解码器接受，需要等会重新尝试输入。  
+    最后一帧后，需要送入一个EOF的空buffer给解码器。
+    * FetchOutput：与SendInput配套使用，从解码器中取出已解码的raw格式数据。函数错误以errno的值体现。
 
 媒体格式解封装
 ------------

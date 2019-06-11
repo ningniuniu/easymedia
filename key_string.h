@@ -51,6 +51,11 @@
 #define KEY_COMPRESS_RC_QUALITY "rc_quality"
 #define KEY_COMPRESS_RC_MODE "rc_mode"
 
+// mpp special
+#define KEY_MPP_GROUP_MAX_FRAMES "fg_max_frames" // framegroup max frame num
+#define KEY_MPP_SPLIT_MODE "split_mode"
+#define KEY_OUTPUT_TIMEOUT "output_timeout"
+
 // audio info
 #define KEY_CHANNELS "channel_num"
 #define KEY_SAMPLE_RATE "sample_rate"
@@ -66,12 +71,8 @@
 #define KEY_MEM_TYPE "mem_type"
 #define KEY_MEM_ION "ion"
 #define KEY_MEM_DRM "drm"
-#ifdef LIBION
-#define KEY_MEM_HARDWARE KEY_MEM_ION
-#endif
-#ifdef LIBDRM
-#define KEY_MEM_HARDWARE KEY_MEM_DRM
-#endif
+#define KEY_MEM_HARDWARE "hw_mem"
+
 #define KEY_MEM_SIZE_PERTIME "size_pertime"
 
 #define KEY_LOOP_TIME "loop_time"

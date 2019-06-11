@@ -19,55 +19,39 @@
  *
  */
 
-#ifndef RKMEDIA_MPP_ENCODER_H
-#define RKMEDIA_MPP_ENCODER_H
+#ifndef RKMEDIA_MPP_DECODER_H
+#define RKMEDIA_MPP_DECODER_H
 
-#include "encoder.h"
+#include "decoder.h"
 #include "mpp_inc.h"
 
 namespace easymedia {
 
-// A encoder which call the mpp interface directly.
-// Mpp is always video process module.
-class MPPEncoder : public VideoEncoder {
+// A hw video decoder which call the mpp interface directly.
+class MPPDecoder : public VideoDecoder {
 public:
-  MPPEncoder();
-  virtual ~MPPEncoder() = default;
+  MPPDecoder(const char *param);
+  virtual ~MPPDecoder() = default;
+  static const char *GetCodecName() { return "rkmpp"; }
 
   virtual bool Init() override;
-  virtual bool InitConfig(const MediaConfig &cfg) override;
-
-  // sync encode the raw input buffer to output buffer
   virtual int Process(std::shared_ptr<MediaBuffer> input,
                       std::shared_ptr<MediaBuffer> output,
                       std::shared_ptr<MediaBuffer> extra_output) override;
-
   virtual int SendInput(std::shared_ptr<MediaBuffer> input) override;
   virtual std::shared_ptr<MediaBuffer> FetchOutput() override;
 
-protected:
-  // call before Init()
-  void SetMppCodeingType(MppCodingType type) { coding_type = type; }
-  virtual bool
-  CheckConfigChange(std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>) {
-    return true;
-  }
-  // Control before encoding.
-  int EncodeControl(int cmd, void *param);
-
-  virtual int PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
-                              MppFrame &frame);
-  virtual int PrepareMppPacket(std::shared_ptr<MediaBuffer> output,
-                               MppPacket &packet);
-  virtual int PrepareMppExtraBuffer(std::shared_ptr<MediaBuffer> extra_output,
-                                    MppBuffer &buffer);
-  int Process(MppFrame frame, MppPacket &packet, MppBuffer &mv_buf);
-
 private:
+  std::string input_data_type;
+  RK_S32 fg_limit_num;
+  RK_U32 need_split;
+  RK_U32 timeout;
   MppCodingType coding_type;
   std::shared_ptr<MPPContext> mpp_ctx;
+  bool support_sync;
+  static const RK_S32 kFRAMEGROUP_MAX_FRAMES = 16;
 };
 
 } // namespace easymedia
 
-#endif // MPP_H264_ENCODER_H
+#endif // RKMEDIA_MPP_DECODER_H

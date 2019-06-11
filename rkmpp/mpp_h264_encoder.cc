@@ -19,7 +19,7 @@
  *
  */
 
-#include <mpp/mpp_log.h>
+#include <assert.h>
 
 #include "buffer.h"
 
@@ -297,7 +297,7 @@ bool MPPH264Encoder::CheckConfigChange(
 
   if (change & kFrameRateChange) {
     int new_frame_rate = val->GetValue();
-    mpp_assert(new_frame_rate > 0 && new_frame_rate < 120);
+    assert(new_frame_rate > 0 && new_frame_rate < 120);
     rc_cfg.change = MPP_ENC_RC_CFG_CHANGE_FPS_OUT;
     rc_cfg.fps_out_flex = 0;
     rc_cfg.fps_out_num = new_frame_rate;
@@ -310,7 +310,7 @@ bool MPPH264Encoder::CheckConfigChange(
     vconfig.frame_rate = new_frame_rate;
   } else if (change & kBitRateChange) {
     int new_bit_rate = val->GetValue();
-    mpp_assert(new_bit_rate > 0 && new_bit_rate < 60 * 1000 * 1000);
+    assert(new_bit_rate > 0 && new_bit_rate < 60 * 1000 * 1000);
     rc_cfg.change = MPP_ENC_RC_CFG_CHANGE_BPS;
     rc_cfg.rc_mode = get_rc_mode(vconfig.rc_mode);
     rc_cfg.quality = get_rc_quality(vconfig.rc_quality);
@@ -329,7 +329,7 @@ bool MPPH264Encoder::CheckConfigChange(
     }
   } else if (change & kQPChange) {
     MppEncCodecCfg codec_cfg;
-    mpp_assert(val->GetSize() == sizeof(int) * 4);
+    assert(val->GetSize() == sizeof(int) * 4);
     int *values = (int *)val->GetBufferPtr();
     codec_cfg.h264.change = MPP_ENC_H264_CFG_CHANGE_QP_LIMIT;
     codec_cfg.h264.qp_init = values[0];

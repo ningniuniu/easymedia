@@ -21,32 +21,28 @@
 
 #include "mpp_encoder.h"
 
-#include <string.h>
+#include <assert.h>
 #include <unistd.h>
-
-#include <mpp/mpp_log.h>
 
 #include "buffer.h"
 
 namespace easymedia {
 
-MPPEncoder::MPPEncoder()
-    : coding_type(MPP_VIDEO_CodingAutoDetect), ctx(nullptr), mpi(nullptr) {}
-
-MPPEncoder::~MPPEncoder() {
-  if (mpi) {
-    mpi->reset(ctx);
-    mpp_destroy(ctx);
-    ctx = NULL;
-  }
-}
+MPPEncoder::MPPEncoder() : coding_type(MPP_VIDEO_CodingAutoDetect) {}
 
 bool MPPEncoder::Init() {
+  mpp_ctx = std::make_shared<MPPContext>();
+  if (!mpp_ctx)
+    return false;
+  MppCtx ctx = NULL;
+  MppApi *mpi = NULL;
   int ret = mpp_create(&ctx, &mpi);
   if (ret) {
-    LOG("mpp_create failed");
+    LOG("mpp_create failed\n");
     return false;
   }
+  mpp_ctx->ctx = ctx;
+  mpp_ctx->mpi = mpi;
   ret = mpp_init(ctx, MPP_CTX_ENC, coding_type);
   if (ret != MPP_OK) {
     LOG("mpp_init failed with type %d\n", coding_type);
@@ -62,51 +58,6 @@ bool MPPEncoder::InitConfig(const MediaConfig &cfg) {
   return VideoEncoder::InitConfig(cfg);
 }
 
-static int init_mpp_buffer(MppBuffer &buffer, std::shared_ptr<MediaBuffer> &mb,
-                           size_t frame_size) {
-  int ret;
-  int fd = mb->GetFD();
-  void *ptr = mb->GetPtr();
-  size_t size = mb->GetValidSize();
-
-  if (fd >= 0) {
-    MppBufferInfo info;
-
-    memset(&info, 0, sizeof(info));
-    info.type = MPP_BUFFER_TYPE_ION;
-    info.size = size;
-    info.fd = fd;
-    info.ptr = ptr;
-
-    ret = mpp_buffer_import(&buffer, &info);
-    if (ret) {
-      LOG("import input picture buffer failed\n");
-      goto fail;
-    }
-  } else {
-    if (frame_size == 0)
-      return 0;
-    if (size == 0) {
-      size = frame_size;
-      mpp_assert(frame_size > 0);
-    }
-    ret = mpp_buffer_get(NULL, &buffer, size);
-    if (ret) {
-      LOG("allocate output stream buffer failed\n");
-      goto fail;
-    }
-  }
-
-  return 0;
-
-fail:
-  if (buffer) {
-    mpp_buffer_put(buffer);
-    buffer = nullptr;
-  }
-  return ret;
-}
-
 int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
                                 MppFrame &frame) {
   MppBuffer pic_buf = nullptr;
@@ -120,11 +71,8 @@ int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
     return -EINVAL;
   }
   ImageBuffer *hw_buffer = static_cast<ImageBuffer *>(input.get());
-  int fd = input->GetFD();
-  void *ptr = input->GetPtr();
-  size_t size = input->GetValidSize();
 
-  mpp_assert(size > 0);
+  assert(input->GetValidSize() > 0);
   mpp_frame_set_pts(frame, hw_buffer->GetTimeStamp());
   mpp_frame_set_dts(frame, hw_buffer->GetTimeStamp());
   mpp_frame_set_width(frame, hw_buffer->GetWidth());
@@ -137,16 +85,10 @@ int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
     mpp_frame_set_hor_stride(frame, hw_buffer->GetVirWidth());
   mpp_frame_set_ver_stride(frame, hw_buffer->GetVirHeight());
 
-  int ret = init_mpp_buffer(pic_buf, input, size);
+  MPP_RET ret = init_mpp_buffer_with_content(pic_buf, input);
   if (ret) {
     LOG("prepare picture buffer failed\n");
     return ret;
-  }
-  if (fd < 0 && ptr) {
-    // !!time-consuming operation
-    LOG("extra time-consuming memcpy to mpp!\n");
-    memcpy(mpp_buffer_get_ptr(pic_buf), ptr, size);
-    // sync to device?
   }
 
   mpp_frame_set_buffer(frame, pic_buf);
@@ -165,7 +107,7 @@ int MPPEncoder::PrepareMppPacket(std::shared_ptr<MediaBuffer> output,
   if (!output->IsHwBuffer())
     return 0;
 
-  int ret = init_mpp_buffer(mpp_buf, output, 0);
+  MPP_RET ret = init_mpp_buffer(mpp_buf, output, 0);
   if (ret) {
     LOG("import output stream buffer failed\n");
     return ret;
@@ -184,7 +126,7 @@ int MPPEncoder::PrepareMppExtraBuffer(std::shared_ptr<MediaBuffer> extra_output,
   MppBuffer mpp_buf = nullptr;
   if (!extra_output || !extra_output->IsValid())
     return 0;
-  int ret =
+  MPP_RET ret =
       init_mpp_buffer(mpp_buf, extra_output, extra_output->GetValidSize());
   if (ret) {
     LOG("import extra stream buffer failed\n");
@@ -194,9 +136,23 @@ int MPPEncoder::PrepareMppExtraBuffer(std::shared_ptr<MediaBuffer> extra_output,
   return 0;
 }
 
-static int free_mpp_packet(MppPacket packet) {
-  if (packet)
-    mpp_packet_deinit(&packet);
+class MPPPacketContext {
+public:
+  MPPPacketContext(std::shared_ptr<MPPContext> ctx, MppPacket p)
+      : mctx(ctx), packet(p) {}
+  ~MPPPacketContext() {
+    if (packet)
+      mpp_packet_deinit(&packet);
+  }
+
+private:
+  std::shared_ptr<MPPContext> mctx;
+  MppPacket packet;
+};
+
+static int __free_mpppacketcontext(void *p) {
+  assert(p);
+  delete (MPPPacketContext *)p;
   return 0;
 }
 
@@ -267,16 +223,22 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
     if (!import_packet) {
       // !!time-consuming operation
       void *ptr = output->GetPtr();
-      mpp_assert(ptr);
+      assert(ptr);
       LOG("extra time-consuming memcpy to cpu!\n");
       memcpy(ptr, mpp_packet_get_data(packet), packet_len);
       // sync to cpu?
     }
   } else {
+    MPPPacketContext *ctx = new MPPPacketContext(mpp_ctx, packet);
+    if (!ctx) {
+      LOG_NO_MEMORY();
+      ret = -ENOMEM;
+      goto ENCODE_OUT;
+    }
     output->SetFD(mpp_buffer_get_fd(mpp_packet_get_buffer(packet)));
     output->SetPtr(mpp_packet_get_data(packet));
     output->SetSize(mpp_packet_get_size(packet));
-    output->SetUserData(packet, free_mpp_packet);
+    output->SetUserData(ctx, __free_mpppacketcontext);
     packet = nullptr;
   }
   output->SetValidSize(packet_len);
@@ -287,7 +249,7 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
   if (mv_buf) {
     if (extra_output->GetFD() < 0) {
       void *ptr = extra_output->GetPtr();
-      mpp_assert(ptr);
+      assert(ptr);
       memcpy(ptr, mpp_buffer_get_ptr(mv_buf), mpp_buffer_get_size(mv_buf));
     }
     extra_output->SetValidSize(mpp_buffer_get_size(mv_buf));
@@ -307,8 +269,9 @@ ENCODE_OUT:
 }
 
 int MPPEncoder::Process(MppFrame frame, MppPacket &packet, MppBuffer &mv_buf) {
-  MppTask task = nullptr;
-
+  MppTask task = NULL;
+  MppCtx ctx = mpp_ctx->ctx;
+  MppApi *mpi = mpp_ctx->mpi;
   int ret = mpi->poll(ctx, MPP_PORT_INPUT, MPP_POLL_BLOCK);
   if (ret) {
     LOG("input poll ret %d\n", ret);
@@ -357,7 +320,7 @@ int MPPEncoder::Process(MppFrame frame, MppPacket &packet, MppBuffer &mv_buf) {
       packet = packet_out;
       packet_out = nullptr;
     } else {
-      mpp_assert(packet == packet_out);
+      assert(packet == packet_out);
     }
     // should not go follow
     if (packet_out && packet != packet_out) {
@@ -380,10 +343,10 @@ std::shared_ptr<MediaBuffer> MPPEncoder::FetchOutput() {
 
 int MPPEncoder::EncodeControl(int cmd, void *param) {
   MpiCmd mpi_cmd = (MpiCmd)cmd;
-  int ret = mpi->control(ctx, mpi_cmd, (MppParam)param);
+  int ret = mpp_ctx->mpi->control(mpp_ctx->ctx, mpi_cmd, (MppParam)param);
 
   if (ret) {
-    LOG("mpp control ctx %p cmd 0x%08x param %p failed\n", ctx, cmd, param);
+    LOG("mpp control cmd 0x%08x param %p failed\n", cmd, param);
     return ret;
   }
 

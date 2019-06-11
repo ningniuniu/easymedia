@@ -83,6 +83,8 @@ add_definitions(-fno-rtti)
 add_definitions(-fPIC)
 #set (CMAKE_SHARED_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS})
 
+add_definitions(-fvisibility=hidden -fvisibility-inlines-hidden)
+
 include_directories(./)
 
 # ----------------------------------------------------------------------------
@@ -133,6 +135,7 @@ aux_source_directory(. EASY_MEDIA_SOURCE_FILES)
 option(RKMPP "compile: rkmpp wrapper" OFF)
 if( RKMPP )
 include_directories(rkmpp)
+include_directories(${RKMPP_HEADER_DIR})
 add_subdirectory(rkmpp)
 endif()
 
@@ -143,8 +146,8 @@ endif()
 
 option(LIVE555 "compile: live555" OFF)
 if ( LIVE555 )
-include_directories(${CMAKE_INSTALL_PREFIX}/include/groupsock)
-include_directories(${CMAKE_INSTALL_PREFIX}/include/UsageEnvironment)
+include_directories(${GROUPSOCK_HEADER_DIR})
+include_directories(${USAGEENVIRONMENT_HEADER_DIR})
 add_subdirectory(live555)
 endif()
 
@@ -167,3 +170,7 @@ endif()
 install(TARGETS easymedia
 		LIBRARY DESTINATION "lib"
 		PUBLIC_HEADER DESTINATION "include/easymedia")
+
+set(LIBRARY_VERSION 1.0.1)
+CONFIGURE_FILE("libeasymedia.pc.cmake" "libeasymedia.pc" @ONLY)
+install(FILES "${CMAKE_BINARY_DIR}/libeasymedia.pc" DESTINATION "lib/pkgconfig/")

@@ -19,6 +19,13 @@
  *
  */
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+#ifndef DEBUG
+#define DEBUG
+#endif
+
 #include <assert.h>
 #include <fcntl.h>
 #include <stdio.h>

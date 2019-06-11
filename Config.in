@@ -10,6 +10,22 @@ config RV_TARGET_RKMEDIA_MPP
     help
       wrapped function of rk mpp
 
+if RV_TARGET_RKMEDIA_MPP
+
+config RV_TARGET_RKMEDIA_MPP_ENCODER
+    bool "rk mpp encoder"
+    default y
+    help
+      wrapped function of rk mpp encoder
+
+config RV_TARGET_RKMEDIA_MPP_DECODER
+    bool "rk mpp decoder"
+    default y
+    help
+      wrapped function of rk mpp decoder
+
+endif # RV_TARGET_RKMEDIA_MPP
+
 config RV_TARGET_RKMEDIA_OGG
     bool "ogg"
     select RV_TARGET_LIBVORBIS

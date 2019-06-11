@@ -65,7 +65,7 @@ public:
 };
 
 class FlowCoroutine;
-class Flow {
+class _API Flow {
 public:
   // We may need a flow which can be sync and async.
   // This make a side effect that sync flow contains superfluous variables

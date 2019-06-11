@@ -38,7 +38,7 @@
 #define DECLARE_REFLECTOR(PRODUCT)                                             \
   class PRODUCT;                                                               \
   class PRODUCT##Factory;                                                      \
-  class PRODUCT##Reflector {                                                   \
+  class _API PRODUCT##Reflector {                                              \
   public:                                                                      \
     static const char *FindFirstMatchIdentifier(const char *rules);            \
     static bool IsMatch(const char *identifier, const char *rules);            \
@@ -106,7 +106,7 @@
     if (it == factories.end())                                                 \
       factories[identifier] = factory;                                         \
     else                                                                       \
-      LOG("repeated identifier : %s\n", identifier.c_str());                   \
+      printf("repeated identifier : %s\n", identifier.c_str());                \
   }                                                                            \
   void PRODUCT##Reflector::DumpFactories() {                                   \
     printf("\n%s:\n", #PRODUCT);                                               \
@@ -122,8 +122,8 @@
   class PRODUCT##Factory {                                                     \
   public:                                                                      \
     virtual const char *Identifier() const = 0;                                \
-    static const char *Parse(const char *request);                             \
-    virtual std::shared_ptr<PRODUCT> NewProduct(const char *name) = 0;         \
+    static _API const char *Parse(const char *request);                        \
+    virtual std::shared_ptr<PRODUCT> NewProduct(const char *param) = 0;        \
     bool AcceptRules(const char *rules) const {                                \
       std::map<std::string, std::string> map;                                  \
       if (!parse_media_param_map(rules, map))                                  \

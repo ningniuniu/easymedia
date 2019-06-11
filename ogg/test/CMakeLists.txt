@@ -12,6 +12,8 @@ project(easymedia_ogg_test)
 
 set (CMAKE_CXX_STANDARD 11)
 
+add_definitions(-DDEBUG)
+
 option(OGG_DECODE_TEST "compile: ogg decode test" ON)
 if (OGG_DECODE_TEST)
 set(DEC_TEST_SRC_FILES ogg_decode_test.cc)

@@ -137,6 +137,9 @@ static int ALSA_finalize_hardware(snd_pcm_t *pcm_handle, uint32_t samples,
     LOG("warning: bufsize != samples * %d; %lu != %u * %d\n", sample_size,
         bufsize, samples, sample_size);
   }
+#else
+  UNUSED(samples);
+  UNUSED(sample_size);
 #endif
 
 err:

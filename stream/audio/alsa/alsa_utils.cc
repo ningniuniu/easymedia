@@ -42,11 +42,11 @@ snd_pcm_format_t SampleFormatToAlsaFormat(SampleFormat fmt) {
 
 void ShowAlsaAvailableFormats(snd_pcm_t *handle, snd_pcm_hw_params_t *params) {
   snd_pcm_format_t format;
-  LOG("Available formats:\n");
+  printf("Available formats:\n");
   for (int i = 0; i <= SND_PCM_FORMAT_LAST; i++) {
     format = static_cast<snd_pcm_format_t>(i);
     if (snd_pcm_hw_params_test_format(handle, params, format) == 0)
-      LOG("- %s\n", snd_pcm_format_name(format));
+      printf("- %s\n", snd_pcm_format_name(format));
   }
 }
 

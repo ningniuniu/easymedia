@@ -54,6 +54,7 @@ bool Codec::SetExtraData(void *data, size_t size, bool realloc) {
   }
   memcpy(extra_data, data, size);
   extra_data_size = size;
+  memset(&config, 0, sizeof(config));
 
   return true;
 }

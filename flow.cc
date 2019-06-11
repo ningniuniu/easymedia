@@ -308,7 +308,10 @@ static bool check_slots(std::vector<int> &slots, const char *debugstr) {
 }
 
 Flow::FlowMap::FlowMap(FlowMap &&fm) {
-  assert(!fm.valid && "Flow::FlowMap is not copyable and moveable");
+  if (fm.valid) {
+    LOG("Flow::FlowMap is not copyable and moveable after inited\n");
+    assert(0);
+  }
 }
 
 void Flow::FlowMap::Init(Model m) {
@@ -329,7 +332,10 @@ void Flow::FlowMap::SetOutputToQueueBehavior(
 }
 
 Flow::Input::Input(Input &&in) {
-  assert(!in.valid && "Flow::Input is not copyable and moveable");
+  if (in.valid) {
+    LOG("Flow::Input is not copyable and moveable after inited\n");
+    assert(0);
+  }
 }
 
 void Flow::Input::Init(Flow *f, Model m, int mcn, InputMode im,
@@ -429,6 +435,9 @@ bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
 #ifdef DEBUG
   c->SetMarkName(mark);
   c->SetExpectProcessTime(exp_process_time);
+#else
+  UNUSED(mark);
+  UNUSED(exp_process_time);
 #endif
   c->Start();
   return true;

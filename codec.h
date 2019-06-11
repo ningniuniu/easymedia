@@ -62,17 +62,15 @@ public:
   virtual int SendInput(std::shared_ptr<MediaBuffer> input) = 0;
   virtual std::shared_ptr<MediaBuffer> FetchOutput() = 0;
 
-  // virtual std::shared_ptr<MediaBuffer> GenEmptyOutPutBuffer();
-
 private:
   MediaConfig config;
   void *extra_data;
   size_t extra_data_size;
 };
 
-const uint8_t *find_h264_startcode(const uint8_t *p, const uint8_t *end);
+_API const uint8_t *find_h264_startcode(const uint8_t *p, const uint8_t *end);
 // must be h264 data
-std::list<std::shared_ptr<MediaBuffer>>
+_API std::list<std::shared_ptr<MediaBuffer>>
 split_h264_separate(const uint8_t *buffer, size_t length, int64_t timestamp);
 
 } // namespace easymedia
