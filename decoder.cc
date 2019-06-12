@@ -25,11 +25,8 @@ namespace easymedia {
 
 DEFINE_REFLECTOR(Decoder)
 
-// define the base factory missing definition
-const char *FACTORY(Decoder)::Parse(const char *request) {
-  // request should equal codec_name
-  return request;
-}
+// request should equal codec_name
+DEFINE_FACTORY_COMMON_PARSE(Decoder)
 
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(AudioDecoder, Decoder)
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(VideoDecoder, Decoder)

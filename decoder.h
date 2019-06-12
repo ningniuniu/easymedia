@@ -37,7 +37,7 @@ DECLARE_REFLECTOR(Decoder)
   DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetCodecName(),       \
                              FINAL_EXPOSE_PRODUCT, Decoder)                    \
   DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)                               \
-  DEFINE_MEDIA_NEWINIT_PRODUCT(REAL_PRODUCT, Decoder)
+  DEFINE_MEDIA_NEW_PRODUCT_DO(REAL_PRODUCT, Decoder, Init() != true)
 
 #define DEFINE_AUDIO_DECODER_FACTORY(REAL_PRODUCT)                             \
   DEFINE_DECODER_FACTORY(REAL_PRODUCT, AudioDecoder)

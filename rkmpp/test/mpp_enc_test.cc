@@ -175,7 +175,8 @@ int main(int argc, char **argv) {
   auto src_buffer = std::make_shared<easymedia::ImageBuffer>(src_mb, info);
   assert(src_buffer && src_buffer->GetSize() >= len);
 
-  auto dst_buffer = easymedia::MediaBuffer::Alloc(len, easymedia::MediaBuffer::MemType::MEM_HARD_WARE);
+  auto dst_buffer = easymedia::MediaBuffer::Alloc(
+      len, easymedia::MediaBuffer::MemType::MEM_HARD_WARE);
   assert(dst_buffer && dst_buffer->GetSize() >= len);
 
   ssize_t read_len;

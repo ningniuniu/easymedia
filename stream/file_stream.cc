@@ -126,13 +126,6 @@ public:
 };
 
 DEFINE_STREAM_FACTORY(FileWriteStream, Stream)
-std::shared_ptr<Stream>
-FACTORY(FileWriteStream)::NewProduct(const char *param) {
-  std::shared_ptr<Stream> ret = std::make_shared<FileWriteStream>(param);
-  if (ret && ret->Open() < 0)
-    return nullptr;
-  return ret;
-}
 
 const char *FACTORY(FileWriteStream)::ExpectedInputDataType() {
   return TYPE_ANYTHING;
@@ -155,12 +148,6 @@ public:
 };
 
 DEFINE_STREAM_FACTORY(FileReadStream, Stream)
-std::shared_ptr<Stream> FACTORY(FileReadStream)::NewProduct(const char *param) {
-  std::shared_ptr<Stream> ret = std::make_shared<FileReadStream>(param);
-  if (ret && ret->Open() < 0)
-    return nullptr;
-  return ret;
-}
 
 const char *FACTORY(FileReadStream)::ExpectedInputDataType() {
   return STREAM_FILE;

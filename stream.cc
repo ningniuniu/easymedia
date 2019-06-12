@@ -71,11 +71,8 @@ int Stream::Close() {
 
 DEFINE_REFLECTOR(Stream)
 
-// define the base factory missing definition
-const char *FACTORY(Stream)::Parse(const char *request) {
-  // request should equal stream_name
-  return request;
-}
+// request should equal stream_name
+DEFINE_FACTORY_COMMON_PARSE(Stream)
 
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(Stream, Stream)
 

@@ -25,11 +25,8 @@ namespace easymedia {
 
 DEFINE_REFLECTOR(Encoder)
 
-// define the base factory missing definition
-const char *FACTORY(Encoder)::Parse(const char *request) {
-  // request should equal codec_name
-  return request;
-}
+// request should equal codec_name
+DEFINE_FACTORY_COMMON_PARSE(Encoder)
 
 void VideoEncoder::RequestChange(uint32_t change,
                                  std::shared_ptr<ParameterBuffer> value) {
