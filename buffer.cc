@@ -270,6 +270,7 @@ public:
     }
     assert(dmcb.handle > 0);
     assert(dmcb.size >= dmcb.width * dmcb.height * dmcb.bpp / 8);
+    handle = dmcb.handle;
     len = dmcb.size;
     ret = drmPrimeHandleToFD(dev->fd, dmcb.handle, DRM_CLOEXEC, &fd);
     if (ret) {
