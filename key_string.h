@@ -24,6 +24,7 @@
 
 #define KEY_PATH "path"
 #define KEY_OPEN_MODE "mode"
+#define KEY_DEVICE "device"
 
 #define KEY_CODEC_NAME "codecname"
 #define KEY_CODEC_PARAM "codecparam"
@@ -57,10 +58,14 @@
 #define KEY_OUTPUT_TIMEOUT "output_timeout"
 
 // audio info
+#define KEY_SAMPLE_FMT "sample_format"
 #define KEY_CHANNELS "channel_num"
 #define KEY_SAMPLE_RATE "sample_rate"
 #define KEY_FRAMES "frame_num"
 #define KEY_FLOAT_QUALITY "compress_quality"
+
+// v4l2 info
+#define KEY_SUB_DEVICE "sub_device"
 
 // rtsp
 #define KEY_PORT_NUM "portnum"

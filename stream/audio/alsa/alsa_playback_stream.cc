@@ -24,8 +24,6 @@
 #include <assert.h>
 #include <errno.h>
 
-#include <thread>
-
 #include "alsa_utils.h"
 #include "media_type.h"
 #include "utils.h"
@@ -308,13 +306,6 @@ int AlsaPlayBackStream::Close() {
 }
 
 DEFINE_STREAM_FACTORY(AlsaPlayBackStream, Stream)
-std::shared_ptr<Stream>
-FACTORY(AlsaPlayBackStream)::NewProduct(const char *param) {
-  std::shared_ptr<Stream> ret = std::make_shared<AlsaPlayBackStream>(param);
-  if (ret && ret->Open() < 0)
-    return nullptr;
-  return ret;
-}
 
 const char *FACTORY(AlsaPlayBackStream)::ExpectedInputDataType() {
   return AUDIO_PCM;

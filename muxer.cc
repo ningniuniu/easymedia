@@ -24,11 +24,9 @@
 namespace easymedia {
 
 DEFINE_REFLECTOR(Muxer)
-// define the base factory missing definition
-const char *FACTORY(Muxer)::Parse(const char *request) {
-  // request should equal demuxer_name
-  return request;
-}
+
+// request should equal muxer_name
+DEFINE_FACTORY_COMMON_PARSE(Muxer)
 
 Muxer::Muxer(const char *param _UNUSED) {}
 

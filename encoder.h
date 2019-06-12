@@ -41,7 +41,7 @@ DECLARE_REFLECTOR(Encoder)
   DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetCodecName(),       \
                              FINAL_EXPOSE_PRODUCT, Encoder)                    \
   DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)                               \
-  DEFINE_MEDIA_NEWINIT_PRODUCT(REAL_PRODUCT, Encoder)
+  DEFINE_MEDIA_NEW_PRODUCT_DO(REAL_PRODUCT, Encoder, Init() != true)
 
 class Encoder : public Codec {
 public:

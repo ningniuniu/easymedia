@@ -28,11 +28,8 @@ namespace easymedia {
 
 DEFINE_REFLECTOR(Demuxer)
 
-// define the base factory missing definition
-const char *FACTORY(Demuxer)::Parse(const char *request) {
-  // request should equal demuxer_name
-  return request;
-}
+// request should equal demuxer_name
+DEFINE_FACTORY_COMMON_PARSE(Demuxer)
 
 Demuxer::Demuxer(const char *param) : total_time(0.0f) {
   std::map<std::string, std::string> params;

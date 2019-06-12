@@ -52,8 +52,10 @@ DECLARE_REFLECTOR(Stream)
 #define DEFINE_STREAM_FACTORY(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)              \
   DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetStreamName(),      \
                              FINAL_EXPOSE_PRODUCT, Stream)                     \
-  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)
+  DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)                               \
+  DEFINE_MEDIA_NEW_PRODUCT_DO(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT, Open() < 0)
 
+class MediaBuffer;
 // interface
 class _API Stream {
 public:
@@ -80,6 +82,12 @@ public:
 
   virtual bool Eof() { return false; }
 
+  // No need size input. For some device, such as V4L2, always return specific
+  // buffer
+  virtual std::shared_ptr<MediaBuffer> Read() { return nullptr; }
+  // virtual bool Write(std::shared_ptr<MediaBuffer>);
+
+  // read data as image by ImageInfo
   bool ReadImage(void *ptr, const ImageInfo &info);
 
 private:
