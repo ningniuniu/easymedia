@@ -36,10 +36,6 @@ public:
 
   virtual bool InitConfig(const MediaConfig &cfg) override;
 
-  virtual int Process(std::shared_ptr<MediaBuffer> input,
-                      std::shared_ptr<MediaBuffer> output,
-                      std::shared_ptr<MediaBuffer> extra_output) override;
-
 protected:
   virtual bool CheckConfigChange(
       std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>) override;
@@ -125,16 +121,6 @@ bool MPPJpegEncoder::CheckConfigChange(
   }
 
   return true;
-}
-
-int MPPJpegEncoder::Process(std::shared_ptr<MediaBuffer> input,
-                            std::shared_ptr<MediaBuffer> output,
-                            std::shared_ptr<MediaBuffer> extra_output) {
-  int ret = MPPEncoder::Process(input, output, extra_output);
-  if (!ret)
-    output->SetType(Type::Image);
-
-  return ret;
 }
 
 DEFINE_VIDEO_ENCODER_FACTORY(MPPJpegEncoder)

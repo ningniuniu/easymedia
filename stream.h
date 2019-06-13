@@ -86,6 +86,7 @@ public:
   // buffer
   virtual std::shared_ptr<MediaBuffer> Read() { return nullptr; }
   // virtual bool Write(std::shared_ptr<MediaBuffer>);
+  virtual int IoCtrl(unsigned long int request _UNUSED, ...) { return -1; }
 
   // read data as image by ImageInfo
   bool ReadImage(void *ptr, const ImageInfo &info);

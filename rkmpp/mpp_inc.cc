@@ -86,12 +86,22 @@ PixelFormat ConvertToPixFmt(const MppFrameFormat &mfmt) {
 }
 
 const char *MppAcceptImageFmts() {
-  return TYPENEAR(IMAGE_YUV420P) TYPENEAR(IMAGE_NV12) TYPENEAR(IMAGE_NV21)
-      TYPENEAR(IMAGE_YUV422P) TYPENEAR(IMAGE_NV16) TYPENEAR(IMAGE_NV61)
-          TYPENEAR(IMAGE_YUYV422) TYPENEAR(IMAGE_UYVY422) TYPENEAR(IMAGE_RGB565)
-              TYPENEAR(IMAGE_BGR565) TYPENEAR(IMAGE_RGB888)
-                  TYPENEAR(IMAGE_BGR888) TYPENEAR(IMAGE_ARGB8888)
-                      TYPENEAR(IMAGE_ABGR8888);
+  static std::string ot;
+  ot.append(TYPENEAR(IMAGE_YUV420P));
+  ot.append(TYPENEAR(IMAGE_NV12));
+  ot.append(TYPENEAR(IMAGE_NV21));
+  ot.append(TYPENEAR(IMAGE_YUV422P));
+  ot.append(TYPENEAR(IMAGE_NV16));
+  ot.append(TYPENEAR(IMAGE_NV61));
+  ot.append(TYPENEAR(IMAGE_YUYV422));
+  ot.append(TYPENEAR(IMAGE_UYVY422));
+  ot.append(TYPENEAR(IMAGE_RGB565));
+  ot.append(TYPENEAR(IMAGE_BGR565));
+  ot.append(TYPENEAR(IMAGE_RGB888));
+  ot.append(TYPENEAR(IMAGE_BGR888));
+  ot.append(TYPENEAR(IMAGE_ARGB8888));
+  ot.append(TYPENEAR(IMAGE_ABGR8888));
+  return ot.c_str();
 }
 
 namespace easymedia {

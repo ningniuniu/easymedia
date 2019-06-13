@@ -22,6 +22,9 @@
 #ifndef RKMEDIA_MEDIA_KEY_STRING_H_
 #define RKMEDIA_MEDIA_KEY_STRING_H_
 
+#define _STR(s) #s
+#define STR(s) _STR(s)
+
 #define KEY_PATH "path"
 #define KEY_OPEN_MODE "mode"
 #define KEY_DEVICE "device"
@@ -65,7 +68,12 @@
 #define KEY_FLOAT_QUALITY "compress_quality"
 
 // v4l2 info
+#define KEY_USE_LIBV4L2 "use_libv4l2"
 #define KEY_SUB_DEVICE "sub_device"
+#define KEY_V4L2_CAP_TYPE "v4l2_capture_type"
+#define KEY_V4L2_C_TYPE(t) STR(t)
+#define KEY_V4L2_MEM_TYPE "v4l2_mem_type"
+#define KEY_V4L2_M_TYPE(t) STR(t)
 
 // rtsp
 #define KEY_PORT_NUM "portnum"

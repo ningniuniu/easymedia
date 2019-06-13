@@ -105,6 +105,7 @@ if(WARNINGS_AS_ERRORS)
 	endif()
 endif(WARNINGS_AS_ERRORS)
 
+option(SANITIZER "compile with sanitizer" OFF)
 option(FLOW "compile: flow" ON)
 option(STREAM "compile: stream" ON)
 option(ENCODER "compile: encoder" ON)
@@ -158,6 +159,11 @@ add_library(easymedia SHARED ${EASY_MEDIA_SOURCE_FILES})
 file(GLOB EASY_MEDIA_RELEASE_HEADERS *.h)
 set_target_properties(easymedia PROPERTIES
 					  PUBLIC_HEADER "${EASY_MEDIA_RELEASE_HEADERS}")
+
+if (SANITIZER)
+add_definitions(-fsanitize=address -static-libasan)
+target_link_libraries(easymedia libasan.a)
+endif()
 
 if( EASY_MEDIA_DEPENDENT_LIBS )
 target_link_libraries(easymedia ${EASY_MEDIA_DEPENDENT_LIBS})

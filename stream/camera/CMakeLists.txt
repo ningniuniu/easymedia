@@ -1,0 +1,40 @@
+# -----------------------------------------
+#
+# Hertz Wang 1989wanghang@163.com
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# -----------------------------------------
+
+# vi: set noexpandtab syntax=cmake:
+
+option(V4L2_OUTPUT "compile: v4l2 output" OFF)
+option(V4L2_CAPTURE "compile: v4l2 capture" OFF)
+
+if (V4L2_OUTPUT OR V4L2_CAPTURE)
+
+pkg_check_modules(LIBV4L2 libv4l2)
+if (LIBV4L2_FOUND)
+add_definitions(-DHAVE_LIBV4L2)
+set(EASY_MEDIA_STREAM_V4L2_LIBS v4l2)
+endif()
+
+set(EASY_MEDIA_STREAM_V4L2_SOURCE_FILES
+    stream/camera/v4l2_utils.cc)
+
+if (V4L2_CAPTURE)
+set(EASY_MEDIA_STREAM_V4L2_SOURCE_FILES ${EASY_MEDIA_STREAM_V4L2_SOURCE_FILES}
+    stream/camera/v4l2_capture_stream.cc)
+endif()
+
+endif()
+
+set(EASY_MEDIA_STREAM_SOURCE_FILES ${EASY_MEDIA_STREAM_SOURCE_FILES}
+    ${EASY_MEDIA_STREAM_V4L2_SOURCE_FILES} PARENT_SCOPE)
+set(EASY_MEDIA_STREAM_LIBS ${EASY_MEDIA_STREAM_LIBS}
+    ${EASY_MEDIA_STREAM_V4L2_LIBS} PARENT_SCOPE)
+
+option(CAMERA_TEST "compile: camera wrapper test" ON)
+if( CAMERA_TEST )
+add_subdirectory(test)
+endif()
