@@ -49,6 +49,9 @@ _API void LOG(const char *format, ...);
 
 #define PAGE_SIZE (sysconf(_SC_PAGESIZE))
 
+#define DUMP_FOURCC(f)                                                         \
+  f & 0xFF, (f >> 8) & 0xFF, (f >> 16) & 0xFF, (f >> 24) & 0xFF
+
 template <typename T, typename TBase> class IsDerived {
 public:
   static int t(TBase *base) { return 1; }
@@ -110,6 +113,17 @@ _API inline int64_t gettimeofday() {
 
 _API inline void msleep(int ms) {
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
+
+typedef int (*Ioctl_f)(int fd, unsigned long int request, ...);
+inline int xioctl(Ioctl_f f, int fd, int request, void *argp) {
+  int r;
+
+  do
+    r = f(fd, request, argp);
+  while (-1 == r && EINTR == errno);
+
+  return r;
 }
 
 class AutoDuration {

@@ -73,7 +73,8 @@ int main(int argc, char **argv) {
       cut[0] = 0;
       input_format = optarg;
       output_format = cut + 1;
-      if (output_format == "jpg")
+      if (output_format == "jpg" || output_format == "mjpg" ||
+          output_format == "mjpeg")
         output_format = "jpeg";
       printf("input format: %s\n", input_format.c_str());
       printf("output format: %s\n", output_format.c_str());
@@ -83,7 +84,7 @@ int main(int argc, char **argv) {
       printf("usage example: \n");
       printf("rkmpp_enc_test -i input.yuv -o output.h264 -w 320 -h 240 -f "
              "nv12_h264\n");
-      printf("rkmpp_enc_test -i input.yuv -o output.jpg -w 320 -h 240 -f "
+      printf("rkmpp_enc_test -i input.yuv -o output.mjpeg -w 320 -h 240 -f "
              "nv12_jpeg\n");
       exit(0);
     }
@@ -182,10 +183,10 @@ int main(int argc, char **argv) {
   ssize_t read_len;
   // Suppose input yuv data organization keep to align up to 16 stride width and
   // height, if not, you need reorder data organization.
-  size_t size = src_buffer->GetSize();
+  size_t size = len;
   int index = 0;
   while ((read_len = read(input_file_fd, src_buffer->GetPtr(), size)) > 0) {
-    src_buffer->SetValidSize(src_buffer->GetSize());
+    src_buffer->SetValidSize(read_len);
     dst_buffer->SetValidSize(dst_buffer->GetSize());
     index++;
     if (0 != mpp_enc->Process(src_buffer, dst_buffer, nullptr)) {

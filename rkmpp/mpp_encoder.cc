@@ -245,6 +245,7 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
   output->SetUserFlag(packet_flag);
   output->SetTimeStamp(pts);
   output->SetEOF(out_eof ? true : false);
+  output->SetType(Type::Video);
 
   if (mv_buf) {
     if (extra_output->GetFD() < 0) {

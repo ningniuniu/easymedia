@@ -42,10 +42,6 @@ public:
 
   virtual bool InitConfig(const MediaConfig &cfg) override;
 
-  virtual int Process(std::shared_ptr<MediaBuffer> input,
-                      std::shared_ptr<MediaBuffer> output,
-                      std::shared_ptr<MediaBuffer> extra_output) override;
-
 protected:
   // Change configs which are not contained in sps/pps.
   virtual bool CheckConfigChange(
@@ -361,16 +357,6 @@ bool MPPH264Encoder::CheckConfigChange(
   }
 
   return true;
-}
-
-int MPPH264Encoder::Process(std::shared_ptr<MediaBuffer> input,
-                            std::shared_ptr<MediaBuffer> output,
-                            std::shared_ptr<MediaBuffer> extra_output) {
-  int ret = MPPEncoder::Process(input, output, extra_output);
-  if (!ret)
-    output->SetType(Type::Video);
-
-  return ret;
 }
 
 DEFINE_VIDEO_ENCODER_FACTORY(MPPH264Encoder)
