@@ -21,12 +21,12 @@
 
 #include "v4l2_utils.h"
 
+#include <assert.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
 #ifdef HAVE_LIBV4L2
-#error shit
 #include <libv4l2.h>
 #endif
 
@@ -106,12 +106,8 @@ bool SetV4L2IoFunction(v4l2_io *vio, bool use_libv4l2) {
   return true;
 }
 
-int V4L2IoCtl(v4l2_io *vio, int fd, unsigned long int request, ...) {
-  void *arg;
-  va_list ap;
-  va_start(ap, request);
-  arg = va_arg(ap, void *);
-  va_end(ap);
+int V4L2IoCtl(v4l2_io *vio, int fd, unsigned long int request, void *arg) {
+  assert(vio->ioctl_f);
   return xioctl(vio->ioctl_f, fd, request, arg);
 }
 

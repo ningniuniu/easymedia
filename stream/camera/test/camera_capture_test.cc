@@ -69,13 +69,11 @@ int main(int argc, char **argv) {
       break;
     case 'f': {
       char *cut = strchr(optarg, ',');
-      if (!cut) {
-        fprintf(stderr, "input/output format must be cut by \',\'\n");
-        exit(EXIT_FAILURE);
-      }
-      cut[0] = 0;
       input_format = optarg;
-      output_format = cut + 1;
+      if (cut) {
+        cut[0] = 0;
+        output_format = cut + 1;
+      }
       printf("input format: %s\n", input_format.c_str());
       printf("output format: %s\n", output_format.c_str());
     } break;
@@ -84,6 +82,8 @@ int main(int argc, char **argv) {
       printf("usage example: \n");
       printf("camera_cap_test -i /dev/video0 -o output.yuv -w 1920 -h 1080 -f "
              "image:yuyv422\n");
+      printf("camera_cap_test -d 1 -o output.yuv -w 1920 -h 1080 -f "
+             "image:nv16,image:argb8888\n");
       exit(0);
     }
   }
@@ -95,13 +95,54 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   if (input_format.empty())
     exit(EXIT_FAILURE);
+  if (display && output_format.empty())
+    exit(EXIT_FAILURE);
   printf("width, height: %d, %d\n", w, h);
 
   easymedia::REFLECTOR(Stream)::DumpFactories();
-  // std::string flow_name;
+  std::string stream_name = "v4l2_capture_stream";
   std::string param;
+  PARAM_STRING_APPEND_TO(param, KEY_USE_LIBV4L2, 1);
   PARAM_STRING_APPEND(param, KEY_DEVICE, input_path);
   // PARAM_STRING_APPEND(param, KEY_SUB_DEVICE, sub_input_path);
+  PARAM_STRING_APPEND(param, KEY_V4L2_CAP_TYPE, KEY_V4L2_C_TYPE(VIDEO_CAPTURE));
+  PARAM_STRING_APPEND(param, KEY_V4L2_MEM_TYPE, KEY_V4L2_M_TYPE(MEMORY_MMAP));
+  PARAM_STRING_APPEND_TO(param, KEY_FRAMES, 4); // if not set, default is 2
+  PARAM_STRING_APPEND(param, KEY_OUTPUTDATATYPE, input_format);
+  PARAM_STRING_APPEND_TO(param, KEY_BUFFER_WIDTH, w);
+  PARAM_STRING_APPEND_TO(param, KEY_BUFFER_HEIGHT, h);
+  auto input = easymedia::REFLECTOR(Stream)::Create<easymedia::Stream>(
+      stream_name.c_str(), param.c_str());
+  if (!input) {
+    fprintf(stderr, "create stream \"%s\" failed\n", stream_name.c_str());
+    exit(EXIT_FAILURE);
+  }
+
+  int dump_frm = 0;
+  std::shared_ptr<easymedia::Stream> output;
+  if (!output_path.empty()) {
+    // test dump
+    stream_name = "file_write_stream";
+    param = "";
+    PARAM_STRING_APPEND(param, KEY_PATH, output_path);
+    PARAM_STRING_APPEND(param, KEY_OPEN_MODE, "we");
+    output = easymedia::REFLECTOR(Stream)::Create<easymedia::Stream>(
+        stream_name.c_str(), param.c_str());
+    dump_frm = 10;
+  } else {
+    fprintf(stderr, "TODO: display to screen");
+    exit(EXIT_FAILURE);
+  }
+  assert(output);
+
+  while (dump_frm-- > 0) {
+    auto buffer = input->Read();
+    assert(buffer && buffer->GetValidSize() > 0);
+    output->Write(buffer->GetPtr(), 1, buffer->GetValidSize());
+  }
+
+  output->Close();
+  input->Close();
 
   return 0;
 }

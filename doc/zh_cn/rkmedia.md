@@ -7,7 +7,7 @@ easymedia 封装库
 
 easymedia为了使多媒体相关开发更简单而做，将比较偏底层一些的代码或功能抽象简化为更简易的接口。
 
-目前包含了视频硬件编解码接口，媒体格式封装解封装接口，音频软件编解码接口，音频采集输出播放接口等。
+目前包含了视频硬件编解码接口，媒体格式封装解封装接口，音频软件编解码接口，音频采集输出播放接口，摄像头采集接口等。
 
 编译基于[cmake](https://cmake.org/documentation)构建工具。
 
@@ -179,3 +179,22 @@ rtsp服务端（基于live555）
       \"live555_rtsp_server\", param.c_str())：创建rtsp server，参数必须包括KEY_INPUTDATATYPE/KEY_CHANNEL_NAME，
       KEY_PORT_NUM（端口号）还有KEY_USERNAME/KEY_USERPASSWORD（用户名和密码）非必须。
     * rtsp_flow->SendInput(buf, 0)：送数据给rtsp服务端，第二个参数一般为0，表示送入rtsp服务端数据链0槽位，之后rtsp服务端内部会从0槽位获取数据。
+
+摄像头输入采集
+----------
+
+> 仅支持V4L2
+
+- 编译
+
+    确保对应CMakeLists.txt设置-DV4L2_CAPTURE=ON
+
+- 范例：[camera_capture_test.cc](../../frameworks/media/stream/camera/test/camera_capture_test.cc)
+
+    使用命令查看使用方法：./camera_cap_test -?
+
+- 接口及范例流程说明
+
+    * (可不调用)easymedia::REFLECTOR(Stream)::DumpFactories()：列出当前编入的输入输出模块
+    * easymedia::REFLECTOR(Stream)::Create\<easymedia::Stream\>：创建摄像头采集流实例，参数为字符串"v4l2_capture_stream"和设置打开设备的参数。参数参考范例。
+    * Read：读入一次数据，参数为空，返回MediaBuffer

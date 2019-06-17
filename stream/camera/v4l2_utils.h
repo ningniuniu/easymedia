@@ -48,7 +48,7 @@ __u32 GetV4L2FmtByString(const char *type);
 __u32 GetV4L2Type(const char *v4l2type);
 
 bool SetV4L2IoFunction(v4l2_io *vio, bool use_libv4l2 = false);
-int V4L2IoCtl(v4l2_io *vio, int fd, unsigned long int request, ...);
+int V4L2IoCtl(v4l2_io *vio, int fd, unsigned long int request, void *arg);
 
 } // namespace easymedia
 
