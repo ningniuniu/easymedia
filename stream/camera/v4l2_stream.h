@@ -26,17 +26,33 @@
 
 #include <assert.h>
 
+#include <atomic>
+
 #include "v4l2_utils.h"
 
 namespace easymedia {
 
+class V4L2Context {
+public:
+  V4L2Context(enum v4l2_buf_type cap_type, v4l2_io vio,
+              const std::string &device);
+  ~V4L2Context();
+  int GetDeviceFd() { return fd; }
+  // val: if true, VIDIOC_STREAMON, else VIDIOC_STREAMOFF
+  bool SetStarted(bool val);
+  int IoCtrl(unsigned long int request, void *arg);
+
+private:
+  int fd;
+  enum v4l2_buf_type capture_type;
+  v4l2_io io_func;
+  std::atomic_bool started;
+};
+
 class V4L2Stream : public Stream {
 public:
-  V4L2Stream() : use_libv4l2(false), fd(-1) { memset(&vio, 0, sizeof(vio)); }
-  virtual ~V4L2Stream() {
-    if (fd >= 0)
-      close(fd);
-  }
+  V4L2Stream(const char *param);
+  virtual ~V4L2Stream() = default;
   virtual size_t Read(void *ptr _UNUSED, size_t size _UNUSED,
                       size_t nmemb _UNUSED) final {
     return 0;
@@ -49,6 +65,10 @@ public:
                        size_t nmemb _UNUSED) final {
     return 0;
   }
+  virtual int Open() override;
+  virtual int Close() override;
+  virtual int IoCtrl(unsigned long int request, ...) override;
+
 #define v4l2_open vio.open_f
 #define v4l2_close vio.close_f
 #define v4l2_dup vio.dup_f
@@ -56,21 +76,16 @@ public:
 #define v4l2_read vio.read_f
 #define v4l2_mmap vio.mmap_f
 #define v4l2_munmap vio.munmap_f
-  int IoCtrl(unsigned long int request, ...) override {
-    va_list vl;
-    va_start(vl, request);
-    int ret = V4L2IoCtl(&vio, fd, request, vl);
-    va_end(vl);
-    return ret;
-  }
 
 protected:
   bool use_libv4l2;
   v4l2_io vio;
   std::string device;
   std::string sub_device;
-  int fd;
+  int fd; // just for convenience
   // static sub_device_controller;
+  enum v4l2_buf_type capture_type;
+  std::shared_ptr<V4L2Context> v4l2_ctx;
 };
 
 } // namespace easymedia

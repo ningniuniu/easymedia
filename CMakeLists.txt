@@ -152,8 +152,16 @@ include_directories(${USAGEENVIRONMENT_HEADER_DIR})
 add_subdirectory(live555)
 endif()
 
-add_subdirectory(stream)
+option(FLOW "compile: flow" ON)
+if (FLOW)
 add_subdirectory(flow)
+set(EASY_MEDIA_DEPENDENT_LIBS ${EASY_MEDIA_DEPENDENT_LIBS} pthread)
+endif()
+
+option(STREAM "compile: stream" ON)
+if (STREAM)
+add_subdirectory(stream)
+endif()
 
 add_library(easymedia SHARED ${EASY_MEDIA_SOURCE_FILES})
 file(GLOB EASY_MEDIA_RELEASE_HEADERS *.h)
@@ -161,8 +169,12 @@ set_target_properties(easymedia PROPERTIES
 					  PUBLIC_HEADER "${EASY_MEDIA_RELEASE_HEADERS}")
 
 if (SANITIZER)
-add_definitions(-fsanitize=address -static-libasan)
+add_definitions(-fsanitize=address -static-libasan -g)
 target_link_libraries(easymedia libasan.a)
+endif()
+
+if (EASY_MEDIA_COMPILE_DEFINITIONS)
+add_definitions(${EASY_MEDIA_COMPILE_DEFINITIONS})
 endif()
 
 if( EASY_MEDIA_DEPENDENT_LIBS )
@@ -171,6 +183,7 @@ endif()
 
 # message(headers: "${EASY_MEDIA_RELEASE_HEADERS}")
 # message(files: "${EASY_MEDIA_SOURCE_FILES}")
+# message(definitions: "${EASY_MEDIA_COMPILE_DEFINITIONS}")
 # message(libs : "${EASY_MEDIA_DEPENDENT_LIBS}")
 
 install(TARGETS easymedia

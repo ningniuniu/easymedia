@@ -19,7 +19,6 @@
  *
  */
 
-#include <fcntl.h>
 #include <sys/mman.h>
 
 #include <vector>
@@ -41,7 +40,6 @@ public:
 private:
   int BufferExport(enum v4l2_buf_type bt, int index, int *dmafd);
 
-  enum v4l2_buf_type capture_type;
   enum v4l2_memory memory_type;
   std::string data_type;
   int width, height;
@@ -51,22 +49,15 @@ private:
 };
 
 V4L2CaptureStream::V4L2CaptureStream(const char *param)
-    : capture_type(V4L2_BUF_TYPE_VIDEO_CAPTURE), memory_type(V4L2_MEMORY_MMAP),
-      data_type(IMAGE_NV12), width(0), height(0), loop_num(2), started(false) {
-  std::string str_libv4l2;
-  std::string cap_type, mem_type, str_loop_num;
-  std::string str_width, str_height;
-
+    : V4L2Stream(param), memory_type(V4L2_MEMORY_MMAP), data_type(IMAGE_NV12),
+      width(0), height(0), loop_num(2), started(false) {
+  if (device.empty())
+    return;
   std::map<std::string, std::string> params;
   std::list<std::pair<const std::string, std::string &>> req_list;
-  req_list.push_back(std::pair<const std::string, std::string &>(
-      KEY_USE_LIBV4L2, str_libv4l2));
-  req_list.push_back(
-      std::pair<const std::string, std::string &>(KEY_DEVICE, device));
-  req_list.push_back(
-      std::pair<const std::string, std::string &>(KEY_SUB_DEVICE, sub_device));
-  req_list.push_back(
-      std::pair<const std::string, std::string &>(KEY_V4L2_CAP_TYPE, cap_type));
+
+  std::string mem_type, str_loop_num;
+  std::string str_width, str_height;
   req_list.push_back(
       std::pair<const std::string, std::string &>(KEY_V4L2_MEM_TYPE, mem_type));
   req_list.push_back(
@@ -78,16 +69,8 @@ V4L2CaptureStream::V4L2CaptureStream(const char *param)
   req_list.push_back(std::pair<const std::string, std::string &>(
       KEY_BUFFER_HEIGHT, str_height));
   int ret = parse_media_param_match(param, params, req_list);
-  if (ret == 0) {
+  if (ret == 0)
     return;
-  }
-  if (device.empty())
-    return;
-  if (!str_libv4l2.empty())
-    use_libv4l2 = !!std::stoi(str_libv4l2);
-  if (!cap_type.empty())
-    capture_type =
-        static_cast<enum v4l2_buf_type>(GetV4L2Type(cap_type.c_str()));
   if (!mem_type.empty())
     memory_type = static_cast<enum v4l2_memory>(GetV4L2Type(mem_type.c_str()));
   if (!str_loop_num.empty())
@@ -136,23 +119,17 @@ static int __free_v4l2buffer(void *arg) {
 }
 
 int V4L2CaptureStream::Open() {
-  if (device.empty() || width <= 0 || height <= 0) {
-    LOG("Invalid param, device=%s, width=%d, height=%d\n", device.c_str(),
-        width, height);
-    return -1;
-  }
-  if (!SetV4L2IoFunction(&vio))
-    return -1;
-  if (!sub_device.empty()) {
-    // TODO:
-  }
   const char *dev = device.c_str();
-  fd = v4l2_open(dev, O_RDWR, 0);
-  if (fd < 0) {
-    LOG("open %s failed %m\n", dev);
-    return -1;
+  if (width <= 0 || height <= 0) {
+    LOG("Invalid param, device=%s, width=%d, height=%d\n", dev, width, height);
+    return -EINVAL;
   }
+  int ret = V4L2Stream::Open();
+  if (ret)
+    return ret;
+
   struct v4l2_capability cap;
+  memset(&cap, 0, sizeof(cap));
   if (IoCtrl(VIDIOC_QUERYCAP, &cap) < 0) {
     LOG("Failed to ioctl(VIDIOC_QUERYCAP): %m\n");
     return -1;
@@ -291,23 +268,28 @@ int V4L2CaptureStream::Open() {
 
 int V4L2CaptureStream::Close() {
   started = false;
-  if (fd >= 0) {
-    enum v4l2_buf_type type = capture_type;
-    return IoCtrl(VIDIOC_STREAMOFF, &type);
-  }
-  return 0;
+  return V4L2Stream::Close();
 }
+
+class AutoQBUFMediaBuffer : public MediaBuffer {
+public:
+  AutoQBUFMediaBuffer(MediaBuffer &mb, std::shared_ptr<V4L2Context> ctx,
+                      struct v4l2_buffer buf)
+      : MediaBuffer(mb), v4l2_ctx(ctx), v4l2_buf(buf) {}
+  ~AutoQBUFMediaBuffer() {
+    if (v4l2_ctx->IoCtrl(VIDIOC_QBUF, &v4l2_buf) < 0)
+      LOG("index=%d, ioctl(VIDIOC_QBUF): %m\n", v4l2_buf.index);
+  }
+
+private:
+  std::shared_ptr<V4L2Context> v4l2_ctx;
+  struct v4l2_buffer v4l2_buf;
+};
 
 std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
   const char *dev = device.c_str();
-  if (started) {
-    enum v4l2_buf_type type = capture_type;
-    if (IoCtrl(VIDIOC_STREAMON, &type) < 0) {
-      LOG("%s, ioctl(VIDIOC_STREAMON): %m\n", dev);
-      return nullptr;
-    }
+  if (!started && v4l2_ctx->SetStarted(true))
     started = true;
-  }
   struct v4l2_buffer buf;
   memset(&buf, 0, sizeof(buf));
   buf.type = capture_type;
@@ -317,19 +299,11 @@ std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
     LOG("%s, ioctl(VIDIOC_DQBUF): %m\n", dev);
     return nullptr;
   }
-  LOG("%s,ioctl(VIDIOC_DQBUF): index=%d, \n", dev, buf.index);
   struct timeval buf_ts = buf.timestamp;
   MediaBuffer &mb = buffer_vec[buf.index];
-  auto recyle_fun = [this](MediaBuffer *pmb, struct v4l2_buffer vbuf) {
-    if (pmb)
-      delete pmb;
-    LOG("%s, %d, ioctl(VIDIOC_QBUF)\n", device.c_str(), vbuf.index);
-    if (IoCtrl(VIDIOC_QBUF, &vbuf) < 0)
-      LOG("%s, index=%d, ioctl(VIDIOC_QBUF): %m\n", device.c_str(), vbuf.index);
-  };
-  auto ret_buf = std::shared_ptr<MediaBuffer>(
-      new MediaBuffer(mb), std::bind(recyle_fun, std::placeholders::_1, buf));
+  auto ret_buf = std::make_shared<AutoQBUFMediaBuffer>(mb, v4l2_ctx, buf);
   if (ret_buf) {
+    assert(ret_buf->GetFD() == mb.GetFD());
     if (buf.memory == V4L2_MEMORY_DMABUF) {
       assert(ret_buf->GetFD() == buf.m.fd);
     }
@@ -337,7 +311,8 @@ std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
     assert(buf.length > 0);
     ret_buf->SetValidSize(buf.length);
   } else {
-    recyle_fun(nullptr, buf);
+    if (IoCtrl(VIDIOC_QBUF, &buf) < 0)
+      LOG("%s, index=%d, ioctl(VIDIOC_QBUF): %m\n", dev, buf.index);
   }
 
   return ret_buf;
