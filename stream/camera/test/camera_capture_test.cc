@@ -139,6 +139,12 @@ int main(int argc, char **argv) {
     auto buffer = input->Read();
     assert(buffer && buffer->GetValidSize() > 0);
     output->Write(buffer->GetPtr(), 1, buffer->GetValidSize());
+    if (buffer->GetType() == Type::Image) {
+      // if type image, we can static cast it
+      auto img_buffer =
+          std::static_pointer_cast<easymedia::ImageBuffer>(buffer);
+      printf("w: %d, h: %d\n", img_buffer->GetWidth(), img_buffer->GetHeight());
+    }
   }
 
   output.reset();
