@@ -45,7 +45,7 @@ DECLARE_REFLECTOR(Flow)
 
 class MediaBuffer;
 enum class Model { NONE, ASYNCCOMMON, ASYNCATOMIC, SYNC };
-enum class InputMode { BLOCKING, DROPFRONT, DROPCURRENT };
+enum class InputMode { NONE, BLOCKING, DROPFRONT, DROPCURRENT };
 using MediaBufferVector = std::vector<std::shared_ptr<MediaBuffer>>;
 using FunctionProcess =
     std::add_pointer<bool(Flow *f, MediaBufferVector &input_vector)>::type;
@@ -54,14 +54,16 @@ extern FunctionProcess void_transaction00;
 
 class SlotMap {
 public:
-  SlotMap() : interval(16) {}
+  SlotMap()
+      : process(nullptr), thread_model(Model::NONE),
+        mode_when_full(InputMode::NONE), interval(16.66f) {}
   std::vector<int> input_slots;
   std::vector<int> output_slots;
   FunctionProcess process;
   Model thread_model;
   InputMode mode_when_full;
   std::vector<int> input_maxcachenum;
-  int64_t interval;
+  float interval;
 };
 
 class FlowCoroutine;
@@ -91,7 +93,7 @@ public:
   void SetDisable() { enable = false; }
 
   // The global event hander is the same thread to the born thread of this
-  // object
+  // object.
   // void SetEventHandler(EventHandler *ev_handler);
   // void NotifyToEventHandler();
 
@@ -179,6 +181,11 @@ private:
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Flow)
 };
 
+std::string gen_datatype_rule(std::map<std::string, std::string> &params);
+Model GetModelByString(const std::string &model);
+InputMode GetInputModelByString(const std::string &in_model);
+void ParseParamToSlotMap(std::map<std::string, std::string> &params,
+                         SlotMap &sm, int &input_maxcachenum);
 } // namespace easymedia
 
 #endif // #ifndef EASYMEDIA_FLOW_H_

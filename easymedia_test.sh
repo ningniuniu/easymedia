@@ -29,3 +29,5 @@ echo -e "\n2 #### rkmpp mjpeg encoder test\n"
 adb shell rkmpp_enc_test -i /tmp/mpp_enc_test_320_240.nv12 -o /tmp/output.mjpeg -w 320 -h 240 -f nv12_jpeg
 adb pull /tmp/output.mjpeg $TEMPDIR
 adb shell rm /tmp/output.mjpeg
+
+# camera_cap_test -i /dev/video0 -o /tmp/output.yuv -w 1920 -h 1080 -f image:nv16

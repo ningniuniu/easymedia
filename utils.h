@@ -87,6 +87,8 @@ namespace easymedia {
 #define PARAM_STRING_APPEND_TO(s, s1, s2)                                      \
   s.append(s1 "=").append(std::to_string(s2)).append("\n")
 
+#define PARAM_STRING_APPEND_PARAM_STRING(p1, p2) p1.append(" ").append(p2)
+
 // delim: '=', '\n'
 bool parse_media_param_map(const char *param,
                            std::map<std::string, std::string> &map);

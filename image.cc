@@ -99,9 +99,10 @@ const char *PixFmtToString(PixelFormat fmt) {
 
 namespace easymedia {
 bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
-                           ImageInfo &info) {
+                           ImageInfo &info, bool input) {
   std::string value;
-  CHECK_EMPTY(value, params, KEY_INPUTDATATYPE)
+  const char *type = input ? KEY_INPUTDATATYPE : KEY_OUTPUTDATATYPE;
+  CHECK_EMPTY(value, params, type)
   info.pix_fmt = GetPixFmtByString(value.c_str());
   if (info.pix_fmt == PIX_FMT_NONE) {
     LOG("unsupport pix fmt %d\n", value.c_str());
@@ -118,12 +119,15 @@ bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
   return true;
 }
 
-std::string to_param_string(const ImageInfo &info) {
+std::string to_param_string(const ImageInfo &info, bool input) {
   std::string s;
   const char *fmt = PixFmtToString(info.pix_fmt);
   if (!fmt)
     return s;
-  PARAM_STRING_APPEND(s, KEY_INPUTDATATYPE, fmt);
+  if (input)
+    PARAM_STRING_APPEND(s, KEY_INPUTDATATYPE, fmt);
+  else
+    PARAM_STRING_APPEND(s, KEY_OUTPUTDATATYPE, fmt);
   PARAM_STRING_APPEND_TO(s, KEY_BUFFER_WIDTH, info.width);
   PARAM_STRING_APPEND_TO(s, KEY_BUFFER_HEIGHT, info.height);
   PARAM_STRING_APPEND_TO(s, KEY_BUFFER_VIR_WIDTH, info.vir_width);

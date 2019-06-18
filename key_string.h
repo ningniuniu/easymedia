@@ -29,6 +29,7 @@
 #define KEY_OPEN_MODE "mode"
 #define KEY_DEVICE "device"
 
+#define KEY_NAME "name"
 #define KEY_CODEC_NAME "codecname"
 #define KEY_CODEC_PARAM "codecparam"
 
@@ -41,6 +42,12 @@
 #define KEY_BUFFER_HEIGHT "height"
 #define KEY_BUFFER_VIR_WIDTH "virtual_width"
 #define KEY_BUFFER_VIR_HEIGHT "virtual_height"
+
+// (src_left, src_top, src_width, src_height)->(dst_left, dst_top, dst_width,
+// dst_height)
+#define KEY_RIGHT_DIRECTION "->"
+#define KEY_BUFFER_RECT "rect"
+#define KEY_BUFFER_ROTATE "rotate"
 
 // video info
 #define KEY_COMPRESS_QP_INIT "qp_init"
@@ -89,5 +96,18 @@
 #define KEY_MEM_SIZE_PERTIME "size_pertime"
 
 #define KEY_LOOP_TIME "loop_time"
+
+// flow
+#define KEK_THREAD_SYNC_MODEL "thread_model"
+#define KEY_ASYNCCOMMON "asynccommon"
+#define KEY_ASYNCATOMIC "asyncatomic"
+#define KEY_SYNC "sync"
+
+#define KEK_INPUT_MODEL "input_model"
+#define KEY_BLOCKING "blocking"
+#define KEY_DROPFRONT "dropfront"
+#define KEY_DROPCURRENT "dropcurrent"
+
+#define KEY_INPUT_CACHE_NUM "input_cache_num"
 
 #endif // #ifndef EASYMEDIA_MEDIA_KEY_STRING_H_

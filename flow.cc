@@ -26,6 +26,7 @@
 #include <algorithm>
 
 #include "buffer.h"
+#include "key_string.h"
 #include "utils.h"
 
 namespace easymedia {
@@ -40,7 +41,7 @@ FunctionProcess void_transaction00 = void_transaction<0, 0>;
 
 class FlowCoroutine {
 public:
-  FlowCoroutine(Flow *f, Model sync_model, FunctionProcess func, int64_t inter);
+  FlowCoroutine(Flow *f, Model sync_model, FunctionProcess func, float inter);
   ~FlowCoroutine();
 
   void Bind(std::vector<int> &in, std::vector<int> &out);
@@ -63,7 +64,7 @@ private:
 
   Flow *flow;
   Model model;
-  int64_t interval;
+  float interval;
   std::vector<int> in_slots;
   std::vector<int> out_slots;
   std::thread *th;
@@ -84,7 +85,7 @@ private:
 };
 
 FlowCoroutine::FlowCoroutine(Flow *f, Model sync_model, FunctionProcess func,
-                             int64_t inter)
+                             float inter)
     : flow(f), model(sync_model), interval(inter), th(nullptr), th_run(func)
 #ifdef DEBUG
       ,
@@ -370,6 +371,8 @@ void Flow::Input::Init(Flow *f, Model m, int mcn, InputMode im,
   case InputMode::DROPCURRENT:
     async_full_behavior = &Input::ASyncFullDropCurrentBehavior;
     break;
+  default:
+    break;
   }
 }
 
@@ -566,6 +569,59 @@ bool Flow::Input::ASyncFullDropFrontBehavior(volatile bool &pred _UNUSED) {
 
 bool Flow::Input::ASyncFullDropCurrentBehavior(volatile bool &pred _UNUSED) {
   return false;
+}
+
+std::string gen_datatype_rule(std::map<std::string, std::string> &params) {
+  std::string rule;
+  std::string value;
+  CHECK_EMPTY_SETERRNO_RETURN(, value, params, KEY_INPUTDATATYPE, , "");
+  PARAM_STRING_APPEND(rule, KEY_INPUTDATATYPE, value);
+  CHECK_EMPTY_SETERRNO_RETURN(, value, params, KEY_OUTPUTDATATYPE, , "");
+  PARAM_STRING_APPEND(rule, KEY_OUTPUTDATATYPE, value);
+  return std::move(rule);
+}
+
+Model GetModelByString(const std::string &model) {
+  static std::map<std::string, Model> model_map = {
+      {KEY_ASYNCCOMMON, Model::ASYNCCOMMON},
+      {KEY_ASYNCATOMIC, Model::ASYNCATOMIC},
+      {KEY_SYNC, Model::SYNC}};
+  auto it = model_map.find(model);
+  if (it != model_map.end())
+    return it->second;
+  return Model::NONE;
+}
+
+InputMode GetInputModelByString(const std::string &in_model) {
+  static std::map<std::string, InputMode> in_model_map = {
+      {KEY_BLOCKING, InputMode::BLOCKING},
+      {KEY_DROPFRONT, InputMode::DROPFRONT},
+      {KEY_DROPCURRENT, InputMode::DROPCURRENT}};
+  auto it = in_model_map.find(in_model);
+  if (it != in_model_map.end())
+    return it->second;
+  return InputMode::NONE;
+}
+
+void ParseParamToSlotMap(std::map<std::string, std::string> &params,
+                         SlotMap &sm, int &input_maxcachenum) {
+  float fps = 0.0f;
+  std::string &fps_str = params[KEY_FPS];
+  if (!fps_str.empty()) {
+    fps = std::stof(fps_str);
+    if (fps > 0.0f)
+      sm.interval = 1000.0f / fps;
+  }
+  sm.thread_model = GetModelByString(params[KEK_THREAD_SYNC_MODEL]);
+  sm.mode_when_full = GetInputModelByString(params[KEK_INPUT_MODEL]);
+  std::string &cache_num_str = params[KEY_INPUT_CACHE_NUM];
+  int cache_num = -1;
+  if (!cache_num_str.empty()) {
+    cache_num = std::stoi(cache_num_str);
+    if (cache_num <= 0)
+      LOG("warning, input cache num = %d\n", cache_num);
+    input_maxcachenum = cache_num;
+  }
 }
 
 } // namespace easymedia

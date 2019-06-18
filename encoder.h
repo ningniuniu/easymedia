@@ -22,7 +22,7 @@
 #ifndef EASYMEDIA_ENCODER_H_
 #define EASYMEDIA_ENCODER_H_
 
-#include <stdint.h>
+#include <mutex>
 
 #ifdef __cplusplus
 
