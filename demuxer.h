@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_DEMUXER_H_
-#define RKMEDIA_DEMUXER_H_
+#ifndef EASYMEDIA_DEMUXER_H_
+#define EASYMEDIA_DEMUXER_H_
 
 #include <list>
 
@@ -67,4 +67,4 @@ protected:
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_DEMUXER_H_
+#endif // #ifndef EASYMEDIA_DEMUXER_H_

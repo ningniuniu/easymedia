@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_SOUND_H_
-#define RKMEDIA_SOUND_H_
+#ifndef EASYMEDIA_SOUND_H_
+#define EASYMEDIA_SOUND_H_
 
 #include <stddef.h>
 
@@ -62,4 +62,4 @@ bool ParseSampleInfoFromMap(std::map<std::string, std::string> &params,
 std::string _API to_param_string(const SampleInfo &si);
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_SOUND_H_
+#endif // #ifndef EASYMEDIA_SOUND_H_

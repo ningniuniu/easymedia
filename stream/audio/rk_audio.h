@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_RK_AUDIO_H_
-#define RKMEDIA_RK_AUDIO_H_
+#ifndef EASYMEDIA_RK_AUDIO_H_
+#define EASYMEDIA_RK_AUDIO_H_
 
 #include <cstddef>
 
@@ -32,4 +32,4 @@ int rk_voice_init(const SampleInfo &sample_info, short int ashw_para[500]);
 void rk_voice_handle(void *buffer, int bytes);
 void rk_voice_deinit();
 
-#endif // RKMEDIA_RK_AUDIO_H_
+#endif // EASYMEDIA_RK_AUDIO_H_

@@ -253,7 +253,7 @@ int V4L2CaptureStream::Open() {
         LOG("%s, ioctl(VIDIOC_QBUF): %m\n", dev);
         return -1;
       }
-      if (!BufferExport(capture_type, i, &dmafd)) {
+      if (!use_libv4l2 && !BufferExport(capture_type, i, &dmafd)) {
         MediaBuffer &mb = buffer_vec[i];
         V4L2Buffer *buffer = static_cast<V4L2Buffer *>(mb.GetUserData().get());
         buffer->dmafd = dmafd;

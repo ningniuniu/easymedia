@@ -122,8 +122,7 @@ FileReadFlow::~FileReadFlow() {
     read_thread->join();
     delete read_thread;
   }
-  if (fstream)
-    fstream->Close();
+  fstream.reset();
 }
 
 void FileReadFlow::ReadThreadRun() {

@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_LOCK_H_
-#define RKMEDIA_LOCK_H_
+#ifndef EASYMEDIA_LOCK_H_
+#define EASYMEDIA_LOCK_H_
 
 #include <atomic>
 #include <condition_variable>
@@ -92,4 +92,4 @@ private:
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_LOCK_H_
+#endif // #ifndef EASYMEDIA_LOCK_H_

@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_MEDIA_KEY_STRING_H_
-#define RKMEDIA_MEDIA_KEY_STRING_H_
+#ifndef EASYMEDIA_MEDIA_KEY_STRING_H_
+#define EASYMEDIA_MEDIA_KEY_STRING_H_
 
 #define _STR(s) #s
 #define STR(s) _STR(s)
@@ -90,4 +90,4 @@
 
 #define KEY_LOOP_TIME "loop_time"
 
-#endif // #ifndef RKMEDIA_MEDIA_KEY_STRING_H_
+#endif // #ifndef EASYMEDIA_MEDIA_KEY_STRING_H_

@@ -141,8 +141,8 @@ int main(int argc, char **argv) {
     output->Write(buffer->GetPtr(), 1, buffer->GetValidSize());
   }
 
-  output->Close();
-  input->Close();
+  output.reset();
+  input.reset();
 
   return 0;
 }

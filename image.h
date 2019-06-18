@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_IMAGE_H_
-#define RKMEDIA_IMAGE_H_
+#ifndef EASYMEDIA_IMAGE_H_
+#define EASYMEDIA_IMAGE_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,4 +76,4 @@ bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
 _API std::string to_param_string(const ImageInfo &ii);
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_IMAGE_H_
+#endif // #ifndef EASYMEDIA_IMAGE_H_

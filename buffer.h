@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_BUFFER_H_
-#define RKMEDIA_BUFFER_H_
+#ifndef EASYMEDIA_BUFFER_H_
+#define EASYMEDIA_BUFFER_H_
 
 #include <stdint.h>
 #include <string.h>
@@ -188,4 +188,4 @@ private:
 
 } // namespace easymedia
 
-#endif // RKMEDIA_BUFFER_H_
+#endif // EASYMEDIA_BUFFER_H_

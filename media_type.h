@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_MEDIA_TYPE_H_
-#define RKMEDIA_MEDIA_TYPE_H_
+#ifndef EASYMEDIA_MEDIA_TYPE_H_
+#define EASYMEDIA_MEDIA_TYPE_H_
 
 enum class Type { None = -1, Audio = 0, Image, Video, Text };
 
@@ -71,4 +71,4 @@ enum class Type { None = -1, Audio = 0, Image, Video, Text };
 
 #define STREAM_FILE "stream:file"
 
-#endif // #ifndef RKMEDIA_MEDIA_TYPE_H_
+#endif // #ifndef EASYMEDIA_MEDIA_TYPE_H_

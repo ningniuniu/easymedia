@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_MEDIA_REFLECTOR_H_
-#define RKMEDIA_MEDIA_REFLECTOR_H_
+#ifndef EASYMEDIA_MEDIA_REFLECTOR_H_
+#define EASYMEDIA_MEDIA_REFLECTOR_H_
 
 #include "key_string.h"
 #include "reflector.h"
@@ -95,4 +95,4 @@
     return ret;                                                                \
   }
 
-#endif // #ifndef RKMEDIA_MEDIA_REFLECTOR_H_
+#endif // #ifndef EASYMEDIA_MEDIA_REFLECTOR_H_

@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_ALSA_UTILS_H_
-#define RKMEDIA_ALSA_UTILS_H_
+#ifndef EASYMEDIA_ALSA_UTILS_H_
+#define EASYMEDIA_ALSA_UTILS_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,4 +48,4 @@ snd_pcm_t *AlsaCommonOpenSetHwParams(const char *device,
                                      SampleInfo &sample_info,
                                      snd_pcm_hw_params_t *hwparams);
 
-#endif
+#endif // EASYMEDIA_ALSA_UTILS_H_

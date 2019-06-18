@@ -39,7 +39,7 @@ namespace easymedia {
 class FileStream : public Stream {
 public:
   FileStream(const char *param);
-  virtual ~FileStream() { assert(!file); }
+  virtual ~FileStream() { if (file) FileStream::Close(); }
   virtual size_t Read(void *ptr, size_t size, size_t nmemb) final {
     if (!Readable())
       return -1;
@@ -62,6 +62,16 @@ public:
     CHECK_FILE(file)
     return fwrite(ptr, size, nmemb, file);
   }
+
+  virtual bool Eof() final {
+    if (!file) {
+      errno = EBADF;
+      return true;
+    }
+    return eof ? eof : !!feof(file);
+  }
+
+protected:
   virtual int Open() {
     if (path.empty() || open_mode.empty())
       return -1;
@@ -83,14 +93,6 @@ public:
     int ret = fclose(file);
     file = NULL;
     return ret;
-  }
-
-  virtual bool Eof() final {
-    if (!file) {
-      errno = EBADF;
-      return true;
-    }
-    return eof ? eof : !!feof(file);
   }
 
 private:

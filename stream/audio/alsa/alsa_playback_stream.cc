@@ -50,9 +50,6 @@ public:
   virtual int Open() final;
   virtual int Close() final;
 
-  // virtual bool Readable() final { return false; }
-  // virtual bool Seekable() final { return false; }
-
 private:
   SampleInfo sample_info;
   std::string device;
@@ -73,7 +70,10 @@ AlsaPlayBackStream::AlsaPlayBackStream(const char *param)
     LOG("missing some necessary param\n");
 }
 
-AlsaPlayBackStream::~AlsaPlayBackStream() { assert(!alsa_handle); }
+AlsaPlayBackStream::~AlsaPlayBackStream() {
+  if (alsa_handle)
+    AlsaPlayBackStream::Close();
+}
 
 size_t AlsaPlayBackStream::Write(const void *ptr, size_t size, size_t nmemb) {
   size_t buffer_len = size * nmemb;
