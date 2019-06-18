@@ -42,6 +42,7 @@ private:
 
   enum v4l2_memory memory_type;
   std::string data_type;
+  PixelFormat pix_fmt;
   int width, height;
   int loop_num;
   std::vector<MediaBuffer> buffer_vec;
@@ -50,7 +51,7 @@ private:
 
 V4L2CaptureStream::V4L2CaptureStream(const char *param)
     : V4L2Stream(param), memory_type(V4L2_MEMORY_MMAP), data_type(IMAGE_NV12),
-      width(0), height(0), loop_num(2), started(false) {
+      pix_fmt(PIX_FMT_NONE), width(0), height(0), loop_num(2), started(false) {
   if (device.empty())
     return;
   std::map<std::string, std::string> params;
@@ -164,6 +165,7 @@ int V4L2CaptureStream::Open() {
         DUMP_FOURCC(fmt.fmt.pix.pixelformat));
     return -1;
   }
+  pix_fmt = GetPixFmtByString(data_type_str);
   if (width != (int)fmt.fmt.pix.width || height != (int)fmt.fmt.pix.height) {
     LOG("%s change res from %dx%d to %dx%d\n", dev, width, height,
         fmt.fmt.pix.width, fmt.fmt.pix.height);
@@ -184,7 +186,6 @@ int V4L2CaptureStream::Open() {
   int w = UPALIGNTO16(width);
   int h = UPALIGNTO16(height);
   if (memory_type == V4L2_MEMORY_DMABUF) {
-    PixelFormat pix_fmt = GetPixFmtByString(data_type_str);
     int size =
         (pix_fmt != PIX_FMT_NONE) ? CalPixFmtSize(pix_fmt, w, h) : w * h * 4;
     for (size_t i = 0; i < req.count; i++) {
@@ -271,12 +272,11 @@ int V4L2CaptureStream::Close() {
   return V4L2Stream::Close();
 }
 
-class AutoQBUFMediaBuffer : public MediaBuffer {
+class V4L2AutoQBUF {
 public:
-  AutoQBUFMediaBuffer(MediaBuffer &mb, std::shared_ptr<V4L2Context> ctx,
-                      struct v4l2_buffer buf)
-      : MediaBuffer(mb), v4l2_ctx(ctx), v4l2_buf(buf) {}
-  ~AutoQBUFMediaBuffer() {
+  V4L2AutoQBUF(std::shared_ptr<V4L2Context> ctx, struct v4l2_buffer buf)
+      : v4l2_ctx(ctx), v4l2_buf(buf) {}
+  ~V4L2AutoQBUF() {
     if (v4l2_ctx->IoCtrl(VIDIOC_QBUF, &v4l2_buf) < 0)
       LOG("index=%d, ioctl(VIDIOC_QBUF): %m\n", v4l2_buf.index);
   }
@@ -284,6 +284,26 @@ public:
 private:
   std::shared_ptr<V4L2Context> v4l2_ctx;
   struct v4l2_buffer v4l2_buf;
+};
+
+class AutoQBUFMediaBuffer : public MediaBuffer {
+public:
+  AutoQBUFMediaBuffer(const MediaBuffer &mb, std::shared_ptr<V4L2Context> ctx,
+                      struct v4l2_buffer buf)
+      : MediaBuffer(mb), auto_qbuf(ctx, buf) {}
+
+private:
+  V4L2AutoQBUF auto_qbuf;
+};
+
+class AutoQBUFImageBuffer : public ImageBuffer {
+public:
+  AutoQBUFImageBuffer(const MediaBuffer &mb, const ImageInfo &info,
+                      std::shared_ptr<V4L2Context> ctx, struct v4l2_buffer buf)
+      : ImageBuffer(mb, info), auto_qbuf(ctx, buf) {}
+
+private:
+  V4L2AutoQBUF auto_qbuf;
 };
 
 std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
@@ -301,7 +321,13 @@ std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
   }
   struct timeval buf_ts = buf.timestamp;
   MediaBuffer &mb = buffer_vec[buf.index];
-  auto ret_buf = std::make_shared<AutoQBUFMediaBuffer>(mb, v4l2_ctx, buf);
+  std::shared_ptr<MediaBuffer> ret_buf;
+  if (pix_fmt != PIX_FMT_NONE) {
+    ImageInfo info{pix_fmt, width, height, width, height};
+    ret_buf = std::make_shared<AutoQBUFImageBuffer>(mb, info, v4l2_ctx, buf);
+  } else {
+    ret_buf = std::make_shared<AutoQBUFMediaBuffer>(mb, v4l2_ctx, buf);
+  }
   if (ret_buf) {
     assert(ret_buf->GetFD() == mb.GetFD());
     if (buf.memory == V4L2_MEMORY_DMABUF) {

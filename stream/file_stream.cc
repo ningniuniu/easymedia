@@ -39,7 +39,10 @@ namespace easymedia {
 class FileStream : public Stream {
 public:
   FileStream(const char *param);
-  virtual ~FileStream() { if (file) FileStream::Close(); }
+  virtual ~FileStream() {
+    if (file)
+      FileStream::Close();
+  }
   virtual size_t Read(void *ptr, size_t size, size_t nmemb) final {
     if (!Readable())
       return -1;
