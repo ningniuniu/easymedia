@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_STREAM_H_
-#define RKMEDIA_STREAM_H_
+#ifndef EASYMEDIA_STREAM_H_
+#define EASYMEDIA_STREAM_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -56,6 +56,9 @@ DECLARE_REFLECTOR(Stream)
   DEFINE_MEDIA_NEW_PRODUCT_DO(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT, Open() < 0)
 
 class MediaBuffer;
+#ifdef IN_EASYMEDIA_STREAM_CC
+static int local_close(void *stream);
+#endif
 // interface
 class _API Stream {
 public:
@@ -69,8 +72,6 @@ public:
   // whence: SEEK_SET, SEEK_CUR, SEEK_END
   virtual int Seek(int64_t offset, int whence) = 0;
   virtual long Tell() = 0;
-  virtual int Open() = 0;
-  virtual int Close() = 0;
 
   virtual bool Readable() { return readable; }
   virtual bool Writeable() { return writeable; }
@@ -91,6 +92,12 @@ public:
   // read data as image by ImageInfo
   bool ReadImage(void *ptr, const ImageInfo &info);
 
+protected:
+  virtual int Open() = 0;
+  virtual int Close() = 0;
+
+  friend int local_close(void *stream);
+
 private:
   bool readable;
   bool writeable;
@@ -101,4 +108,4 @@ private:
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_STREAM_H_
+#endif // #ifndef EASYMEDIA_STREAM_H_

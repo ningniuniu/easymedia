@@ -69,7 +69,10 @@ AlsaCaptureStream::AlsaCaptureStream(const char *param)
     LOG("missing some necessary param\n");
 }
 
-AlsaCaptureStream::~AlsaCaptureStream() { assert(!alsa_handle); }
+AlsaCaptureStream::~AlsaCaptureStream() {
+  if (alsa_handle)
+    AlsaCaptureStream::Close();
+}
 
 size_t AlsaCaptureStream::Read(void *ptr, size_t size, size_t nmemb) {
   size_t buffer_len = size * nmemb;

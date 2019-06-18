@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_OGG_UTILS_H_
-#define RKMEDIA_OGG_UTILS_H_
+#ifndef EASYMEDIA_OGG_UTILS_H_
+#define EASYMEDIA_OGG_UTILS_H_
 
 extern "C" {
 #include <ogg/ogg.h>
@@ -40,4 +40,4 @@ int ogg_packet_free(ogg_packet *p);
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_OGG_UTILS_H_
+#endif // #ifndef EASYMEDIA_OGG_UTILS_H_

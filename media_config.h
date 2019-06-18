@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_MEDIA_CONFIG_H_
-#define RKMEDIA_MEDIA_CONFIG_H_
+#ifndef EASYMEDIA_MEDIA_CONFIG_H_
+#define EASYMEDIA_MEDIA_CONFIG_H_
 
 #include "image.h"
 #include "sound.h"
@@ -80,4 +80,4 @@ _API std::string to_param_string(const MediaConfig &mc,
                                  const std::string &out_type);
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_MEDIA_CONFIG_H_
+#endif // #ifndef EASYMEDIA_MEDIA_CONFIG_H_

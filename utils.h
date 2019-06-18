@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_UTILS_H_
-#define RKMEDIA_UTILS_H_
+#ifndef EASYMEDIA_UTILS_H_
+#define EASYMEDIA_UTILS_H_
 
 #define _UNUSED __attribute__((unused))
 #define UNUSED(x) (void)x
@@ -160,4 +160,4 @@ public:
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_UTILS_H_
+#endif // #ifndef EASYMEDIA_UTILS_H_

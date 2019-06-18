@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_V4L2_STREAM_H_
-#define RKMEDIA_V4L2_STREAM_H_
+#ifndef EASYMEDIA_V4L2_STREAM_H_
+#define EASYMEDIA_V4L2_STREAM_H_
 
 #include "stream.h"
 
@@ -52,7 +52,7 @@ private:
 class V4L2Stream : public Stream {
 public:
   V4L2Stream(const char *param);
-  virtual ~V4L2Stream() = default;
+  virtual ~V4L2Stream() { V4L2Stream::Close(); }
   virtual size_t Read(void *ptr _UNUSED, size_t size _UNUSED,
                       size_t nmemb _UNUSED) final {
     return 0;
@@ -65,8 +65,6 @@ public:
                        size_t nmemb _UNUSED) final {
     return 0;
   }
-  virtual int Open() override;
-  virtual int Close() override;
   virtual int IoCtrl(unsigned long int request, ...) override;
 
 #define v4l2_open vio.open_f
@@ -78,6 +76,9 @@ public:
 #define v4l2_munmap vio.munmap_f
 
 protected:
+  virtual int Open() override;
+  virtual int Close() override;
+
   bool use_libv4l2;
   v4l2_io vio;
   std::string device;
@@ -90,4 +91,4 @@ protected:
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_V4L2_STREAM_H_
+#endif // #ifndef EASYMEDIA_V4L2_STREAM_H_

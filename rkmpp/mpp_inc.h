@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_MPP_INC_H_
-#define RKMEDIA_MPP_INC_H_
+#ifndef EASYMEDIA_MPP_INC_H_
+#define EASYMEDIA_MPP_INC_H_
 
 #include "buffer.h"
 #include "image.h"
@@ -54,4 +54,4 @@ MPP_RET init_mpp_buffer_with_content(MppBuffer &buffer,
                                      std::shared_ptr<MediaBuffer> &mb);
 } // namespace easymedia
 
-#endif // RKMEDIA_MPP_INC_H_
+#endif // EASYMEDIA_MPP_INC_H_

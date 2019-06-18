@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_ENCODER_H_
-#define RKMEDIA_ENCODER_H_
+#ifndef EASYMEDIA_ENCODER_H_
+#define EASYMEDIA_ENCODER_H_
 
 #include <stdint.h>
 
@@ -116,4 +116,4 @@ public:
 
 #endif
 
-#endif // RKMEDIA_ENCODER_H_
+#endif // EASYMEDIA_ENCODER_H_

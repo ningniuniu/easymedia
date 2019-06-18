@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_MPP_ENCODER_H
-#define RKMEDIA_MPP_ENCODER_H
+#ifndef EASYMEDIA_MPP_ENCODER_H
+#define EASYMEDIA_MPP_ENCODER_H
 
 #include "encoder.h"
 #include "mpp_inc.h"
@@ -70,4 +70,4 @@ private:
 
 } // namespace easymedia
 
-#endif // MPP_H264_ENCODER_H
+#endif // EASYMEDIA_MPP_ENCODER_H

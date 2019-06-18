@@ -19,6 +19,7 @@
  *
  */
 
+#define IN_EASYMEDIA_STREAM_CC
 #include "stream.h"
 
 #include <assert.h>
@@ -49,7 +50,7 @@ static long local_tell(void *stream) {
   return s->Tell();
 }
 
-static int local_close(void *stream) {
+int local_close(void *stream) {
   Stream *s = static_cast<Stream *>(stream);
   return s->Close();
 }

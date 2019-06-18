@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_DECODER_H_
-#define RKMEDIA_DECODER_H_
+#ifndef EASYMEDIA_DECODER_H_
+#define EASYMEDIA_DECODER_H_
 
 #include "codec.h"
 #include "media_reflector.h"
@@ -66,4 +66,4 @@ public:
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_DECODER_H_
+#endif // #ifndef EASYMEDIA_DECODER_H_

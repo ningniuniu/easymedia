@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_H264_SERVER_MEDIA_SUBSESSION_HH_
-#define RKMEDIA_H264_SERVER_MEDIA_SUBSESSION_HH_
+#ifndef EASYMEDIA_H264_SERVER_MEDIA_SUBSESSION_HH_
+#define EASYMEDIA_H264_SERVER_MEDIA_SUBSESSION_HH_
 
 #include <list>
 #include <mutex>
@@ -75,4 +75,4 @@ private:
 };
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_H264_SERVER_MEDIA_SUBSESSION_HH_
+#endif // #ifndef EASYMEDIA_H264_SERVER_MEDIA_SUBSESSION_HH_

@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_LIVE555_MEDIA_INPUT_HH_
-#define RKMEDIA_LIVE555_MEDIA_INPUT_HH_
+#ifndef EASYMEDIA_LIVE555_MEDIA_INPUT_HH_
+#define EASYMEDIA_LIVE555_MEDIA_INPUT_HH_
 
 #include <list>
 #include <memory>
@@ -94,4 +94,4 @@ inline void setVideoRTPSinkBufferSize() {
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_LIVE555_MEDIA_INPUT_HH_
+#endif // #ifndef EASYMEDIA_LIVE555_MEDIA_INPUT_HH_

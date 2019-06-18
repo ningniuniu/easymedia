@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_V4L2_UTILS_H_
-#define RKMEDIA_V4L2_UTILS_H_
+#ifndef EASYMEDIA_V4L2_UTILS_H_
+#define EASYMEDIA_V4L2_UTILS_H_
 
 #include <linux/videodev2.h>
 #include <stdarg.h>
@@ -52,4 +52,4 @@ int V4L2IoCtl(v4l2_io *vio, int fd, unsigned long int request, void *arg);
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_V4L2_UTILS_H_
+#endif // #ifndef EASYMEDIA_V4L2_UTILS_H_

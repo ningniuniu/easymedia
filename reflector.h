@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_REFLECTOR_H_
-#define RKMEDIA_REFLECTOR_H_
+#ifndef EASYMEDIA_REFLECTOR_H_
+#define EASYMEDIA_REFLECTOR_H_
 
 #include <map>
 #include <memory>
@@ -210,4 +210,4 @@ private:                                                                       \
   FACTORY_REGISTER(REAL_PRODUCT##Factory, PRODUCT##Reflector,                  \
                    FINAL_EXPOSE_PRODUCT)
 
-#endif // RKMEDIA_REFLECTOR_H_
+#endif // EASYMEDIA_REFLECTOR_H_

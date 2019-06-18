@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_FLOW_H_
-#define RKMEDIA_FLOW_H_
+#ifndef EASYMEDIA_FLOW_H_
+#define EASYMEDIA_FLOW_H_
 
 #include "lock.h"
 #include "reflector.h"
@@ -181,4 +181,4 @@ private:
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_FLOW_H_
+#endif // #ifndef EASYMEDIA_FLOW_H_

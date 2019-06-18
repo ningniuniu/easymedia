@@ -174,10 +174,7 @@ int main(int argc, char **argv) {
       write(output_file_fd, buffer->GetPtr(), buffer->GetValidSize());
   }
 
-  if (out_stream) {
-    out_stream->Close();
-    out_stream.reset();
-  }
+  out_stream.reset();
   if (output_file_fd >= 0)
     close(output_file_fd);
 

@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_MUXER_H_
-#define RKMEDIA_MUXER_H_
+#ifndef EASYMEDIA_MUXER_H_
+#define EASYMEDIA_MUXER_H_
 
 #include "media_config.h"
 #include "media_reflector.h"
@@ -75,4 +75,4 @@ protected:
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_MUXER_H_
+#endif // #ifndef EASYMEDIA_MUXER_H_

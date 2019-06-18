@@ -281,15 +281,8 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (in_stream) {
-    in_stream->Close();
-    in_stream.reset();
-  }
-
-  if (out_stream) {
-    out_stream->Close();
-    out_stream.reset();
-  }
+  in_stream.reset();
+  out_stream.reset();
 
   return 0;
 }

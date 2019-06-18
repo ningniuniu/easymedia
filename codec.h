@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef RKMEDIA_CODEC_H_
-#define RKMEDIA_CODEC_H_
+#ifndef EASYMEDIA_CODEC_H_
+#define EASYMEDIA_CODEC_H_
 
 #include <string.h>
 
@@ -75,4 +75,4 @@ split_h264_separate(const uint8_t *buffer, size_t length, int64_t timestamp);
 
 } // namespace easymedia
 
-#endif // #ifndef RKMEDIA_CODEC_H_
+#endif // #ifndef EASYMEDIA_CODEC_H_
