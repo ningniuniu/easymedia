@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Hertz Wang 1989wanghang@163.com
+ * Copyright (C) 2019 Hertz Wang 1989wanghang@163.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,17 +19,17 @@
  *
  */
 
-#include "muxer.h"
+#ifndef EASYMEDIA_RGA_H_
+#define EASYMEDIA_RGA_H_
 
+#include "image.h"
 namespace easymedia {
 
-DEFINE_REFLECTOR(Muxer)
-
-// request should equal muxer_name
-DEFINE_FACTORY_COMMON_PARSE(Muxer)
-
-Muxer::Muxer(const char *param _UNUSED) {}
-
-DEFINE_PART_FINAL_EXPOSE_PRODUCT(Muxer, Muxer)
+class ImageBuffer;
+int rga_blit(std::shared_ptr<ImageBuffer> src, std::shared_ptr<ImageBuffer> dst,
+             ImageRect *src_rect = nullptr, ImageRect *dst_rect = nullptr,
+             int rotate = 0);
 
 } // namespace easymedia
+
+#endif // #ifndef EASYMEDIA_RGA_H_

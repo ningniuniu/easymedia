@@ -90,13 +90,17 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
   }
   const char *ccodec_name = codec_name.c_str();
   // check input/output type
-  std::string rule;
-  std::string value;
-  CHECK_EMPTY_SETERRNO(value, params, KEY_INPUTDATATYPE, EINVAL)
-  PARAM_STRING_APPEND(rule, KEY_INPUTDATATYPE, value);
-  CHECK_EMPTY_SETERRNO(value, params, KEY_OUTPUTDATATYPE, EINVAL)
-  PARAM_STRING_APPEND(rule, KEY_OUTPUTDATATYPE, value);
-  if (!easymedia::REFLECTOR(Encoder)::IsMatch(ccodec_name, rule.c_str())) {
+  std::string &&rule = gen_datatype_rule(params);
+  if (rule.empty()) {
+    errno = EINVAL;
+    return;
+  }
+  // std::string value;
+  // CHECK_EMPTY_SETERRNO(value, params, KEY_INPUTDATATYPE, EINVAL)
+  // PARAM_STRING_APPEND(rule, KEY_INPUTDATATYPE, value);
+  // CHECK_EMPTY_SETERRNO(value, params, KEY_OUTPUTDATATYPE, EINVAL)
+  // PARAM_STRING_APPEND(rule, KEY_OUTPUTDATATYPE, value);
+  if (!REFLECTOR(Encoder)::IsMatch(ccodec_name, rule.c_str())) {
     LOG("Unsupport for video encoder %s : [%s]\n", ccodec_name, rule.c_str());
     errno = EINVAL;
     return;
@@ -109,7 +113,7 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
   }
 
   std::string &codec_param = params[KEY_CODEC_PARAM];
-  auto encoder = easymedia::REFLECTOR(Encoder)::Create<easymedia::VideoEncoder>(
+  auto encoder = REFLECTOR(Encoder)::Create<VideoEncoder>(
       ccodec_name, codec_param.empty() ? nullptr : codec_param.c_str());
   if (!encoder) {
     LOG("Fail to create video encoder %s<%s>\n", ccodec_name,

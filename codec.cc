@@ -28,6 +28,10 @@
 
 namespace easymedia {
 
+Codec::Codec() : extra_data(nullptr), extra_data_size(0) {
+  memset(&config, 0, sizeof(config));
+}
+
 Codec::~Codec() {
   if (extra_data) {
     free(extra_data);

@@ -22,14 +22,8 @@
 #ifndef EASYMEDIA_CODEC_H_
 #define EASYMEDIA_CODEC_H_
 
-#include <string.h>
-
-#include <condition_variable>
 #include <list>
 #include <memory>
-#include <mutex>
-#include <string>
-#include <thread>
 
 #include "media_config.h"
 
@@ -38,9 +32,7 @@ namespace easymedia {
 class MediaBuffer;
 class Codec {
 public:
-  Codec() : extra_data(nullptr), extra_data_size(0) {
-    memset(&config, 0, sizeof(config));
-  }
+  Codec();
   virtual ~Codec() = 0;
   static const char *GetCodecName() { return nullptr; }
   MediaConfig &GetConfig() { return config; }
@@ -58,7 +50,7 @@ public:
                       std::shared_ptr<MediaBuffer> extra_output = nullptr) = 0;
 
   // some codec may output many buffers with one input.
-  // sync or async safe call, depends on codec.
+  // sync or async safe call, depends on specific codec.
   virtual int SendInput(std::shared_ptr<MediaBuffer> input) = 0;
   virtual std::shared_ptr<MediaBuffer> FetchOutput() = 0;
 

@@ -55,6 +55,11 @@ typedef struct {
                   // height, often set vir_height=(height+15)&(~15)
 } ImageInfo;
 
+typedef struct {
+  int x, y; // left, top
+  int w, h; // width, height
+} ImageRect;
+
 #ifdef __cplusplus
 }
 #endif
@@ -64,6 +69,9 @@ typedef struct {
 _API void GetPixFmtNumDen(const PixelFormat &fmt, int &num, int &den);
 _API int CalPixFmtSize(const PixelFormat &fmt, const int width,
                        const int height);
+_API inline int CalPixFmtSize(const ImageInfo &ii) {
+  return CalPixFmtSize(ii.pix_fmt, ii.vir_width, ii.vir_height);
+}
 _API PixelFormat GetPixFmtByString(const char *type);
 _API const char *PixFmtToString(PixelFormat fmt);
 
@@ -72,8 +80,8 @@ _API const char *PixFmtToString(PixelFormat fmt);
 
 namespace easymedia {
 bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
-                           ImageInfo &ii);
-_API std::string to_param_string(const ImageInfo &ii);
+                           ImageInfo &ii, bool input = true);
+_API std::string to_param_string(const ImageInfo &ii, bool input = true);
 } // namespace easymedia
 
 #endif // #ifndef EASYMEDIA_IMAGE_H_

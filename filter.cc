@@ -19,17 +19,15 @@
  *
  */
 
-#include "muxer.h"
+#include "filter.h"
 
 namespace easymedia {
 
-DEFINE_REFLECTOR(Muxer)
+DEFINE_REFLECTOR(Filter)
 
-// request should equal muxer_name
-DEFINE_FACTORY_COMMON_PARSE(Muxer)
+// request should equal filter_name
+DEFINE_FACTORY_COMMON_PARSE(Filter)
 
-Muxer::Muxer(const char *param _UNUSED) {}
-
-DEFINE_PART_FINAL_EXPOSE_PRODUCT(Muxer, Muxer)
+DEFINE_PART_FINAL_EXPOSE_PRODUCT(Filter, Filter)
 
 } // namespace easymedia

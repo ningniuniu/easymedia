@@ -9,8 +9,6 @@
 # vi: set noexpandtab syntax=cmake:
 
 set(EASY_MEDIA_FLOW_SOURCE_FILES flow/video_encoder_flow.cc
-    flow/file_flow.cc)
-# set(EASY_MEDIA_FLOW_LIBS )
+    flow/file_flow.cc flow/filter_flow.cc)
 
 set(EASY_MEDIA_SOURCE_FILES ${EASY_MEDIA_SOURCE_FILES} ${EASY_MEDIA_FLOW_SOURCE_FILES} PARENT_SCOPE)
-# set(EASY_MEDIA_DEPENDENT_LIBS ${EASY_MEDIA_DEPENDENT_LIBS} ${EASY_MEDIA_FLOW_LIBS} PARENT_SCOPE)

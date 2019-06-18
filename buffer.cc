@@ -389,12 +389,12 @@ std::shared_ptr<MediaBuffer> MediaBuffer::Clone(MediaBuffer &src,
   if (src.IsHwBuffer() && new_buffer->IsHwBuffer())
     LOG_TODO(); // TODO: fd -> fd by RGA
   memcpy(new_buffer->GetPtr(), src.GetPtr(), size);
+  new_buffer->SetValidSize(size);
   new_buffer->CopyAttribute(src);
   return new_buffer;
 }
 
 void MediaBuffer::CopyAttribute(MediaBuffer &src_attr) {
-  valid_size = src_attr.GetValidSize();
   type = src_attr.GetType();
   user_flag = src_attr.GetUserFlag();
   timestamp = src_attr.GetTimeStamp();
