@@ -110,4 +110,27 @@
 
 #define KEY_INPUT_CACHE_NUM "input_cache_num"
 
+// drm
+#define KEY_CONNECTOR_ID "connector_id"
+#define KEY_CRTC_ID "crtc_id"
+#define KEY_ENCODER_ID "encoder_id"
+#define KEY_PLANE_ID "plane_id"
+#define KEY_SKIP_PLANE_IDS "skip_plane_ids"
+#define KEY_PLANE_TYPE "plane_type"
+#define KEY_OVERLAY "Overlay"
+#define KEY_PRIMARY "Primary"
+#define KEY_CURSOR "Cursor"
+
+#define KEY_FB_ID "FB_ID"
+#define KEY_CRTC_X "CRTC_X"
+#define KEY_CRTC_Y "CRTC_Y"
+#define KEY_CRTC_W "CRTC_W"
+#define KEY_CRTC_H "CRTC_H"
+#define KEY_SRC_X "SRC_X"
+#define KEY_SRC_Y "SRC_Y"
+#define KEY_SRC_W "SRC_W"
+#define KEY_SRC_H "SRC_H"
+#define KEY_ZPOS "ZPOS"
+#define KEY_FEATURE "FEATURE"
+
 #endif // #ifndef EASYMEDIA_MEDIA_KEY_STRING_H_

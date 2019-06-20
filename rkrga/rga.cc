@@ -58,23 +58,15 @@ RockchipRga RgaFilter::gRkRga;
 
 RgaFilter::RgaFilter(const char *param) : rotate(0) {
   std::map<std::string, std::string> params;
-  if (!parse_media_param_map(param, params)) {
-    errno = EINVAL;
+  if (!parse_media_param_map(param, params))
     return;
-  }
-  const char *s = nullptr;
   const std::string &value = params[KEY_BUFFER_RECT];
-  if (value.empty() || !(s = strstr(value.c_str(), KEY_RIGHT_DIRECTION))) {
+  auto &&rects = ParseImageRect(value);
+  if (rects.empty()) {
     LOG("missing rects\n");
-    errno = EINVAL;
     return;
   }
-  for (int i = 0; i < 2; i++) {
-    if (!AttachBufferArgs(value.c_str())) {
-      vec_rect.clear();
-      break;
-    }
-  }
+  vec_rect = std::move(rects);
   const std::string &v = params[KEY_BUFFER_ROTATE];
   if (!v.empty())
     rotate = std::stoi(v);
@@ -83,13 +75,14 @@ RgaFilter::RgaFilter(const char *param) : rotate(0) {
 bool RgaFilter::AttachBufferArgs(const char *args) {
   if (!args)
     return !vec_rect.empty();
-  ImageRect rect;
-  int ret = sscanf(args, "(%d,%d,%d,%d)", &rect.x, &rect.y, &rect.w, &rect.h);
-  if (!ret) {
-    vec_rect.push_back(rect);
-    return true;
+  auto rects = ParseImageRect(args);
+  if (rects.empty()) {
+    LOG("incorrect rect string\n");
+    return false;
   }
-  return false;
+  vec_rect.reserve(vec_rect.size() + rects.size());
+  vec_rect.insert(vec_rect.end(), rects.begin(), rects.end());
+  return true;
 }
 
 int RgaFilter::Process(std::shared_ptr<MediaBuffer> input,
@@ -170,34 +163,33 @@ int rga_blit(std::shared_ptr<ImageBuffer> src, std::shared_ptr<ImageBuffer> dst,
   return ret;
 }
 
-class _PRIVATE_SUPPORT_FMTS {
+class _PRIVATE_SUPPORT_FMTS : public SupportMediaTypes {
 public:
   _PRIVATE_SUPPORT_FMTS() {
-    fmts.append(TYPENEAR(IMAGE_YUV420P));
-    fmts.append(TYPENEAR(IMAGE_NV12));
-    fmts.append(TYPENEAR(IMAGE_NV21));
-    fmts.append(TYPENEAR(IMAGE_YUV422P));
-    fmts.append(TYPENEAR(IMAGE_NV16));
-    fmts.append(TYPENEAR(IMAGE_NV61));
-    // fmts.append(TYPENEAR(IMAGE_YUYV422));
-    // fmts.append(TYPENEAR(IMAGE_UYVY422));
-    fmts.append(TYPENEAR(IMAGE_RGB565));
-    fmts.append(TYPENEAR(IMAGE_BGR565));
-    fmts.append(TYPENEAR(IMAGE_RGB888));
-    fmts.append(TYPENEAR(IMAGE_BGR888));
-    fmts.append(TYPENEAR(IMAGE_ARGB8888));
-    fmts.append(TYPENEAR(IMAGE_ABGR8888));
+    types.append(TYPENEAR(IMAGE_YUV420P));
+    types.append(TYPENEAR(IMAGE_NV12));
+    types.append(TYPENEAR(IMAGE_NV21));
+    types.append(TYPENEAR(IMAGE_YUV422P));
+    types.append(TYPENEAR(IMAGE_NV16));
+    types.append(TYPENEAR(IMAGE_NV61));
+    // types.append(TYPENEAR(IMAGE_YUYV422));
+    // types.append(TYPENEAR(IMAGE_UYVY422));
+    types.append(TYPENEAR(IMAGE_RGB565));
+    types.append(TYPENEAR(IMAGE_BGR565));
+    types.append(TYPENEAR(IMAGE_RGB888));
+    types.append(TYPENEAR(IMAGE_BGR888));
+    types.append(TYPENEAR(IMAGE_ARGB8888));
+    types.append(TYPENEAR(IMAGE_ABGR8888));
   }
-  std::string fmts;
 };
 static _PRIVATE_SUPPORT_FMTS priv_fmts;
 
 DEFINE_COMMON_FILTER_FACTORY(RgaFilter)
 const char *FACTORY(RgaFilter)::ExpectedInputDataType() {
-  return priv_fmts.fmts.c_str();
+  return priv_fmts.types.c_str();
 }
 const char *FACTORY(RgaFilter)::OutPutDataType() {
-  return priv_fmts.fmts.c_str();
+  return priv_fmts.types.c_str();
 }
 
 } // namespace easymedia

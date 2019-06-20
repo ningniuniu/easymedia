@@ -45,6 +45,7 @@ typedef struct {
 } v4l2_io;
 
 __u32 GetV4L2FmtByString(const char *type);
+const std::string &GetStringOfV4L2Fmts();
 __u32 GetV4L2Type(const char *v4l2type);
 
 bool SetV4L2IoFunction(v4l2_io *vio, bool use_libv4l2 = false);

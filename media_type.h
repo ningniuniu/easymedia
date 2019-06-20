@@ -45,6 +45,7 @@ enum class Type { None = -1, Audio = 0, Image, Video, Text };
 #define IMAGE_NV61 "image:nv61"
 #define IMAGE_YUYV422 "image:yuyv422"
 #define IMAGE_UYVY422 "image:uyvy422"
+#define IMAGE_RGB332 "image:rgb332"
 #define IMAGE_RGB565 "image:rgb565"
 #define IMAGE_BGR565 "image:bgr565"
 #define IMAGE_RGB888 "image:rgb888"
@@ -70,5 +71,11 @@ enum class Type { None = -1, Audio = 0, Image, Video, Text };
 #define STREAM_OGG "stream:ogg"
 
 #define STREAM_FILE "stream:file"
+
+#include <string>
+class SupportMediaTypes {
+public:
+  std::string types;
+};
 
 #endif // #ifndef EASYMEDIA_MEDIA_TYPE_H_

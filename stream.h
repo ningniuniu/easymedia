@@ -86,7 +86,8 @@ public:
   // No need size input. For some device, such as V4L2, always return specific
   // buffer
   virtual std::shared_ptr<MediaBuffer> Read() { return nullptr; }
-  // virtual bool Write(std::shared_ptr<MediaBuffer>);
+  virtual bool Write(std::shared_ptr<MediaBuffer>) { return false; }
+  // The IoCtrl must be called in the same thread of Read()/Write()
   virtual int IoCtrl(unsigned long int request _UNUSED, ...) { return -1; }
 
   // read data as image by ImageInfo

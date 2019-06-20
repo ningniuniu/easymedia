@@ -31,6 +31,9 @@ void GetPixFmtNumDen(const PixelFormat &fmt, int &num, int &den) {
   num = 0;
   den = 1;
   switch (fmt) {
+  case PIX_FMT_RGB332:
+    num = 1;
+    break;
   case PIX_FMT_YUV420P:
   case PIX_FMT_NV12:
   case PIX_FMT_NV21:
@@ -74,9 +77,10 @@ static const struct PixFmtStringEntry {
     {PIX_FMT_NV21, IMAGE_NV21},         {PIX_FMT_YUV422P, IMAGE_YUV422P},
     {PIX_FMT_NV16, IMAGE_NV16},         {PIX_FMT_NV61, IMAGE_NV61},
     {PIX_FMT_YUYV422, IMAGE_YUYV422},   {PIX_FMT_UYVY422, IMAGE_UYVY422},
-    {PIX_FMT_RGB565, IMAGE_RGB565},     {PIX_FMT_BGR565, IMAGE_BGR565},
-    {PIX_FMT_RGB888, IMAGE_RGB888},     {PIX_FMT_BGR888, IMAGE_BGR888},
-    {PIX_FMT_ARGB8888, IMAGE_ARGB8888}, {PIX_FMT_ABGR8888, IMAGE_ABGR8888},
+    {PIX_FMT_RGB332, IMAGE_RGB332},     {PIX_FMT_RGB565, IMAGE_RGB565},
+    {PIX_FMT_BGR565, IMAGE_BGR565},     {PIX_FMT_RGB888, IMAGE_RGB888},
+    {PIX_FMT_BGR888, IMAGE_BGR888},     {PIX_FMT_ARGB8888, IMAGE_ARGB8888},
+    {PIX_FMT_ABGR8888, IMAGE_ABGR8888},
 };
 
 PixelFormat GetPixFmtByString(const char *type) {
@@ -133,6 +137,25 @@ std::string to_param_string(const ImageInfo &info, bool input) {
   PARAM_STRING_APPEND_TO(s, KEY_BUFFER_VIR_WIDTH, info.vir_width);
   PARAM_STRING_APPEND_TO(s, KEY_BUFFER_VIR_HEIGHT, info.vir_height);
   return s;
+}
+
+std::vector<ImageRect> ParseImageRect(const std::string &str_rect) {
+  std::vector<ImageRect> ret;
+  const char *s = nullptr;
+  if (str_rect.empty() || !(s = strstr(str_rect.c_str(), KEY_RIGHT_DIRECTION)))
+    return std::move(ret);
+  const char *args[2] = {str_rect.c_str(), s + 2};
+  for (int i = 0; i < 2; i++) {
+    ImageRect rect;
+    int r =
+        sscanf(args[i], "(%d,%d,%d,%d)", &rect.x, &rect.y, &rect.w, &rect.h);
+    if (r) {
+      ret.clear();
+      return std::move(ret);
+    }
+    ret.push_back(std::move(rect));
+  }
+  return std::move(ret);
 }
 
 } // namespace easymedia
