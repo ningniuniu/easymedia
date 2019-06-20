@@ -61,6 +61,17 @@ __u32 GetV4L2FmtByString(const char *type) {
   return 0;
 }
 
+class _V4L2_SUPPORT_TYPES : public SupportMediaTypes {
+public:
+  _V4L2_SUPPORT_TYPES() {
+    for (size_t i = 0; i < ARRAY_ELEMS(v4l2_fmt_string_map) - 1; i++) {
+      types.append(v4l2_fmt_string_map[i].type_str);
+    }
+  }
+};
+static _V4L2_SUPPORT_TYPES priv_types;
+const std::string &GetStringOfV4L2Fmts() { return priv_types.types; }
+
 __u32 GetV4L2Type(const char *v4l2type) {
   if (!v4l2type)
     return 0;

@@ -351,23 +351,7 @@ const char *FACTORY(V4L2CaptureStream)::ExpectedInputDataType() {
 }
 
 const char *FACTORY(V4L2CaptureStream)::OutPutDataType() {
-  static std::string ot;
-  ot.append(TYPENEAR(IMAGE_YUV420P));
-  ot.append(TYPENEAR(IMAGE_NV12));
-  ot.append(TYPENEAR(IMAGE_NV21));
-  ot.append(TYPENEAR(IMAGE_YUV422P));
-  ot.append(TYPENEAR(IMAGE_NV16));
-  ot.append(TYPENEAR(IMAGE_NV61));
-  ot.append(TYPENEAR(IMAGE_YUYV422));
-  ot.append(TYPENEAR(IMAGE_UYVY422));
-  ot.append(TYPENEAR(IMAGE_RGB565));
-  ot.append(TYPENEAR(IMAGE_RGB888));
-  ot.append(TYPENEAR(IMAGE_BGR888));
-  ot.append(TYPENEAR(IMAGE_ARGB8888));
-  ot.append(TYPENEAR(IMAGE_ABGR8888));
-  ot.append(TYPENEAR(IMAGE_JPEG));
-  ot.append(TYPENEAR(VIDEO_H264));
-  return ot.c_str();
+  return GetStringOfV4L2Fmts().c_str();
 }
 
 } // namespace easymedia

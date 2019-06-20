@@ -39,6 +39,7 @@ MppFrameFormat ConvertToMppPixFmt(const PixelFormat &fmt) {
       [PIX_FMT_NV61] = MPP_FMT_YUV422SP_VU,
       [PIX_FMT_YUYV422] = MPP_FMT_YUV422_YUYV,
       [PIX_FMT_UYVY422] = MPP_FMT_YUV422_UYVY,
+      [PIX_FMT_RGB332] = (MppFrameFormat)-1,
       [PIX_FMT_RGB565] = MPP_FMT_RGB565,
       [PIX_FMT_BGR565] = MPP_FMT_BGR565,
       [PIX_FMT_RGB888] = MPP_FMT_RGB888,
@@ -85,24 +86,28 @@ PixelFormat ConvertToPixFmt(const MppFrameFormat &mfmt) {
   }
 }
 
-const char *MppAcceptImageFmts() {
-  static std::string ot;
-  ot.append(TYPENEAR(IMAGE_YUV420P));
-  ot.append(TYPENEAR(IMAGE_NV12));
-  ot.append(TYPENEAR(IMAGE_NV21));
-  ot.append(TYPENEAR(IMAGE_YUV422P));
-  ot.append(TYPENEAR(IMAGE_NV16));
-  ot.append(TYPENEAR(IMAGE_NV61));
-  ot.append(TYPENEAR(IMAGE_YUYV422));
-  ot.append(TYPENEAR(IMAGE_UYVY422));
-  ot.append(TYPENEAR(IMAGE_RGB565));
-  ot.append(TYPENEAR(IMAGE_BGR565));
-  ot.append(TYPENEAR(IMAGE_RGB888));
-  ot.append(TYPENEAR(IMAGE_BGR888));
-  ot.append(TYPENEAR(IMAGE_ARGB8888));
-  ot.append(TYPENEAR(IMAGE_ABGR8888));
-  return ot.c_str();
-}
+class _MPP_SUPPORT_TYPES : public SupportMediaTypes {
+public:
+  _MPP_SUPPORT_TYPES() {
+    types.append(TYPENEAR(IMAGE_YUV420P));
+    types.append(TYPENEAR(IMAGE_NV12));
+    types.append(TYPENEAR(IMAGE_NV21));
+    types.append(TYPENEAR(IMAGE_YUV422P));
+    types.append(TYPENEAR(IMAGE_NV16));
+    types.append(TYPENEAR(IMAGE_NV61));
+    types.append(TYPENEAR(IMAGE_YUYV422));
+    types.append(TYPENEAR(IMAGE_UYVY422));
+    types.append(TYPENEAR(IMAGE_RGB565));
+    types.append(TYPENEAR(IMAGE_BGR565));
+    types.append(TYPENEAR(IMAGE_RGB888));
+    types.append(TYPENEAR(IMAGE_BGR888));
+    types.append(TYPENEAR(IMAGE_ARGB8888));
+    types.append(TYPENEAR(IMAGE_ABGR8888));
+  }
+};
+static _MPP_SUPPORT_TYPES priv_types;
+
+const char *MppAcceptImageFmts() { return priv_types.types.c_str(); }
 
 namespace easymedia {
 

@@ -36,6 +36,7 @@ typedef enum {
   PIX_FMT_NV61,
   PIX_FMT_YUYV422,
   PIX_FMT_UYVY422,
+  PIX_FMT_RGB332,
   PIX_FMT_RGB565,
   PIX_FMT_BGR565,
   PIX_FMT_RGB888,
@@ -77,11 +78,15 @@ _API const char *PixFmtToString(PixelFormat fmt);
 
 #include <map>
 #include <string>
+#include <vector>
 
 namespace easymedia {
 bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
                            ImageInfo &ii, bool input = true);
 _API std::string to_param_string(const ImageInfo &ii, bool input = true);
+
+std::vector<ImageRect> ParseImageRect(const std::string &str_rect);
+
 } // namespace easymedia
 
 #endif // #ifndef EASYMEDIA_IMAGE_H_

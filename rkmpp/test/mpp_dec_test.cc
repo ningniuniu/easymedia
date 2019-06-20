@@ -35,7 +35,6 @@
 #include "buffer.h"
 #include "key_string.h"
 #include "media_config.h"
-#include "media_type.h"
 #include "utils.h"
 
 #include "decoder.h"
@@ -148,8 +147,8 @@ int main(int argc, char **argv) {
              "<height> -o output.img -t 0/1\n");
       printf("rkmpp_dec_test -d h264_frames_dir -f h264 -o output.nv12 -t "
              "0/1\n\n");
-      printf("On PC:\n\tffplay -f rawvideo -video_size <width>x<height> "
-             "-pixel_format "
+      printf("On PC:\n\t"
+             "ffplay -f rawvideo -video_size <width>x<height> -pixel_format "
              "nv12 -framerate 25 output.nv12\n\t(jpeg output may not nv12, "
              "depend its raw data format in input file)\n");
       exit(0);
