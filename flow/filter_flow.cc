@@ -171,8 +171,19 @@ bool do_filters(Flow *f, MediaBufferVector &input_vector) {
     last_filter = filter;
     if (flow->input_pix_fmt != PIX_FMT_NONE && in->GetType() == Type::Image) {
       auto in_img = std::static_pointer_cast<ImageBuffer>(in);
-      if (flow->input_pix_fmt != in_img->GetPixelFormat())
-        in_img->GetImageInfo().pix_fmt = flow->input_pix_fmt;
+      // hack for n4 cif
+      if (flow->input_pix_fmt != in_img->GetPixelFormat()) {
+        ImageInfo &info = in_img->GetImageInfo();
+        int flow_num = 0, flow_den = 0;
+        GetPixFmtNumDen(flow->input_pix_fmt, flow_num, flow_den);
+        int in_num = 0, in_den = 0;
+        GetPixFmtNumDen(info.pix_fmt, in_num, in_den);
+        int num = in_num * flow_den;
+        int den = in_den * flow_num;
+        info.width = info.width * num / den;
+        info.vir_width = info.vir_width * num / den;
+        info.pix_fmt = flow->input_pix_fmt;
+      }
     }
     if (flow->support_async) {
       int ret = filter->SendInput(in);

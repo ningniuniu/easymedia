@@ -214,7 +214,8 @@ int DRMOutPutStream::Open() {
   };
   for (auto &m : plane_prop_id_map) {
     uint64_t value = 0;
-    *m.second = get_plane_property_id(res, plane_id, m.first, &value);
+    *m.second =
+        get_property_id(res, DRM_MODE_OBJECT_PLANE, plane_id, m.first, &value);
     if (*m.second <= 0)
       return -1;
     if (!strcmp(m.first, KEY_ZPOS)) {
@@ -241,8 +242,8 @@ int DRMOutPutStream::Open() {
   }
 
   // no need it
-  dev->free_resources(res);
-  res = nullptr;
+  // dev->free_resources(res);
+  // res = nullptr;
   return 0;
 }
 
@@ -257,6 +258,8 @@ int DRMOutPutStream::IoCtrl(unsigned long int request, ...) {
   va_start(vl, request);
   void *arg = va_arg(vl, void *);
   va_end(vl);
+  if (!arg)
+    return -1;
   int ret = 0;
   switch (request) {
   case S_SOURCE_RECT: {
@@ -326,6 +329,33 @@ int DRMOutPutStream::IoCtrl(unsigned long int request, ...) {
   case G_PLANE_SUPPORT_SCALE: {
     *((int *)arg) = support_scale ? 1 : 0;
   } break;
+  case S_CRTC_PROPERTY:
+  case S_CONNECTOR_PROPERTY: {
+    uint32_t object_type = 0;
+    uint32_t object_id = 0;
+    switch (request) {
+    case S_CRTC_PROPERTY:
+      object_type = DRM_MODE_OBJECT_CRTC;
+      object_id = crtc_id;
+      break;
+    case S_CONNECTOR_PROPERTY:
+      object_type = DRM_MODE_OBJECT_CONNECTOR;
+      object_id = connector_id;
+      break;
+    }
+    DRMPropertyArg *prop_arg = (static_cast<DRMPropertyArg *>(arg));
+    assert(prop_arg->name);
+    // LOG("set propery[%s]=%d on object id[%d]\n", prop_arg->name,
+    //    (int)prop_arg->value, object_id);
+    ret = set_property(res, object_type, object_id, prop_arg->name,
+                       prop_arg->value);
+    if (ret < 0)
+      LOG("Fail to set propery[%s]=%d on object id[%d]\n", prop_arg->name,
+          (int)prop_arg->value, object_id);
+  } break;
+  default:
+    ret = -1;
+    break;
   }
   return ret;
 }

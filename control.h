@@ -22,7 +22,14 @@
 #ifndef EASYMEDIA_CONTROL_H_
 #define EASYMEDIA_CONTROL_H_
 
+#include <stdint.h>
+
 namespace easymedia {
+
+typedef struct {
+  const char *name;
+  uint64_t value;
+} DRMPropertyArg;
 
 enum {
   S_FIRST_CONTROL = 10000, // 10000 may be enough larger than other value of
@@ -35,6 +42,9 @@ enum {
   G_PLANE_IMAGE_INFO,
   // int
   G_PLANE_SUPPORT_SCALE,
+  // DRMPropertyArg
+  S_CRTC_PROPERTY,
+  S_CONNECTOR_PROPERTY,
 };
 
 } // namespace easymedia

@@ -19,6 +19,8 @@
  *
  */
 
+#include <stdarg.h>
+
 #include "flow.h"
 #include "stream.h"
 
@@ -31,6 +33,15 @@ public:
   OutPutStreamFlow(const char *param);
   virtual ~OutPutStreamFlow() { StopAllThread(); };
   static const char *GetFlowName() { return "output_stream"; }
+  virtual int Control(unsigned long int request, ...) final {
+    if (!out_stream)
+      return -1;
+    va_list vl;
+    va_start(vl, request);
+    void *arg = va_arg(vl, void *);
+    va_end(vl);
+    return out_stream->IoCtrl(request, arg);
+  }
 
 private:
   std::shared_ptr<Stream> out_stream;
