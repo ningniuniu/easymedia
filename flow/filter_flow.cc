@@ -34,7 +34,7 @@ static bool do_filters(Flow *f, MediaBufferVector &input_vector);
 class FilterFlow : public Flow {
 public:
   FilterFlow(const char *param);
-  virtual ~FilterFlow() = default;
+  virtual ~FilterFlow() { StopAllThread(); }
   static const char *GetFlowName() { return "filter"; }
 
 private:
@@ -42,14 +42,15 @@ private:
   bool support_async;
   Model thread_model;
   PixelFormat input_pix_fmt; // a hack for rga copy yuyv, by set fake rgb565
-  std::shared_ptr<MediaBuffer> out_buffer;
+  std::vector<std::shared_ptr<MediaBuffer>> out_buffers;
+  size_t out_index;
 
   friend bool do_filters(Flow *f, MediaBufferVector &input_vector);
 };
 
 FilterFlow::FilterFlow(const char *param)
     : support_async(true), thread_model(Model::NONE),
-      input_pix_fmt(PIX_FMT_NONE) {
+      input_pix_fmt(PIX_FMT_NONE), out_index(0) {
   std::list<std::string> separate_list;
   if (!parse_media_param_list(param, separate_list, ' ') ||
       separate_list.size() != 2) {
@@ -100,7 +101,7 @@ FilterFlow::FilterFlow(const char *param)
   for (auto &param_str : param_list) {
     auto filter =
         REFLECTOR(Filter)::Create<Filter>(filter_name, param_str.c_str());
-    if (!filter && !filter->AttachBufferArgs(nullptr)) {
+    if (!filter || !filter->AttachBufferArgs(nullptr)) {
       LOG("Fail to create filter %s<%s>\n", filter_name, param_str.c_str());
       errno = EINVAL;
       return;
@@ -129,27 +130,44 @@ FilterFlow::FilterFlow(const char *param)
       errno = EINVAL;
       return;
     }
-    size_t size = CalPixFmtSize(info);
-    auto &&mb = MediaBuffer::Alloc2(size, MediaBuffer::MemType::MEM_HARD_WARE);
-    out_buffer = std::make_shared<ImageBuffer>(mb, info);
-    if (!out_buffer || out_buffer->GetSize() < size) {
-      errno = ENOMEM;
-      return;
+    int out_cache_num = 2;
+    const std::string &str_ocn = params[KEY_OUTPUT_CACHE_NUM];
+    if (!str_ocn.empty()) {
+      out_cache_num = std::stoi(str_ocn);
+      if (out_cache_num <= 0)
+        out_cache_num = 2;
     }
-    out_buffer->SetValidSize(size);
+    for (int i = 0; i < out_cache_num; i++) {
+      size_t size = CalPixFmtSize(info);
+      auto &&mb =
+          MediaBuffer::Alloc2(size, MediaBuffer::MemType::MEM_HARD_WARE);
+      auto out_buffer = std::make_shared<ImageBuffer>(mb, info);
+      if (!out_buffer || out_buffer->GetSize() < size) {
+        errno = ENOMEM;
+        return;
+      }
+      out_buffer->SetValidSize(size);
+      out_buffers.push_back(out_buffer);
+    }
   }
   errno = 0;
 }
 
+// comparing timestamp as modification?
 bool do_filters(Flow *f, MediaBufferVector &input_vector) {
   FilterFlow *flow = static_cast<FilterFlow *>(f);
   int i = 0;
+  bool has_valid_input = false;
   std::shared_ptr<Filter> last_filter;
   assert(flow->filters.size() == input_vector.size());
   for (auto &filter : flow->filters) {
     auto &in = input_vector[i];
-    if (!in)
+    if (!in) {
+      i++;
       continue;
+    }
+    if (!has_valid_input)
+      has_valid_input = true;
     last_filter = filter;
     if (flow->input_pix_fmt != PIX_FMT_NONE && in->GetType() == Type::Image) {
       auto in_img = std::static_pointer_cast<ImageBuffer>(in);
@@ -161,13 +179,17 @@ bool do_filters(Flow *f, MediaBufferVector &input_vector) {
       if (ret == -EAGAIN)
         flow->SendInput(in, i);
     } else {
-      if (filter->Process(in, flow->out_buffer))
+      if (filter->Process(in, flow->out_buffers[flow->out_index]))
         return false;
     }
     i++;
   }
+  if (!has_valid_input)
+    return true;
   if (!flow->support_async) {
-    flow->SetOutput(flow->out_buffer, 0);
+    flow->SetOutput(flow->out_buffers[flow->out_index], 0);
+    if (++flow->out_index >= flow->out_buffers.size())
+      flow->out_index = 0;
   } else if (flow->thread_model == Model::SYNC) {
     do {
       auto out = last_filter->FetchOutput();
@@ -178,5 +200,11 @@ bool do_filters(Flow *f, MediaBufferVector &input_vector) {
   }
   return true;
 }
+
+DEFINE_FLOW_FACTORY(FilterFlow, Flow)
+// TODO!
+const char *FACTORY(FilterFlow)::ExpectedInputDataType() { return ""; }
+// TODO!
+const char *FACTORY(FilterFlow)::OutPutDataType() { return ""; }
 
 } // namespace easymedia

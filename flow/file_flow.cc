@@ -51,10 +51,6 @@ FileReadFlow::FileReadFlow(const char *param)
       loop_time(0), loop(false), read_thread(nullptr) {
   memset(&info, 0, sizeof(info));
   info.pix_fmt = PIX_FMT_NONE;
-  if (!SetAsSource()) {
-    errno = EINVAL;
-    return;
-  }
   std::map<std::string, std::string> params;
   if (!parse_media_param_map(param, params)) {
     errno = EINVAL;
@@ -91,14 +87,8 @@ FileReadFlow::FileReadFlow(const char *param)
   value = params[KEY_LOOP_TIME];
   if (!value.empty())
     loop_time = std::stoi(value);
-  SlotMap sm;
-  sm.input_slots.push_back(0);
-  sm.output_slots.push_back(0);
-  sm.process = void_transaction00;
-  sm.thread_model = Model::SYNC;
-  sm.mode_when_full = InputMode::DROPFRONT;
-  if (!InstallSlotMap(sm, path, 0)) {
-    LOG("Fail to InstallSlotMap, read %s\n", path.c_str());
+  if (!SetAsSource(std::vector<int>({0}), std::vector<int>({0}),
+                   void_transaction00, path)) {
     errno = EINVAL;
     return;
   }
