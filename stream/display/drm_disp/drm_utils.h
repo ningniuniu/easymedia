@@ -31,8 +31,13 @@
 
 namespace easymedia {
 
+#if 1
+// move to drm_control.h
+
+// "CSI-TX-PATH"
 enum csi_path_mode { VOP_PATH = 0, BYPASS_PATH };
 
+// "PDAF_TYPE"
 enum vop_pdaf_mode {
   VOP_HOLD_MODE = 0,
   VOP_NORMAL_MODE,
@@ -43,11 +48,13 @@ enum vop_pdaf_mode {
   VOP_ONEFRAME_NOSEND_MODE
 };
 
+// "WORK_MODE"
 enum vop_pdaf_type {
   VOP_PDAF_TYPE_DEFAULT = 0,
   VOP_PDAF_TYPE_HBLANK,
   VOP_PDAF_TYPE_VBLANK,
 };
+#endif
 
 // come from modetest.c
 struct crtc {
@@ -78,14 +85,6 @@ struct plane {
   drmModePlane *plane;
   drmModeObjectProperties *props;
   drmModePropertyRes **props_info;
-};
-
-struct property_arg {
-  uint32_t obj_id;
-  uint32_t obj_type;
-  char name[DRM_PROP_NAME_LEN + 1];
-  uint32_t prop_id;
-  uint64_t value;
 };
 
 struct drm_ids {
@@ -122,6 +121,7 @@ struct resources {
 
 void dump_suitable_ids(struct resources *res);
 
+int get_connector_index(struct resources *res, uint32_t id);
 drmModeConnector *get_connector_by_id(struct resources *res, uint32_t id);
 drmModeEncoder *get_encoder_by_id(struct resources *res, uint32_t id);
 int get_crtc_index(struct resources *res, uint32_t id);
@@ -157,9 +157,11 @@ int filter_modeinfo_by_fps(int fps, int &size, drmModeModeInfoPtr *modes);
 int filter_modeinfo_by_type(uint32_t type, int &size,
                             drmModeModeInfoPtr *modes);
 
-uint32_t get_plane_property_id(struct resources *res, uint32_t plane_id,
-                               const char *property_name,
-                               uint64_t *value = nullptr);
+uint32_t get_property_id(struct resources *res, uint32_t object_type,
+                         uint32_t obj_id, const char *property_name,
+                         uint64_t *value = nullptr);
+int set_property(struct resources *res, uint32_t object_type, uint32_t obj_id,
+                 const char *property_name, uint64_t value);
 
 uint32_t GetDRMFmtByString(const char *type);
 const std::string &GetStringOfDRMFmts();

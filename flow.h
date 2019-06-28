@@ -85,6 +85,9 @@ public:
   void SendInput(std::shared_ptr<MediaBuffer> &input, int in_slot_index);
   void SetDisable() { enable = false; }
 
+  // The Control must be called in the same thread to that create flow
+  virtual int Control(unsigned long int request _UNUSED, ...) { return -1; }
+
   // The global event hander is the same thread to the born thread of this
   // object.
   // void SetEventHandler(EventHandler *ev_handler);

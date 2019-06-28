@@ -121,36 +121,35 @@ void dump_suitable_ids(struct resources *res) {
   DUMP_SUITABLE_IDS(plane)
 }
 
-drmModeConnector *get_connector_by_id(struct resources *res, uint32_t id) {
-  drmModeConnector *connector;
-  int i;
-
-  for (i = 0; i < res->res->count_connectors; i++) {
-    connector = res->connectors[i].connector;
-    if (connector && connector->connector_id == id)
-      return connector;
+#define DefineGetObject(_res, type, Type)                                      \
+  int get_##type##_index(struct resources *res, uint32_t id) {                 \
+    if (!res->_res)                                                            \
+      return -1;                                                               \
+    drmMode##Type *type;                                                       \
+    for (int i = 0; i < (int)res->_res->count_##type##s; i++) {                \
+      type = res->type##s[i].type;                                             \
+      if (type && type->type##_id == id)                                       \
+        return i;                                                              \
+    }                                                                          \
+                                                                               \
+    return -1;                                                                 \
+  }                                                                            \
+                                                                               \
+  drmMode##Type *get_##type##_by_id(struct resources *res, uint32_t id) {      \
+    int idx = get_##type##_index(res, id);                                     \
+    if (idx < 0)                                                               \
+      return nullptr;                                                          \
+    return res->type##s[idx].type;                                             \
   }
 
-  return nullptr;
-}
+DefineGetObject(res, connector, Connector) DefineGetObject(res, crtc, Crtc)
+    DefineGetObject(plane_res, plane, Plane)
 
-int get_crtc_index(struct resources *res, uint32_t id) {
-  drmModeRes *dmr = res->res;
-  int i;
-
-  for (i = 0; i < dmr->count_crtcs; ++i) {
-    drmModeCrtc *crtc = res->crtcs[i].crtc;
-    if (crtc && crtc->crtc_id == id)
-      return i;
-  }
-
-  return -1;
-}
-
-/* Return the first possible and active CRTC if one exists, or the first
- * possible CRTC otherwise.
- */
-int get_crtc_index_by_connector(struct resources *res, drmModeConnector *conn) {
+    /* Return the first possible and active CRTC if one exists, or the first
+     * possible CRTC otherwise.
+     */
+    int get_crtc_index_by_connector(struct resources *res,
+                                    drmModeConnector *conn) {
   int crtc_idx = -1;
   uint32_t possible_crtcs = ~0;
   uint32_t active_crtcs = 0;
@@ -177,13 +176,6 @@ int get_crtc_index_by_connector(struct resources *res, drmModeConnector *conn) {
   return crtc_idx - 1;
 }
 
-drmModeCrtc *get_crtc_by_id(struct resources *res, uint32_t id) {
-  int idx = get_crtc_index(res, id);
-  if (idx < 0)
-    return nullptr;
-  return res->crtcs[idx].crtc;
-}
-
 drmModeEncoder *get_encoder_by_id(struct resources *res, uint32_t id) {
   drmModeRes *dmr = res->res;
   drmModeEncoder *encoder;
@@ -196,22 +188,6 @@ drmModeEncoder *get_encoder_by_id(struct resources *res, uint32_t id) {
   }
 
   return nullptr;
-}
-
-int get_plane_index(struct resources *res, uint32_t id) {
-  if (!res->plane_res)
-    return -1;
-  for (uint32_t i = 0; i < res->plane_res->count_planes; i++) {
-    drmModePlanePtr ovr = res->planes[i].plane;
-    if (ovr && ovr->plane_id == id)
-      return i;
-  }
-  return -1;
-}
-
-drmModePlane *get_plane_by_id(struct resources *res, uint32_t id) {
-  int idx = get_plane_index(res, id);
-  return idx >= 0 ? res->planes[idx].plane : nullptr;
 }
 
 const struct PlayTypeMap {
@@ -774,26 +750,55 @@ bool reserve_ids_by_plane(struct resources *res, uint32_t plane_id) {
   return filter_ids_up_plane_ids(res);
 }
 
-uint32_t get_plane_property_id(struct resources *res, uint32_t plane_id,
-                               const char *property_name, uint64_t *value) {
-  int index = get_plane_index(res, plane_id);
-  if (index < 0)
-    return -1;
-  struct plane *plane = &res->planes[index];
-  if (!plane->plane)
-    return -1;
+uint32_t get_property_id(struct resources *res, uint32_t object_type,
+                         uint32_t obj_id, const char *property_name,
+                         uint64_t *value) {
+#define GetPropsInfo(type)                                                     \
+  index = get_##type##_index(res, obj_id);                                     \
+  if (index < 0)                                                               \
+    return 0;                                                                  \
+  props = res->type##s[index].props;                                           \
+  props_info = res->type##s[index].props_info;
+
   assert(property_name);
-  for (uint32_t i = 0; i < plane->props->count_props; i++) {
-    drmModePropertyRes *prop = plane->props_info[i];
+  drmModeObjectProperties *props = nullptr;
+  drmModePropertyRes **props_info = nullptr;
+  int index;
+  switch (object_type) {
+  case DRM_MODE_OBJECT_CRTC:
+    GetPropsInfo(crtc) break;
+  case DRM_MODE_OBJECT_CONNECTOR:
+    GetPropsInfo(connector) break;
+  case DRM_MODE_OBJECT_PLANE:
+    GetPropsInfo(plane) break;
+  default:
+    return 0;
+  }
+
+  for (uint32_t i = 0; i < props->count_props; i++) {
+    drmModePropertyRes *prop = props_info[i];
     if (!prop)
       continue;
     if (!strcasecmp(prop->name, property_name)) {
       if (value)
-        *value = plane->props->prop_values[i];
+        *value = props->prop_values[i];
       return prop->prop_id;
     }
   }
-  return -1;
+  return 0;
+}
+
+int set_property(struct resources *res, uint32_t object_type, uint32_t obj_id,
+                 const char *property_name, uint64_t value) {
+  uint64_t old_value = 0;
+  uint32_t prop_id =
+      get_property_id(res, object_type, obj_id, property_name, &old_value);
+  if (prop_id <= 0)
+    return -1;
+  if (old_value == value)
+    return 0;
+  return drmModeObjectSetProperty(res->drm_fd, obj_id, object_type, prop_id,
+                                  value);
 }
 
 #if 0
