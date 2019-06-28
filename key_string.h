@@ -109,6 +109,7 @@
 #define KEY_DROPCURRENT "dropcurrent"
 
 #define KEY_INPUT_CACHE_NUM "input_cache_num"
+#define KEY_OUTPUT_CACHE_NUM "output_cache_num"
 
 // drm
 #define KEY_CONNECTOR_ID "connector_id"

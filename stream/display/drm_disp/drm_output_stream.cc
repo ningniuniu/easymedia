@@ -228,6 +228,18 @@ int DRMOutPutStream::Open() {
     DRM_ATOMIC_ADD_PROP_EXTRA(
         -1, DRM_ATOMIC_ADD_PROP(plane_id, plane_prop_ids.zpos, zindex);)
   }
+  ImageRect ir = {0, 0, img_info.vir_width, img_info.vir_height};
+  ret = IoCtrl(S_SOURCE_RECT, &ir);
+  if (ret) {
+    LOG("Fail to set display source rect\n");
+    return -1;
+  }
+  ret = IoCtrl(S_DESTINATION_RECT, &ir);
+  if (ret) {
+    LOG("Fail to set display destination rect\n");
+    return -1;
+  }
+
   // no need it
   dev->free_resources(res);
   res = nullptr;

@@ -61,7 +61,7 @@ RgaFilter::RgaFilter(const char *param) : rotate(0) {
   if (!parse_media_param_map(param, params))
     return;
   const std::string &value = params[KEY_BUFFER_RECT];
-  auto &&rects = ParseImageRect(value);
+  auto &&rects = StringToTwoImageRect(value);
   if (rects.empty()) {
     LOG("missing rects\n");
     return;
@@ -75,7 +75,7 @@ RgaFilter::RgaFilter(const char *param) : rotate(0) {
 bool RgaFilter::AttachBufferArgs(const char *args) {
   if (!args)
     return !vec_rect.empty();
-  auto rects = ParseImageRect(args);
+  auto rects = StringToTwoImageRect(args);
   if (rects.empty()) {
     LOG("incorrect rect string\n");
     return false;

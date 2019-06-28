@@ -55,8 +55,8 @@ extern FunctionProcess void_transaction00;
 class SlotMap {
 public:
   SlotMap()
-      : process(nullptr), thread_model(Model::NONE),
-        mode_when_full(InputMode::NONE), interval(16.66f) {}
+      : process(nullptr), thread_model(Model::SYNC),
+        mode_when_full(InputMode::DROPFRONT), interval(16.66f) {}
   std::vector<int> input_slots;
   std::vector<int> output_slots;
   FunctionProcess process;
@@ -75,13 +75,6 @@ public:
   Flow();
   virtual ~Flow();
   static const char *GetFlowName() { return nullptr; }
-  // source flow
-  bool SetAsSource() {
-    source_start_cond_mtx = std::make_shared<ConditionLockMutex>();
-    return !!source_start_cond_mtx;
-  }
-  bool InstallSlotMap(SlotMap &map, const std::string &mark,
-                      int exp_process_time);
 
   // TODO: Right now out_slot_index and in_slot_index is decided by exact
   //       subclass, automatically get these value or ignore them in future.
@@ -168,9 +161,16 @@ protected:
   std::shared_ptr<ConditionLockMutex> source_start_cond_mtx;
   int down_flow_num;
 
+  // source flow
+  bool SetAsSource(const std::vector<int> &input_slots,
+                   const std::vector<int> &output_slots, FunctionProcess f,
+                   const std::string &mark);
+  bool InstallSlotMap(SlotMap &map, const std::string &mark,
+                      int exp_process_time);
   // As sub threads may call the variable of child class,
   // we should define this for child class when it deconstruct.
   void StopAllThread();
+  bool IsEnable() { return enable; }
 
 private:
   volatile bool enable;

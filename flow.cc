@@ -134,6 +134,7 @@ bool FlowCoroutine::Start() {
     LOG("invalid model %d\n", model);
     return false;
   }
+  in_vector.resize(in_slots.size());
   if (need_thread) {
     th = new std::thread(func, this);
     if (!th) {
@@ -141,7 +142,6 @@ bool FlowCoroutine::Start() {
       return false;
     }
   }
-  in_vector.resize(in_slots.size());
   return true;
 }
 
@@ -376,10 +376,33 @@ void Flow::Input::Init(Flow *f, Model m, int mcn, InputMode im,
   }
 }
 
+bool Flow::SetAsSource(const std::vector<int> &input_slots,
+                       const std::vector<int> &output_slots, FunctionProcess f,
+                       const std::string &mark) {
+  source_start_cond_mtx = std::make_shared<ConditionLockMutex>();
+  if (!source_start_cond_mtx)
+    return false;
+  SlotMap sm;
+  sm.input_slots = input_slots;
+  sm.output_slots = output_slots;
+  sm.process = f;
+  sm.thread_model = Model::SYNC;
+  sm.mode_when_full = InputMode::DROPFRONT;
+  if (!InstallSlotMap(sm, mark, 0)) {
+    LOG("Fail to InstallSlotMap, read %s\n", mark.c_str());
+    return false;
+  }
+  return true;
+}
+
 bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
                           int exp_process_time) {
   // parameters validity check
   auto &in_slots = map.input_slots;
+  if (in_slots.size() > 1 && map.thread_model == Model::SYNC) {
+    LOG("More than 1 input to flow, can not set sync input\n");
+    return false;
+  }
   if (!check_slots(in_slots, "input"))
     return false;
   bool ret = true;
@@ -416,18 +439,21 @@ bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
   }
   c->Bind(in_slots, out_slots);
   coroutines.push_back(c);
-  int max_idx = in_slots[in_slots.size() - 1];
-  if ((int)v_input.size() <= max_idx)
-    v_input.resize(max_idx + 1);
-  for (size_t i = 0; i < in_slots.size(); i++) {
-    v_input[in_slots[i]].Init(
-        this, map.thread_model,
-        (map.thread_model == Model::ASYNCCOMMON) ? map.input_maxcachenum[i] : 0,
-        map.mode_when_full, c);
-    input_slot_num++;
+  if (!in_slots.empty()) {
+    int max_idx = in_slots[in_slots.size() - 1];
+    if ((int)v_input.size() <= max_idx)
+      v_input.resize(max_idx + 1);
+    for (size_t i = 0; i < in_slots.size(); i++) {
+      v_input[in_slots[i]].Init(this, map.thread_model,
+                                (map.thread_model == Model::ASYNCCOMMON)
+                                    ? map.input_maxcachenum[i]
+                                    : 0,
+                                map.mode_when_full, c);
+      input_slot_num++;
+    }
   }
   if (!out_slots.empty()) {
-    max_idx = out_slots[out_slots.size() - 1];
+    int max_idx = out_slots[out_slots.size() - 1];
     if ((int)downflowmap.size() <= max_idx)
       downflowmap.resize(max_idx + 1);
     for (int i : out_slots) {

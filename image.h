@@ -85,7 +85,8 @@ bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
                            ImageInfo &ii, bool input = true);
 _API std::string to_param_string(const ImageInfo &ii, bool input = true);
 
-std::vector<ImageRect> ParseImageRect(const std::string &str_rect);
+_API std::string TwoImageRectToString(const std::vector<ImageRect> &src_dst);
+std::vector<ImageRect> StringToTwoImageRect(const std::string &str_rect);
 
 } // namespace easymedia
 

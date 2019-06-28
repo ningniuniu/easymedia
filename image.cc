@@ -21,6 +21,7 @@
 
 #include "image.h"
 
+#include <assert.h>
 #include <string.h>
 
 #include "key_string.h"
@@ -139,22 +140,36 @@ std::string to_param_string(const ImageInfo &info, bool input) {
   return s;
 }
 
-std::vector<ImageRect> ParseImageRect(const std::string &str_rect) {
+std::string TwoImageRectToString(const std::vector<ImageRect> &src_dst) {
+  char r[64];
+  assert(src_dst[0].x < 10000 && src_dst[0].y < 10000);
+  assert(src_dst[0].w < 10000 && src_dst[0].h < 10000);
+  assert(src_dst[1].x < 10000 && src_dst[1].y < 10000);
+  assert(src_dst[1].w < 10000 && src_dst[1].h < 10000);
+  snprintf(r, sizeof(r), "(%d,%d,%d,%d)%s(%d,%d,%d,%d)", src_dst[0].x,
+           src_dst[0].y, src_dst[0].w, src_dst[0].h, KEY_RIGHT_DIRECTION,
+           src_dst[1].x, src_dst[1].y, src_dst[1].w, src_dst[1].h);
+  return r;
+}
+
+std::vector<ImageRect> StringToTwoImageRect(const std::string &str_rect) {
   std::vector<ImageRect> ret;
   const char *s = nullptr;
   if (str_rect.empty() || !(s = strstr(str_rect.c_str(), KEY_RIGHT_DIRECTION)))
     return std::move(ret);
-  const char *args[2] = {str_rect.c_str(), s + 2};
+  const char *args[2] = {str_rect.c_str(), s + sizeof(KEY_RIGHT_DIRECTION) - 1};
   for (int i = 0; i < 2; i++) {
-    ImageRect rect;
+    ImageRect rect = {0, 0, 0, 0};
     int r =
         sscanf(args[i], "(%d,%d,%d,%d)", &rect.x, &rect.y, &rect.w, &rect.h);
-    if (r) {
+    if (r != 4) {
+      LOG("Fail to sscanf(ret=%d) : %m\n", r);
       ret.clear();
       return std::move(ret);
     }
     ret.push_back(std::move(rect));
   }
+
   return std::move(ret);
 }
 

@@ -26,7 +26,7 @@
 namespace easymedia {
 
 DRMStream::DRMStream(const char *param, bool as)
-    : accept_scale(as), fps(-1), connector_id(0), crtc_id(0), encoder_id(0),
+    : accept_scale(as), fps(0), connector_id(0), crtc_id(0), encoder_id(0),
       plane_id(0), active(false), drm_fmt(0), find_strict_match_wh(false),
       fd(-1), res(nullptr) {
   memset(&img_info, 0, sizeof(img_info));
