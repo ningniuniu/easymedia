@@ -9,17 +9,18 @@
 # vi: set noexpandtab syntax=cmake:
 
 option(RKRGA "compile: rkrga wrapper" OFF)
-if (RKRGA)
+if(RKRGA)
 
-set(EASY_MEDIA_RKRGA_SOURCE_FILES rkrga/rga.cc)
-set(EASY_MEDIA_SOURCE_FILES ${EASY_MEDIA_SOURCE_FILES}
-							${EASY_MEDIA_RKRGA_SOURCE_FILES}
-							PARENT_SCOPE)
-set(EASY_MEDIA_DEPENDENT_LIBS ${EASY_MEDIA_DEPENDENT_LIBS} rga PARENT_SCOPE)
+  set(EASY_MEDIA_RKRGA_SOURCE_FILES rkrga/rga.cc)
+  set(EASY_MEDIA_SOURCE_FILES ${EASY_MEDIA_SOURCE_FILES}
+                              ${EASY_MEDIA_RKRGA_SOURCE_FILES} PARENT_SCOPE)
+  set(EASY_MEDIA_DEPENDENT_LIBS ${EASY_MEDIA_DEPENDENT_LIBS} rga PARENT_SCOPE)
 
-# option(RKRGA_TEST "compile: rkrga wrapper test" ON)
-# if (RKRGA_TEST)
-# add_subdirectory(test)
-# endif()
+  # cmake-format: off
+  # option(RKRGA_TEST "compile: rkrga wrapper test" ON)
+  # if (RKRGA_TEST)
+  # add_subdirectory(test)
+  # endif()
+  # cmake-format: on
 
 endif()

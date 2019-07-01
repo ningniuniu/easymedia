@@ -10,9 +10,10 @@
 
 project(easymedia_rtsp_server_test)
 
-set(RTSP_SERVER_TEST_DEPENDENT_LIBS ${RTSP_SERVER_TEST_DEPENDENT_LIBS} easymedia)
+set(RTSP_SERVER_TEST_DEPENDENT_LIBS ${RTSP_SERVER_TEST_DEPENDENT_LIBS}
+                                    easymedia)
 
-set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 add_definitions(-DDEBUG)
 
