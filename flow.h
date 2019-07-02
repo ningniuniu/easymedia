@@ -25,6 +25,8 @@
 #include "lock.h"
 #include "reflector.h"
 
+#include <stdarg.h>
+
 #include <deque>
 #include <thread>
 #include <type_traits>

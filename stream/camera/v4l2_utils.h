@@ -33,6 +33,11 @@
 
 namespace easymedia {
 
+__u32 GetV4L2Type(const char *v4l2type);
+__u32 GetV4L2FmtByString(const char *type);
+__u32 GetV4L2ColorSpaceByString(const char *type);
+const std::string &GetStringOfV4L2Fmts();
+
 typedef struct {
   int (*open_f)(const char *file, int oflag, ...);
   int (*close_f)(int fd);
@@ -43,10 +48,6 @@ typedef struct {
                   int64_t offset);
   int (*munmap_f)(void *_start, size_t length);
 } v4l2_io;
-
-__u32 GetV4L2FmtByString(const char *type);
-const std::string &GetStringOfV4L2Fmts();
-__u32 GetV4L2Type(const char *v4l2type);
 
 bool SetV4L2IoFunction(v4l2_io *vio, bool use_libv4l2 = false);
 int V4L2IoCtl(v4l2_io *vio, int fd, unsigned long int request, void *arg);

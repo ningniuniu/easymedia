@@ -32,6 +32,26 @@
 
 namespace easymedia {
 
+__u32 GetV4L2Type(const char *v4l2type) {
+  if (!v4l2type)
+    return 0;
+  if (!strcmp(v4l2type, KEY_V4L2_C_TYPE(VIDEO_CAPTURE)))
+    return V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  if (!strcmp(v4l2type, KEY_V4L2_C_TYPE(VIDEO_OUTPUT)))
+    return V4L2_BUF_TYPE_VIDEO_OUTPUT;
+
+  if (!strcmp(v4l2type, KEY_V4L2_M_TYPE(MEMORY_MMAP)))
+    return V4L2_MEMORY_MMAP;
+  if (!strcmp(v4l2type, KEY_V4L2_M_TYPE(MEMORY_USERPTR)))
+    return V4L2_MEMORY_USERPTR;
+  if (!strcmp(v4l2type, KEY_V4L2_M_TYPE(MEMORY_OVERLAY)))
+    return V4L2_MEMORY_OVERLAY;
+  if (!strcmp(v4l2type, KEY_V4L2_M_TYPE(MEMORY_DMABUF)))
+    return V4L2_MEMORY_DMABUF;
+
+  return 0;
+}
+
 static const struct V4L2FmtStringEntry {
   __u32 fmt;
   const char *type_str;
@@ -62,6 +82,34 @@ __u32 GetV4L2FmtByString(const char *type) {
   return 0;
 }
 
+static const struct V4L2ColorSpaceStringEntry {
+  __u32 colorspace;
+  const char *type_str;
+} v4l2_cs_string_map[] = {
+    {V4L2_COLORSPACE_DEFAULT, KEY_V4L2_CS(DEFAULT)},
+    {V4L2_COLORSPACE_SMPTE170M, KEY_V4L2_CS(SMPTE170M)},
+    {V4L2_COLORSPACE_SMPTE240M, KEY_V4L2_CS(SMPTE240M)},
+    {V4L2_COLORSPACE_REC709, KEY_V4L2_CS(REC709)},
+    {V4L2_COLORSPACE_BT878, KEY_V4L2_CS(BT878)},
+    {V4L2_COLORSPACE_470_SYSTEM_M, KEY_V4L2_CS(470_SYSTEM_M)},
+    {V4L2_COLORSPACE_470_SYSTEM_BG, KEY_V4L2_CS(470_SYSTEM_BG)},
+    {V4L2_COLORSPACE_JPEG, KEY_V4L2_CS(JPEG)},
+    {V4L2_COLORSPACE_SRGB, KEY_V4L2_CS(SRGB)},
+    {V4L2_COLORSPACE_ADOBERGB, KEY_V4L2_CS(ADOBERGB)},
+    {V4L2_COLORSPACE_BT2020, KEY_V4L2_CS(BT2020)},
+    {V4L2_COLORSPACE_RAW, KEY_V4L2_CS(RAW)},
+    {V4L2_COLORSPACE_DCI_P3, KEY_V4L2_CS(DCI_P3)}};
+
+__u32 GetV4L2ColorSpaceByString(const char *type) {
+  if (!type)
+    return 0;
+  for (size_t i = 0; i < ARRAY_ELEMS(v4l2_cs_string_map) - 1; i++) {
+    if (!strcmp(type, v4l2_cs_string_map[i].type_str))
+      return v4l2_cs_string_map[i].colorspace;
+  }
+  return 0;
+}
+
 class _V4L2_SUPPORT_TYPES : public SupportMediaTypes {
 public:
   _V4L2_SUPPORT_TYPES() {
@@ -72,26 +120,6 @@ public:
 };
 static _V4L2_SUPPORT_TYPES priv_types;
 const std::string &GetStringOfV4L2Fmts() { return priv_types.types; }
-
-__u32 GetV4L2Type(const char *v4l2type) {
-  if (!v4l2type)
-    return 0;
-  if (!strcmp(v4l2type, KEY_V4L2_C_TYPE(VIDEO_CAPTURE)))
-    return V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  if (!strcmp(v4l2type, KEY_V4L2_C_TYPE(VIDEO_OUTPUT)))
-    return V4L2_BUF_TYPE_VIDEO_OUTPUT;
-
-  if (!strcmp(v4l2type, KEY_V4L2_M_TYPE(MEMORY_MMAP)))
-    return V4L2_MEMORY_MMAP;
-  if (!strcmp(v4l2type, KEY_V4L2_M_TYPE(MEMORY_USERPTR)))
-    return V4L2_MEMORY_USERPTR;
-  if (!strcmp(v4l2type, KEY_V4L2_M_TYPE(MEMORY_OVERLAY)))
-    return V4L2_MEMORY_OVERLAY;
-  if (!strcmp(v4l2type, KEY_V4L2_M_TYPE(MEMORY_DMABUF)))
-    return V4L2_MEMORY_DMABUF;
-
-  return 0;
-}
 
 bool SetV4L2IoFunction(v4l2_io *vio, bool use_libv4l2) {
 #define SET_WRAPPERS(prefix)                                                   \
