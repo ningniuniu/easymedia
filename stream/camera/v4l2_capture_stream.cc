@@ -44,6 +44,7 @@ private:
   std::string data_type;
   PixelFormat pix_fmt;
   int width, height;
+  int colorspace;
   int loop_num;
   std::vector<MediaBuffer> buffer_vec;
   bool started;
@@ -51,14 +52,15 @@ private:
 
 V4L2CaptureStream::V4L2CaptureStream(const char *param)
     : V4L2Stream(param), memory_type(V4L2_MEMORY_MMAP), data_type(IMAGE_NV12),
-      pix_fmt(PIX_FMT_NONE), width(0), height(0), loop_num(2), started(false) {
+      pix_fmt(PIX_FMT_NONE), width(0), height(0), colorspace(-1), loop_num(2),
+      started(false) {
   if (device.empty())
     return;
   std::map<std::string, std::string> params;
   std::list<std::pair<const std::string, std::string &>> req_list;
 
   std::string mem_type, str_loop_num;
-  std::string str_width, str_height;
+  std::string str_width, str_height, str_color_space;
   req_list.push_back(
       std::pair<const std::string, std::string &>(KEY_V4L2_MEM_TYPE, mem_type));
   req_list.push_back(
@@ -69,6 +71,8 @@ V4L2CaptureStream::V4L2CaptureStream(const char *param)
       std::pair<const std::string, std::string &>(KEY_BUFFER_WIDTH, str_width));
   req_list.push_back(std::pair<const std::string, std::string &>(
       KEY_BUFFER_HEIGHT, str_height));
+  req_list.push_back(std::pair<const std::string, std::string &>(
+      KEY_V4L2_COLORSPACE, str_color_space));
   int ret = parse_media_param_match(param, params, req_list);
   if (ret == 0)
     return;
@@ -81,6 +85,8 @@ V4L2CaptureStream::V4L2CaptureStream(const char *param)
     width = std::stoi(str_width);
   if (!str_height.empty())
     height = std::stoi(str_height);
+  if (!str_color_space.empty())
+    colorspace = std::stoi(str_color_space);
 }
 
 int V4L2CaptureStream::BufferExport(enum v4l2_buf_type bt, int index,
@@ -151,6 +157,8 @@ int V4L2CaptureStream::Open() {
   fmt.fmt.pix.height = height;
   fmt.fmt.pix.pixelformat = GetV4L2FmtByString(data_type_str);
   fmt.fmt.pix.field = V4L2_FIELD_ANY;
+  if (colorspace >= 0)
+    fmt.fmt.pix.colorspace = colorspace;
   if (fmt.fmt.pix.pixelformat == 0) {
     LOG("unsupport input format : %s\n", data_type_str);
     return -1;

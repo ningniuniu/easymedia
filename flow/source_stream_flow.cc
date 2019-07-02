@@ -31,6 +31,15 @@ public:
   SourceStreamFlow(const char *param);
   virtual ~SourceStreamFlow();
   static const char *GetFlowName() { return "source_stream"; }
+  virtual int Control(unsigned long int request, ...) final {
+    if (!stream)
+      return -1;
+    va_list vl;
+    va_start(vl, request);
+    void *arg = va_arg(vl, void *);
+    va_end(vl);
+    return stream->IoCtrl(request, arg);
+  }
 
 private:
   void ReadThreadRun();

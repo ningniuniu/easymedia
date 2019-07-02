@@ -19,8 +19,6 @@
  *
  */
 
-#include <stdarg.h>
-
 #include "flow.h"
 #include "stream.h"
 

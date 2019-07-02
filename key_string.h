@@ -81,6 +81,8 @@
 #define KEY_V4L2_C_TYPE(t) STR(t)
 #define KEY_V4L2_MEM_TYPE "v4l2_mem_type"
 #define KEY_V4L2_M_TYPE(t) STR(t)
+#define KEY_V4L2_COLORSPACE "v4l2_colorspace"
+#define KEY_V4L2_CS(t) STR(t)
 
 // rtsp
 #define KEY_PORT_NUM "portnum"
