@@ -80,13 +80,7 @@
     return true;                                                               \
   }
 
-#define DEFINE_MEDIA_NEW_PRODUCT(REAL_PRODUCT, PRODUCT)                        \
-  std::shared_ptr<PRODUCT> FACTORY(REAL_PRODUCT)::NewProduct(                  \
-      const char *param) {                                                     \
-    return std::make_shared<REAL_PRODUCT>(param);                              \
-  }
-
-#define DEFINE_MEDIA_NEW_PRODUCT_DO(REAL_PRODUCT, PRODUCT, COND)               \
+#define DEFINE_MEDIA_NEW_PRODUCT_BY(REAL_PRODUCT, PRODUCT, COND)               \
   std::shared_ptr<PRODUCT> FACTORY(REAL_PRODUCT)::NewProduct(                  \
       const char *param) {                                                     \
     auto ret = std::make_shared<REAL_PRODUCT>(param);                          \

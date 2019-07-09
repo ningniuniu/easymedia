@@ -89,7 +89,7 @@ RtspServerFlow::RtspServerFlow(const char *param)
   std::string channel_name;
   std::map<std::string, std::string> params;
   if (!parse_media_param_map(param, params)) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   std::string value;
@@ -185,10 +185,9 @@ RtspServerFlow::RtspServerFlow(const char *param)
     LOG_NO_MEMORY();
     goto err;
   }
-  errno = 0;
   return;
 err:
-  errno = EINVAL;
+  SetError(-EINVAL);
 }
 
 RtspServerFlow::~RtspServerFlow() {

@@ -43,7 +43,8 @@ DECLARE_REFLECTOR(Flow)
   DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetFlowName(),        \
                              FINAL_EXPOSE_PRODUCT, Flow)                       \
   DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)                               \
-  DEFINE_MEDIA_NEW_PRODUCT(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)
+  DEFINE_MEDIA_NEW_PRODUCT_BY(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT,              \
+                              GetError() < 0)
 
 class MediaBuffer;
 enum class Model { NONE, ASYNCCOMMON, ASYNCATOMIC, SYNC };
@@ -189,6 +190,7 @@ private:
 
   friend class FlowCoroutine;
 
+  DEFINE_ERR_GETSET()
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Flow)
 };
 

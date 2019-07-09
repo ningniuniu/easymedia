@@ -50,18 +50,18 @@ OutPutStreamFlow::OutPutStreamFlow(const char *param) {
   std::list<std::string> separate_list;
   if (!parse_media_param_list(param, separate_list, ' ') ||
       separate_list.size() != 2) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   std::map<std::string, std::string> params;
   if (!parse_media_param_map(separate_list.front().c_str(), params)) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   std::string &name = params[KEY_NAME];
   if (name.empty()) {
     LOG("missing stream name\n");
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   const char *stream_name = name.c_str();
@@ -79,7 +79,7 @@ OutPutStreamFlow::OutPutStreamFlow(const char *param) {
       REFLECTOR(Stream)::Create<Stream>(stream_name, stream_param.c_str());
   if (!stream) {
     LOG("Fail to create stream %s\n", stream_name);
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   sm.input_slots.push_back(0);
@@ -88,11 +88,10 @@ OutPutStreamFlow::OutPutStreamFlow(const char *param) {
   sm.process = send_buffer;
   if (!InstallSlotMap(sm, name, -1)) {
     LOG("Fail to InstallSlotMap, %s\n", stream_name);
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   out_stream = stream;
-  errno = 0;
 }
 
 bool send_buffer(Flow *f, MediaBufferVector &input_vector) {

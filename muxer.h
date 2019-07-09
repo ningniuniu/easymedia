@@ -38,7 +38,7 @@ DECLARE_REFLECTOR(Muxer)
   DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetMuxName(),         \
                              FINAL_EXPOSE_PRODUCT, Muxer)                      \
   DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)                               \
-  DEFINE_MEDIA_NEW_PRODUCT_DO(REAL_PRODUCT, Muxer, Init() != true)
+  DEFINE_MEDIA_NEW_PRODUCT_BY(REAL_PRODUCT, Muxer, Init() != true)
 
 #define DEFINE_COMMON_MUXER_FACTORY(REAL_PRODUCT)                              \
   DEFINE_MUXER_FACTORY(REAL_PRODUCT, Muxer)

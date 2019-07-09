@@ -38,7 +38,7 @@ DECLARE_REFLECTOR(Filter)
   DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetFilterName(),      \
                              FINAL_EXPOSE_PRODUCT, Filter)                     \
   DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)                               \
-  DEFINE_MEDIA_NEW_PRODUCT(REAL_PRODUCT, Filter)
+  DEFINE_MEDIA_NEW_PRODUCT_BY(REAL_PRODUCT, Filter, GetError() < 0)
 
 #define DEFINE_COMMON_FILTER_FACTORY(REAL_PRODUCT)                             \
   DEFINE_FILTER_FACTORY(REAL_PRODUCT, Filter)
@@ -48,8 +48,6 @@ class _API Filter {
 public:
   virtual ~Filter() = default;
   static const char *GetFilterName() { return nullptr; }
-  // call when initialization
-  virtual bool AttachBufferArgs(const char *args) = 0;
   // sync call, input and output must be valid
   virtual int Process(std::shared_ptr<MediaBuffer> input,
                       std::shared_ptr<MediaBuffer> output);
@@ -58,6 +56,7 @@ public:
   virtual int SendInput(std::shared_ptr<MediaBuffer> input) = 0;
   virtual std::shared_ptr<MediaBuffer> FetchOutput() = 0;
 
+  DEFINE_ERR_GETSET()
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Filter)
 };
 

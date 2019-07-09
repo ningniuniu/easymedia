@@ -54,30 +54,30 @@ FilterFlow::FilterFlow(const char *param)
   std::list<std::string> separate_list;
   if (!parse_media_param_list(param, separate_list, ' ') ||
       separate_list.size() != 2) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   std::map<std::string, std::string> params;
   if (!parse_media_param_map(separate_list.front().c_str(), params)) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   std::string &name = params[KEY_NAME];
   if (name.empty()) {
     LOG("missing filter name\n");
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   const char *filter_name = name.c_str();
   // check input/output type
   std::string &&rule = gen_datatype_rule(params);
   if (rule.empty()) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   if (!REFLECTOR(Filter)::IsMatch(filter_name, rule.c_str())) {
     LOG("Unsupport for filter %s : [%s]\n", filter_name, rule.c_str());
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   input_pix_fmt = GetPixFmtByString(params[KEY_INPUTDATATYPE].c_str());
@@ -94,16 +94,16 @@ FilterFlow::FilterFlow(const char *param)
   std::string &filter_param = separate_list.back();
   std::list<std::string> param_list;
   if (!parse_media_param_list(filter_param.c_str(), param_list)) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   int input_idx = 0;
   for (auto &param_str : param_list) {
     auto filter =
         REFLECTOR(Filter)::Create<Filter>(filter_name, param_str.c_str());
-    if (!filter || !filter->AttachBufferArgs(nullptr)) {
+    if (!filter) {
       LOG("Fail to create filter %s<%s>\n", filter_name, param_str.c_str());
-      errno = EINVAL;
+      SetError(-EINVAL);
       return;
     }
     filters.push_back(filter);
@@ -114,20 +114,20 @@ FilterFlow::FilterFlow(const char *param)
   sm.process = do_filters;
   if (!InstallSlotMap(sm, name, -1)) {
     LOG("Fail to InstallSlotMap, %s\n", filter_name);
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   if (filters[0]->SendInput(nullptr) == -1 && errno == ENOSYS) {
     support_async = false;
   } else {
     LOG_TODO();
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   if (!support_async) {
     ImageInfo info;
     if (!ParseImageInfoFromMap(params, info, false)) {
-      errno = EINVAL;
+      SetError(-EINVAL);
       return;
     }
     int out_cache_num = 2;
@@ -143,14 +143,13 @@ FilterFlow::FilterFlow(const char *param)
           MediaBuffer::Alloc2(size, MediaBuffer::MemType::MEM_HARD_WARE);
       auto out_buffer = std::make_shared<ImageBuffer>(mb, info);
       if (!out_buffer || out_buffer->GetSize() < size) {
-        errno = ENOMEM;
+        SetError(-ENOMEM);
         return;
       }
       out_buffer->SetValidSize(size);
       out_buffers.push_back(out_buffer);
     }
   }
-  errno = 0;
 }
 
 // comparing timestamp as modification?

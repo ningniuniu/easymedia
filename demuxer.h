@@ -40,7 +40,8 @@ DECLARE_REFLECTOR(Demuxer)
   DEFINE_MEDIA_CHILD_FACTORY(REAL_PRODUCT, REAL_PRODUCT::GetDemuxName(),       \
                              FINAL_EXPOSE_PRODUCT, Demuxer)                    \
   DEFINE_MEDIA_CHILD_FACTORY_EXTRA(REAL_PRODUCT)                               \
-  DEFINE_MEDIA_NEW_PRODUCT(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT)
+  DEFINE_MEDIA_NEW_PRODUCT_BY(REAL_PRODUCT, FINAL_EXPOSE_PRODUCT,              \
+                              GetError() < 0)
 
 class MediaBuffer;
 class _API Demuxer {
@@ -62,6 +63,7 @@ public:
 protected:
   std::string path;
 
+  DEFINE_ERR_GETSET()
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Demuxer)
 };
 

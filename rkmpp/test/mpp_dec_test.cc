@@ -58,7 +58,7 @@ static void dump_output(std::shared_ptr<easymedia::ImageBuffer> out_image) {
 
 static bool get_output_and_process(easymedia::VideoDecoder *mpp_dec) {
   auto out_buffer = mpp_dec->FetchOutput();
-  if (errno != 0) {
+  if (!out_buffer && errno != 0) {
     fprintf(stderr, "fatal error %m\n");
     eos = true; // finish
     return false;
