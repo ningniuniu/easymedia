@@ -370,8 +370,8 @@ std::shared_ptr<MediaBuffer> MPPDecoder::FetchOutput() {
   MppFrame mppframe = NULL;
   MppCtx ctx = mpp_ctx->ctx;
   MppApi *mpi = mpp_ctx->mpi;
-  errno = 0;
   MPP_RET ret = mpi->decode_get_frame(ctx, &mppframe);
+  errno = 0;
   if (ret != MPP_OK) {
     // MPP_ERR_TIMEOUT
     LOG("Failed to get a frame from MPP (ret = %d)\n", ret);

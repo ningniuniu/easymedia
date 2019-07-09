@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
   printf("\nparam :\n%s\n", param.c_str());
   auto rtsp_flow = easymedia::REFLECTOR(Flow)::Create<easymedia::Flow>(
       flow_name.c_str(), param.c_str());
-  if (!rtsp_flow || errno != 0) {
+  if (!rtsp_flow) {
     fprintf(stderr, "Create flow %s failed\n", flow_name.c_str());
     exit(EXIT_FAILURE);
   }
@@ -287,7 +287,7 @@ int main(int argc, char **argv) {
   flow_name = "file_read_flow";
   auto file_flow = easymedia::REFLECTOR(Flow)::Create<easymedia::Flow>(
       flow_name.c_str(), param.c_str());
-  if (!file_flow || errno != 0) {
+  if (!file_flow) {
     fprintf(stderr, "Create flow %s failed\n", flow_name.c_str());
     exit(EXIT_FAILURE);
   }
@@ -319,7 +319,7 @@ int main(int argc, char **argv) {
   printf("\nparam 2:\n%s\n", param.c_str());
   auto enc_flow = easymedia::REFLECTOR(Flow)::Create<easymedia::Flow>(
       flow_name.c_str(), param.c_str());
-  if (!enc_flow || errno != 0) {
+  if (!enc_flow) {
     fprintf(stderr, "Create flow %s failed\n", flow_name.c_str());
     exit(EXIT_FAILURE);
   }
@@ -337,7 +337,7 @@ int main(int argc, char **argv) {
   printf("\nparam 3:\n%s\n", param.c_str());
   auto rtsp_flow = easymedia::REFLECTOR(Flow)::Create<easymedia::Flow>(
       flow_name.c_str(), param.c_str());
-  if (!rtsp_flow || errno != 0) {
+  if (!rtsp_flow) {
     fprintf(stderr, "Create flow %s failed\n", flow_name.c_str());
     exit(EXIT_FAILURE);
   }

@@ -35,7 +35,6 @@ public:
   RgaFilter(const char *param);
   virtual ~RgaFilter() = default;
   static const char *GetFilterName() { return "rkrga"; }
-  virtual bool AttachBufferArgs(const char *args) final;
   virtual int Process(std::shared_ptr<MediaBuffer> input,
                       std::shared_ptr<MediaBuffer> output) override;
   virtual int SendInput(std::shared_ptr<MediaBuffer> input _UNUSED) final {
@@ -58,31 +57,21 @@ RockchipRga RgaFilter::gRkRga;
 
 RgaFilter::RgaFilter(const char *param) : rotate(0) {
   std::map<std::string, std::string> params;
-  if (!parse_media_param_map(param, params))
+  if (!parse_media_param_map(param, params)) {
+    SetError(-EINVAL);
     return;
+  }
   const std::string &value = params[KEY_BUFFER_RECT];
   auto &&rects = StringToTwoImageRect(value);
   if (rects.empty()) {
     LOG("missing rects\n");
+    SetError(-EINVAL);
     return;
   }
   vec_rect = std::move(rects);
   const std::string &v = params[KEY_BUFFER_ROTATE];
   if (!v.empty())
     rotate = std::stoi(v);
-}
-
-bool RgaFilter::AttachBufferArgs(const char *args) {
-  if (!args)
-    return !vec_rect.empty();
-  auto rects = StringToTwoImageRect(args);
-  if (rects.empty()) {
-    LOG("incorrect rect string\n");
-    return false;
-  }
-  vec_rect.reserve(vec_rect.size() + rects.size());
-  vec_rect.insert(vec_rect.end(), rects.begin(), rects.end());
-  return true;
 }
 
 int RgaFilter::Process(std::shared_ptr<MediaBuffer> input,

@@ -53,7 +53,7 @@ FileReadFlow::FileReadFlow(const char *param)
   info.pix_fmt = PIX_FMT_NONE;
   std::map<std::string, std::string> params;
   if (!parse_media_param_map(param, params)) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   std::string s;
@@ -66,7 +66,7 @@ FileReadFlow::FileReadFlow(const char *param)
   fstream = REFLECTOR(Stream)::Create<Stream>("file_read_stream", s.c_str());
   if (!fstream) {
     fprintf(stderr, "Create stream file_read_stream failed\n");
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   value = params[KEY_MEM_TYPE];
@@ -75,7 +75,7 @@ FileReadFlow::FileReadFlow(const char *param)
   value = params[KEY_MEM_SIZE_PERTIME];
   if (value.empty()) {
     if (!ParseImageInfoFromMap(params, info)) {
-      errno = EINVAL;
+      SetError(-EINVAL);
       return;
     }
   } else {
@@ -89,17 +89,16 @@ FileReadFlow::FileReadFlow(const char *param)
     loop_time = std::stoi(value);
   if (!SetAsSource(std::vector<int>({0}), std::vector<int>({0}),
                    void_transaction00, path)) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   loop = true;
   read_thread = new std::thread(&FileReadFlow::ReadThreadRun, this);
   if (!read_thread) {
     loop = false;
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
-  errno = 0;
 }
 
 FileReadFlow::~FileReadFlow() {

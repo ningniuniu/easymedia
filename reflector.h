@@ -165,6 +165,23 @@
   };                                                                           \
   Register_##FACTORY reg_##FACTORY;
 
+#define DEFINE_ERR_GETSET()                                                    \
+protected:                                                                     \
+  class ErrGetSet {                                                            \
+  public:                                                                      \
+    ErrGetSet() : err_val(0) {}                                                \
+    void Set(int val) { err_val = val; }                                       \
+    int Get() { return err_val; }                                              \
+                                                                               \
+  private:                                                                     \
+    int err_val;                                                               \
+  };                                                                           \
+  ErrGetSet IErr;                                                              \
+                                                                               \
+public:                                                                        \
+  void SetError(int val) { IErr.Set(val); }                                    \
+  int GetError() { return IErr.Get(); }
+
 #define DECLARE_PART_FINAL_EXPOSE_PRODUCT(PRODUCT)                             \
 public:                                                                        \
   static bool Compatible(const PRODUCT##Factory *factory);                     \

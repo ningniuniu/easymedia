@@ -53,18 +53,18 @@ SourceStreamFlow::SourceStreamFlow(const char *param)
   std::list<std::string> separate_list;
   if (!parse_media_param_list(param, separate_list, ' ') ||
       separate_list.size() != 2) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   std::map<std::string, std::string> params;
   if (!parse_media_param_map(separate_list.front().c_str(), params)) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   std::string &name = params[KEY_NAME];
   if (name.empty()) {
     LOG("missing stream name\n");
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   const char *stream_name = name.c_str();
@@ -72,22 +72,21 @@ SourceStreamFlow::SourceStreamFlow(const char *param)
   stream = REFLECTOR(Stream)::Create<Stream>(stream_name, stream_param.c_str());
   if (!stream) {
     LOG("Create stream %s failed\n", stream_name);
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   if (!SetAsSource(std::vector<int>({0}), std::vector<int>({0}),
                    void_transaction00, name)) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   loop = true;
   read_thread = new std::thread(&SourceStreamFlow::ReadThreadRun, this);
   if (!read_thread) {
     loop = false;
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
-  errno = 0;
 }
 
 SourceStreamFlow::~SourceStreamFlow() {

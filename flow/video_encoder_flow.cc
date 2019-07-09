@@ -79,20 +79,20 @@ bool encode(Flow *f, MediaBufferVector &input_vector) {
 VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
   std::map<std::string, std::string> params;
   if (!parse_media_param_map(param, params)) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   std::string &codec_name = params[KEY_CODEC_NAME];
   if (codec_name.empty()) {
     LOG("missing %s\n", KEY_CODEC_NAME);
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   const char *ccodec_name = codec_name.c_str();
   // check input/output type
   std::string &&rule = gen_datatype_rule(params);
   if (rule.empty()) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   // std::string value;
@@ -102,13 +102,13 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
   // PARAM_STRING_APPEND(rule, KEY_OUTPUTDATATYPE, value);
   if (!REFLECTOR(Encoder)::IsMatch(ccodec_name, rule.c_str())) {
     LOG("Unsupport for video encoder %s : [%s]\n", ccodec_name, rule.c_str());
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
 
   MediaConfig mc;
   if (!ParseMediaConfigFromMap(params, mc)) {
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
 
@@ -118,13 +118,13 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
   if (!encoder) {
     LOG("Fail to create video encoder %s<%s>\n", ccodec_name,
         codec_param.c_str());
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
 
   if (!encoder->InitConfig(mc)) {
     LOG("Fail to init config, %s\n", ccodec_name);
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
 
@@ -151,7 +151,7 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
   sm.input_maxcachenum.push_back(3);
   if (!InstallSlotMap(sm, codec_name, 40)) {
     LOG("Fail to InstallSlotMap, %s\n", ccodec_name);
-    errno = EINVAL;
+    SetError(-EINVAL);
     return;
   }
   for (auto &extra_buffer : extra_buffer_list) {
@@ -162,7 +162,6 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
       SetOutput(nullbuffer, 1);
     }
   }
-  errno = 0;
 }
 
 DEFINE_FLOW_FACTORY(VideoEncoderFlow, Flow)
