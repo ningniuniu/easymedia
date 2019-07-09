@@ -31,14 +31,6 @@
 
 namespace easymedia {
 
-template <int in_index, int out_index>
-static bool void_transaction(Flow *f, MediaBufferVector &input_vector) {
-  f->SetOutput(input_vector[in_index], out_index);
-  return true;
-}
-
-FunctionProcess void_transaction00 = void_transaction<0, 0>;
-
 class FlowCoroutine {
 public:
   FlowCoroutine(Flow *f, Model sync_model, FunctionProcess func, float inter);
@@ -274,6 +266,8 @@ DEFINE_REFLECTOR(Flow)
 DEFINE_FACTORY_COMMON_PARSE(Flow)
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(Flow, Flow)
 
+const FunctionProcess Flow::void_transaction00 = void_transaction<0, 0>;
+
 Flow::Flow()
     : out_slot_num(0), input_slot_num(0), down_flow_num(0), enable(true),
       quit(false) {}
@@ -324,11 +318,12 @@ void Flow::FlowMap::Init(Model m) {
     set_output_behavior = &FlowMap::SetOutputBehavior;
 }
 
-void Flow::FlowMap::SetOutputBehavior(std::shared_ptr<MediaBuffer> &output) {
+void Flow::FlowMap::SetOutputBehavior(
+    const std::shared_ptr<MediaBuffer> &output) {
   cached_buffer = output;
 }
 void Flow::FlowMap::SetOutputToQueueBehavior(
-    std::shared_ptr<MediaBuffer> &output) {
+    const std::shared_ptr<MediaBuffer> &output) {
   cached_buffers.push_back(output);
 }
 
@@ -499,6 +494,10 @@ bool Flow::AddDownFlow(std::shared_ptr<Flow> down, int out_slot_index,
     LOG("output slot index exceed max\n");
     return false;
   }
+  if (this == down.get()) {
+    LOG("can not set self loop flow\n");
+    return false;
+  }
   downflowmap[out_slot_index].AddFlow(down, in_slot_index_of_down);
   if (source_start_cond_mtx) {
     source_start_cond_mtx->lock();
@@ -538,7 +537,8 @@ void Flow::SendInput(std::shared_ptr<MediaBuffer> &input, int in_slot_index) {
   }
 }
 
-void Flow::SetOutput(std::shared_ptr<MediaBuffer> &output, int out_slot_index) {
+void Flow::SetOutput(const std::shared_ptr<MediaBuffer> &output,
+                     int out_slot_index) {
 #ifdef DEBUG
   if (out_slot_index < 0 || out_slot_index >= out_slot_num) {
     errno = EINVAL;

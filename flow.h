@@ -51,8 +51,8 @@ enum class InputMode { NONE, BLOCKING, DROPFRONT, DROPCURRENT };
 using MediaBufferVector = std::vector<std::shared_ptr<MediaBuffer>>;
 using FunctionProcess =
     std::add_pointer<bool(Flow *f, MediaBufferVector &input_vector)>::type;
-
-extern FunctionProcess void_transaction00;
+template <int in_index, int out_index>
+bool void_transaction(Flow *f, MediaBufferVector &input_vector);
 
 class SlotMap {
 public:
@@ -95,9 +95,6 @@ public:
   // void SetEventHandler(EventHandler *ev_handler);
   // void NotifyToEventHandler();
 
-  // protected
-  void SetOutput(std::shared_ptr<MediaBuffer> &output, int out_slot_index);
-
 protected:
   class FlowInputMap {
   public:
@@ -110,8 +107,8 @@ protected:
   };
   class FlowMap {
   private:
-    void SetOutputBehavior(std::shared_ptr<MediaBuffer> &output);
-    void SetOutputToQueueBehavior(std::shared_ptr<MediaBuffer> &output);
+    void SetOutputBehavior(const std::shared_ptr<MediaBuffer> &output);
+    void SetOutputToQueueBehavior(const std::shared_ptr<MediaBuffer> &output);
 
   public:
     FlowMap() : valid(false) {}
@@ -172,10 +169,19 @@ protected:
                    const std::string &mark);
   bool InstallSlotMap(SlotMap &map, const std::string &mark,
                       int exp_process_time);
+  void SetOutput(const std::shared_ptr<MediaBuffer> &output,
+                 int out_slot_index);
   // As sub threads may call the variable of child class,
   // we should define this for child class when it deconstruct.
   void StopAllThread();
   bool IsEnable() { return enable; }
+
+  template <int in_index, int out_index>
+  friend bool void_transaction(Flow *f, MediaBufferVector &input_vector) {
+    f->SetOutput(input_vector[in_index], out_index);
+    return true;
+  }
+  static const FunctionProcess void_transaction00;
 
 private:
   volatile bool enable;
