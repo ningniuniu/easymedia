@@ -136,4 +136,11 @@
 #define KEY_ZPOS "ZPOS"
 #define KEY_FEATURE "FEATURE"
 
+// rknn
+#define KEY_OUTPUT_WANT_FLOAT "rknn_output_want_float"
+#define KEY_TENSOR_TYPE "tensor_type"
+#define KEY_TENSOR_FMT "tensor_fmt"
+#define KEY_NCHW "NCHW"
+#define KEY_NHWC "NHWC"
+
 #endif // #ifndef EASYMEDIA_MEDIA_KEY_STRING_H_

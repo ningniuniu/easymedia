@@ -37,14 +37,6 @@ public:
   static const char *GetFilterName() { return "rkrga"; }
   virtual int Process(std::shared_ptr<MediaBuffer> input,
                       std::shared_ptr<MediaBuffer> output) override;
-  virtual int SendInput(std::shared_ptr<MediaBuffer> input _UNUSED) final {
-    errno = ENOSYS;
-    return -1;
-  }
-  virtual std::shared_ptr<MediaBuffer> FetchOutput() final {
-    errno = ENOSYS;
-    return nullptr;
-  }
 
   static RockchipRga gRkRga;
 

@@ -46,15 +46,15 @@ DECLARE_REFLECTOR(Filter)
 class MediaBuffer;
 class _API Filter {
 public:
-  virtual ~Filter() = default;
+  virtual ~Filter() = 0;
   static const char *GetFilterName() { return nullptr; }
   // sync call, input and output must be valid
   virtual int Process(std::shared_ptr<MediaBuffer> input,
                       std::shared_ptr<MediaBuffer> output);
   // some filter may output many buffers with one input.
   // sync or async safe call, depends on specific filter.
-  virtual int SendInput(std::shared_ptr<MediaBuffer> input) = 0;
-  virtual std::shared_ptr<MediaBuffer> FetchOutput() = 0;
+  virtual int SendInput(std::shared_ptr<MediaBuffer> input);
+  virtual std::shared_ptr<MediaBuffer> FetchOutput();
 
   DEFINE_ERR_GETSET()
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Filter)
