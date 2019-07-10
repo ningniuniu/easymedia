@@ -171,16 +171,24 @@ endif()
 
 if(FILTER)
   add_subdirectory(rkrga)
+  if(RKNN)
+    include_directories(${RKNPU_HEADER_DIR})
+    add_subdirectory(rknn)
+  endif()
 endif()
 
-add_library(easymedia SHARED ${EASY_MEDIA_SOURCE_FILES})
+set(LIBRARY_VERSION 1.0.1)
+set(LIBRARY_NAME easymedia)
+
+add_library(${LIBRARY_NAME} SHARED ${EASY_MEDIA_SOURCE_FILES})
 file(GLOB EASY_MEDIA_RELEASE_HEADERS *.h)
-set_target_properties(easymedia
+set_target_properties(${LIBRARY_NAME}
                       PROPERTIES PUBLIC_HEADER "${EASY_MEDIA_RELEASE_HEADERS}")
+set_target_properties(${LIBRARY_NAME} PROPERTIES VERSION ${LIBRARY_VERSION})
 
 if(SANITIZER)
   add_definitions(-fsanitize=address -static-libasan -g)
-  target_link_libraries(easymedia libasan.a)
+  target_link_libraries(${LIBRARY_NAME} libasan.a)
 endif()
 
 if(EASY_MEDIA_COMPILE_DEFINITIONS)
@@ -188,7 +196,7 @@ if(EASY_MEDIA_COMPILE_DEFINITIONS)
 endif()
 
 if(EASY_MEDIA_DEPENDENT_LIBS)
-  target_link_libraries(easymedia ${EASY_MEDIA_DEPENDENT_LIBS})
+  target_link_libraries(${LIBRARY_NAME} ${EASY_MEDIA_DEPENDENT_LIBS})
 endif()
 
 # cmake-format: off
@@ -198,11 +206,10 @@ endif()
 # message(libs: "${EASY_MEDIA_DEPENDENT_LIBS}")
 # cmake-format: on
 
-install(TARGETS easymedia
+install(TARGETS ${LIBRARY_NAME}
         LIBRARY DESTINATION "lib"
         PUBLIC_HEADER DESTINATION "include/easymedia")
 
-set(LIBRARY_VERSION 1.0.1)
 configure_file("libeasymedia.pc.cmake" "libeasymedia.pc" @ONLY)
 install(FILES "${CMAKE_BINARY_DIR}/libeasymedia.pc"
         DESTINATION "lib/pkgconfig/")

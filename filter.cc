@@ -30,4 +30,22 @@ DEFINE_FACTORY_COMMON_PARSE(Filter)
 
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(Filter, Filter)
 
+Filter::~Filter() {}
+
+int Filter::Process(std::shared_ptr<MediaBuffer> input _UNUSED,
+                    std::shared_ptr<MediaBuffer> output _UNUSED) {
+  errno = ENOSYS;
+  return -1;
+}
+
+int Filter::SendInput(std::shared_ptr<MediaBuffer> input _UNUSED) {
+  errno = ENOSYS;
+  return -1;
+}
+
+std::shared_ptr<MediaBuffer> Filter::FetchOutput() {
+  errno = ENOSYS;
+  return nullptr;
+}
+
 } // namespace easymedia

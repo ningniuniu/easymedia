@@ -89,6 +89,8 @@ public:
         userdata.reset(user_data, df);
       else
         userdata.reset(user_data, [](void *) {}); // do nothing when delete
+    } else {
+      userdata.reset();
     }
   }
 
