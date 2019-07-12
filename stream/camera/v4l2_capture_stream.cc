@@ -31,7 +31,10 @@ namespace easymedia {
 class V4L2CaptureStream : public V4L2Stream {
 public:
   V4L2CaptureStream(const char *param);
-  virtual ~V4L2CaptureStream() { assert(!started); }
+  virtual ~V4L2CaptureStream() {
+    V4L2CaptureStream::Close();
+    assert(!started);
+  }
   static const char *GetStreamName() { return "v4l2_capture_stream"; }
   virtual std::shared_ptr<MediaBuffer> Read();
   virtual int Open() final;
@@ -179,6 +182,7 @@ int V4L2CaptureStream::Open() {
         fmt.fmt.pix.width, fmt.fmt.pix.height);
     width = fmt.fmt.pix.width;
     height = fmt.fmt.pix.height;
+    return -1;
   }
   if (fmt.fmt.pix.field == V4L2_FIELD_INTERLACED)
     LOG("%s is using the interlaced mode\n", dev);
@@ -342,8 +346,8 @@ std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
       assert(ret_buf->GetFD() == buf.m.fd);
     }
     ret_buf->SetTimeStamp(buf_ts.tv_sec * 1000LL + buf_ts.tv_usec / 1000LL);
-    assert(buf.length > 0);
-    ret_buf->SetValidSize(buf.length);
+    assert(buf.bytesused > 0);
+    ret_buf->SetValidSize(buf.bytesused);
   } else {
     if (IoCtrl(VIDIOC_QBUF, &buf) < 0)
       LOG("%s, index=%d, ioctl(VIDIOC_QBUF): %m\n", dev, buf.index);

@@ -55,7 +55,7 @@ using FunctionProcess =
 template <int in_index, int out_index>
 bool void_transaction(Flow *f, MediaBufferVector &input_vector);
 
-class SlotMap {
+class _API SlotMap {
 public:
   SlotMap()
       : process(nullptr), thread_model(Model::SYNC),
@@ -65,6 +65,7 @@ public:
   FunctionProcess process;
   Model thread_model;
   InputMode mode_when_full;
+  std::vector<bool> fetch_block; // if ASYNCCOMMON
   std::vector<int> input_maxcachenum;
   float interval;
 };
@@ -136,13 +137,14 @@ protected:
     bool ASyncFullDropCurrentBehavior(volatile bool &pred);
 
   public:
-    Input() : valid(false), flow(nullptr) {}
+    Input() : valid(false), flow(nullptr), fetch_block(true) {}
     Input(Input &&);
-    void Init(Flow *f, Model m, int mcn, InputMode im,
+    void Init(Flow *f, Model m, int mcn, InputMode im, bool f_block,
               std::shared_ptr<FlowCoroutine> fc);
     bool valid;
     Flow *flow;
     Model thread_model;
+    bool fetch_block;
     std::deque<std::shared_ptr<MediaBuffer>> cached_buffers;
     ConditionLockMutex cond_mtx;
     int max_cache_num;
@@ -170,7 +172,7 @@ protected:
                    const std::string &mark);
   bool InstallSlotMap(SlotMap &map, const std::string &mark,
                       int exp_process_time);
-  void SetOutput(const std::shared_ptr<MediaBuffer> &output,
+  bool SetOutput(const std::shared_ptr<MediaBuffer> &output,
                  int out_slot_index);
   // As sub threads may call the variable of child class,
   // we should define this for child class when it deconstruct.
@@ -179,8 +181,7 @@ protected:
 
   template <int in_index, int out_index>
   friend bool void_transaction(Flow *f, MediaBufferVector &input_vector) {
-    f->SetOutput(input_vector[in_index], out_index);
-    return true;
+    return f->SetOutput(input_vector[in_index], out_index);
   }
   static const FunctionProcess void_transaction00;
 
@@ -199,6 +200,13 @@ Model GetModelByString(const std::string &model);
 InputMode GetInputModelByString(const std::string &in_model);
 void ParseParamToSlotMap(std::map<std::string, std::string> &params,
                          SlotMap &sm, int &input_maxcachenum);
+
+// the separator of flow params and flow core element params
+#define FLOW_PARAM_SEPARATE_CHAR ' '
+_API std::string JoinFlowParam(const std::string &flow_param, size_t num_elem,
+                               ...);
+_API std::list<std::string> ParseFlowParamToList(const char *param);
+
 } // namespace easymedia
 
 #endif // #ifndef EASYMEDIA_FLOW_H_

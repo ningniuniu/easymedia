@@ -177,7 +177,7 @@ public:
 
 private:
   int fd;
-#ifdef DEBUG
+#ifndef NDEBUG
   std::string path;
 #endif
 };

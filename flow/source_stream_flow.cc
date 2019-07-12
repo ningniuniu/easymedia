@@ -107,7 +107,6 @@ void SourceStreamFlow::ReadThreadRun() {
   if (down_flow_num == 0 && IsEnable())
     source_start_cond_mtx->wait();
   source_start_cond_mtx->unlock();
-  AutoPrintLine apl(__func__);
   while (loop) {
     if (stream->Eof()) {
       // TODO: tell that I reach eof

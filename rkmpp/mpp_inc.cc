@@ -46,8 +46,9 @@ MppFrameFormat ConvertToMppPixFmt(const PixelFormat &fmt) {
       [PIX_FMT_BGR888] = MPP_FMT_BGR888,
       [PIX_FMT_ARGB8888] = MPP_FMT_ARGB8888,
       [PIX_FMT_ABGR8888] = MPP_FMT_ABGR8888};
-  assert(fmt >= 0 && fmt < PIX_FMT_NB);
-  return mpp_fmts[fmt];
+  if (fmt >= 0 && fmt < PIX_FMT_NB)
+    return mpp_fmts[fmt];
+  return (MppFrameFormat)-1;
 }
 
 PixelFormat ConvertToPixFmt(const MppFrameFormat &mfmt) {
@@ -181,7 +182,7 @@ MPP_RET init_mpp_buffer_with_content(MppBuffer &buffer,
   // content to a virtual buffer, do memcpy here.
   if (fd < 0 && ptr) {
     // !!time-consuming operation
-    LOG("extra time-consuming memcpy to mpp, size=%d!\n", size);
+    // LOGD("extra time-consuming memcpy to mpp, size=%d!\n", size);
     memcpy(mpp_buffer_get_ptr(buffer), ptr, size);
     // sync between cpu and device if cached?
   }

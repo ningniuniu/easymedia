@@ -21,6 +21,8 @@
 
 #include "rga.h"
 
+#include <assert.h>
+
 #include <vector>
 
 #include <rga/RockchipRga.h>
@@ -74,9 +76,31 @@ int RgaFilter::Process(std::shared_ptr<MediaBuffer> input,
     return -EINVAL;
   if (!output || (output && output->GetType() != Type::Image))
     return -EINVAL;
-  return rga_blit(std::static_pointer_cast<easymedia::ImageBuffer>(input),
-                  std::static_pointer_cast<easymedia::ImageBuffer>(output),
-                  &vec_rect[0], &vec_rect[1], rotate);
+
+  auto src = std::static_pointer_cast<easymedia::ImageBuffer>(input);
+  ImageRect *src_rect = nullptr;
+  if (vec_rect[0].w > 0 && vec_rect[0].h > 0)
+    src_rect = &vec_rect[0];
+  auto dst = std::static_pointer_cast<easymedia::ImageBuffer>(output);
+  ImageRect *dst_rect = nullptr;
+  if (vec_rect[1].w > 0 && vec_rect[1].h > 0)
+    dst_rect = &vec_rect[1];
+  if (!dst_rect && !dst->IsValid()) {
+    // the same to src
+    ImageInfo info = src->GetImageInfo();
+    info.pix_fmt = dst->GetPixelFormat();
+    size_t size = CalPixFmtSize(info);
+    if (size == 0)
+      return -EINVAL;
+    auto &&mb = MediaBuffer::Alloc2(size, MediaBuffer::MemType::MEM_HARD_WARE);
+    ImageBuffer ib(mb, info);
+    if (ib.GetSize() >= size) {
+      ib.SetValidSize(size);
+      *dst.get() = ib;
+    }
+    assert(dst->IsValid());
+  }
+  return rga_blit(src, dst, src_rect, dst_rect, rotate);
 }
 
 static int get_rga_format(PixelFormat f) {
@@ -124,7 +148,7 @@ int rga_blit(std::shared_ptr<ImageBuffer> src, std::shared_ptr<ImageBuffer> dst,
                  get_rga_format(src->GetPixelFormat()));
 
   memset(&dst_info, 0, sizeof(dst_info));
-  dst_info.fd = src->GetFD();
+  dst_info.fd = dst->GetFD();
   if (dst_info.fd < 0)
     dst_info.virAddr = dst->GetPtr();
   dst_info.mmuFlag = 1;
@@ -139,8 +163,9 @@ int rga_blit(std::shared_ptr<ImageBuffer> src, std::shared_ptr<ImageBuffer> dst,
 
   int ret = RgaFilter::gRkRga.RkRgaBlit(&src_info, &dst_info, NULL);
   if (ret)
-    LOG("RkRgaBlit ret = %d\n", ret);
-
+    LOG("Fail to RkRgaBlit, ret=%d\n", ret);
+  else
+    dst->SetTimeStamp(src->GetTimeStamp());
   return ret;
 }
 

@@ -42,18 +42,18 @@ private:
   bool support_async;
   Model thread_model;
   PixelFormat input_pix_fmt; // a hack for rga copy yuyv, by set fake rgb565
-  std::vector<std::shared_ptr<MediaBuffer>> out_buffers;
-  size_t out_index;
+  ImageInfo out_img_info;
 
   friend bool do_filters(Flow *f, MediaBufferVector &input_vector);
 };
 
 FilterFlow::FilterFlow(const char *param)
     : support_async(true), thread_model(Model::NONE),
-      input_pix_fmt(PIX_FMT_NONE), out_index(0) {
-  std::list<std::string> separate_list;
-  if (!parse_media_param_list(param, separate_list, ' ') ||
-      separate_list.size() != 2) {
+      input_pix_fmt(PIX_FMT_NONE) {
+  memset(&out_img_info, 0, sizeof(out_img_info));
+  out_img_info.pix_fmt = PIX_FMT_NONE;
+  std::list<std::string> &&separate_list = ParseFlowParamToList(param);
+  if (separate_list.empty()) {
     SetError(-EINVAL);
     return;
   }
@@ -62,6 +62,7 @@ FilterFlow::FilterFlow(const char *param)
     SetError(-EINVAL);
     return;
   }
+  separate_list.pop_front();
   std::string &name = params[KEY_NAME];
   if (name.empty()) {
     LOG("missing filter name\n");
@@ -71,14 +72,12 @@ FilterFlow::FilterFlow(const char *param)
   const char *filter_name = name.c_str();
   // check input/output type
   std::string &&rule = gen_datatype_rule(params);
-  if (rule.empty()) {
-    SetError(-EINVAL);
-    return;
-  }
-  if (!REFLECTOR(Filter)::IsMatch(filter_name, rule.c_str())) {
-    LOG("Unsupport for filter %s : [%s]\n", filter_name, rule.c_str());
-    SetError(-EINVAL);
-    return;
+  if (!rule.empty()) {
+    if (!REFLECTOR(Filter)::IsMatch(filter_name, rule.c_str())) {
+      LOG("Unsupport for filter %s : [%s]\n", filter_name, rule.c_str());
+      SetError(-EINVAL);
+      return;
+    }
   }
   input_pix_fmt = GetPixFmtByString(params[KEY_INPUTDATATYPE].c_str());
   SlotMap sm;
@@ -90,15 +89,8 @@ FilterFlow::FilterFlow(const char *param)
   thread_model = sm.thread_model;
   if (sm.mode_when_full == InputMode::NONE)
     sm.mode_when_full = InputMode::DROPCURRENT;
-
-  std::string &filter_param = separate_list.back();
-  std::list<std::string> param_list;
-  if (!parse_media_param_list(filter_param.c_str(), param_list)) {
-    SetError(-EINVAL);
-    return;
-  }
   int input_idx = 0;
-  for (auto &param_str : param_list) {
+  for (auto &param_str : separate_list) {
     auto filter =
         REFLECTOR(Filter)::Create<Filter>(filter_name, param_str.c_str());
     if (!filter) {
@@ -119,36 +111,17 @@ FilterFlow::FilterFlow(const char *param)
   }
   if (filters[0]->SendInput(nullptr) == -1 && errno == ENOSYS) {
     support_async = false;
+    if (!ParseImageInfoFromMap(params, out_img_info, false)) {
+      if (filters.size() > 1) {
+        LOG("missing out image info for multi filters\n");
+        SetError(-EINVAL);
+        return;
+      }
+    }
   } else {
     LOG_TODO();
     SetError(-EINVAL);
     return;
-  }
-  if (!support_async) {
-    ImageInfo info;
-    if (!ParseImageInfoFromMap(params, info, false)) {
-      SetError(-EINVAL);
-      return;
-    }
-    int out_cache_num = 2;
-    const std::string &str_ocn = params[KEY_OUTPUT_CACHE_NUM];
-    if (!str_ocn.empty()) {
-      out_cache_num = std::stoi(str_ocn);
-      if (out_cache_num <= 0)
-        out_cache_num = 2;
-    }
-    for (int i = 0; i < out_cache_num; i++) {
-      size_t size = CalPixFmtSize(info);
-      auto &&mb =
-          MediaBuffer::Alloc2(size, MediaBuffer::MemType::MEM_HARD_WARE);
-      auto out_buffer = std::make_shared<ImageBuffer>(mb, info);
-      if (!out_buffer || out_buffer->GetSize() < size) {
-        SetError(-ENOMEM);
-        return;
-      }
-      out_buffer->SetValidSize(size);
-      out_buffers.push_back(out_buffer);
-    }
   }
 }
 
@@ -159,14 +132,40 @@ bool do_filters(Flow *f, MediaBufferVector &input_vector) {
   bool has_valid_input = false;
   std::shared_ptr<Filter> last_filter;
   assert(flow->filters.size() == input_vector.size());
+  for (auto &in : input_vector) {
+    if (in) {
+      has_valid_input = true;
+      break;
+    }
+  }
+  if (!has_valid_input)
+    return false;
+  std::shared_ptr<MediaBuffer> out_buffer;
+  if (!flow->support_async) {
+    const auto &info = flow->out_img_info;
+    if (info.pix_fmt == PIX_FMT_NONE) {
+      out_buffer = std::make_shared<MediaBuffer>();
+    } else {
+      if (info.vir_width > 0 && info.vir_height > 0) {
+        size_t size = CalPixFmtSize(info);
+        auto &&mb =
+            MediaBuffer::Alloc2(size, MediaBuffer::MemType::MEM_HARD_WARE);
+        out_buffer = std::make_shared<ImageBuffer>(mb, info);
+      } else {
+        auto ib = std::make_shared<ImageBuffer>();
+        if (ib) {
+          ib->GetImageInfo().pix_fmt = info.pix_fmt;
+          out_buffer = ib;
+        }
+      }
+    }
+  }
   for (auto &filter : flow->filters) {
     auto &in = input_vector[i];
     if (!in) {
       i++;
       continue;
     }
-    if (!has_valid_input)
-      has_valid_input = true;
     last_filter = filter;
     if (flow->input_pix_fmt != PIX_FMT_NONE && in->GetType() == Type::Image) {
       auto in_img = std::static_pointer_cast<ImageBuffer>(in);
@@ -189,26 +188,25 @@ bool do_filters(Flow *f, MediaBufferVector &input_vector) {
       if (ret == -EAGAIN)
         flow->SendInput(in, i);
     } else {
-      if (filter->Process(in, flow->out_buffers[flow->out_index]))
+      if (filter->Process(in, out_buffer))
         return false;
     }
     i++;
   }
-  if (!has_valid_input)
-    return true;
+  bool ret = false;
   if (!flow->support_async) {
-    flow->SetOutput(flow->out_buffers[flow->out_index], 0);
-    if (++flow->out_index >= flow->out_buffers.size())
-      flow->out_index = 0;
-  } else if (flow->thread_model == Model::SYNC) {
+    ret = flow->SetOutput(out_buffer, 0);
+  } else {
+    // flow->thread_model == Model::SYNC;
     do {
       auto out = last_filter->FetchOutput();
       if (!out)
         break;
-      flow->SetOutput(out, 0);
+      if (flow->SetOutput(out, 0))
+        ret = true;
     } while (true);
   }
-  return true;
+  return ret;
 }
 
 DEFINE_FLOW_FACTORY(FilterFlow, Flow)

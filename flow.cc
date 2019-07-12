@@ -65,12 +65,11 @@ private:
   MediaBufferVector in_vector;
   decltype(&FlowCoroutine::SyncFetchInput) fetch_input_func;
   decltype(&FlowCoroutine::SendBufferDown) send_down_func;
-#ifdef DEBUG
+#ifndef NDEBUG
 public:
   void SetMarkName(std::string s) { name = s; }
   void SetExpectProcessTime(int time) { expect_process_time = time; }
 
-private:
   std::string name;
   int expect_process_time; // ms
 #endif
@@ -79,7 +78,7 @@ private:
 FlowCoroutine::FlowCoroutine(Flow *f, Model sync_model, FunctionProcess func,
                              float inter)
     : flow(f), model(sync_model), interval(inter), th(nullptr), th_run(func)
-#ifdef DEBUG
+#ifndef NDEBUG
       ,
       expect_process_time(0)
 #endif
@@ -91,7 +90,7 @@ FlowCoroutine::~FlowCoroutine() {
     th->join();
     delete th;
   }
-#ifdef DEBUG
+#ifndef NDEBUG
   LOG("%s quit\n", name.c_str());
 #endif
 }
@@ -137,7 +136,7 @@ bool FlowCoroutine::Start() {
   return true;
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
 static void check_consume_time(const char *name, int expect, int exactly) {
   if (exactly > expect) {
     LOG("%s, expect consume %d ms, however %d ms\n", name, expect, exactly);
@@ -148,12 +147,12 @@ static void check_consume_time(const char *name, int expect, int exactly) {
 void FlowCoroutine::RunOnce() {
   bool ret;
   (this->*fetch_input_func)(in_vector);
-#ifdef DEBUG
+#ifndef NDEBUG
   {
     AutoDuration ad;
 #endif
     ret = (*th_run)(flow, in_vector);
-#ifdef DEBUG
+#ifndef NDEBUG
     if (expect_process_time > 0)
       check_consume_time(name.c_str(), expect_process_time,
                          (int)(ad.Get() / 1000));
@@ -208,8 +207,13 @@ void FlowCoroutine::ASyncFetchInputCommon(MediaBufferVector &in) {
     auto &input = flow->v_input[idx];
     AutoLockMutex _am(input.cond_mtx);
     auto &v = input.cached_buffers;
-    if (v.empty())
+    if (v.empty()) {
+      if (!input.fetch_block) {
+        in[i] = nullptr;
+        continue;
+      }
       input.cond_mtx.wait();
+    }
     if (!flow->enable) {
       in.assign(in_slots.size(), nullptr);
       break;
@@ -256,10 +260,11 @@ void FlowCoroutine::SendBufferDownFromDeque(
     return;
   }
   assert(!fm.cached_buffers.empty());
-  auto buffer = fm.cached_buffers.front();
-  fm.cached_buffers.pop_front();
-  for (auto &f : flows)
-    f.flow->SendInput(buffer, f.index_of_in);
+  for (auto &buffer : fm.cached_buffers) {
+    for (auto &f : flows)
+      f.flow->SendInput(buffer, f.index_of_in);
+  }
+  fm.cached_buffers.clear();
 }
 
 DEFINE_REFLECTOR(Flow)
@@ -334,12 +339,13 @@ Flow::Input::Input(Input &&in) {
   }
 }
 
-void Flow::Input::Init(Flow *f, Model m, int mcn, InputMode im,
+void Flow::Input::Init(Flow *f, Model m, int mcn, InputMode im, bool f_block,
                        std::shared_ptr<FlowCoroutine> fc) {
   assert(!valid);
   valid = true;
   flow = f;
   thread_model = m;
+  fetch_block = f_block;
   max_cache_num = mcn;
   mode_when_full = im;
   switch (m) {
@@ -439,11 +445,15 @@ bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
     if ((int)v_input.size() <= max_idx)
       v_input.resize(max_idx + 1);
     for (size_t i = 0; i < in_slots.size(); i++) {
-      v_input[in_slots[i]].Init(this, map.thread_model,
-                                (map.thread_model == Model::ASYNCCOMMON)
-                                    ? map.input_maxcachenum[i]
-                                    : 0,
-                                map.mode_when_full, c);
+      v_input[in_slots[i]].Init(
+          this, map.thread_model,
+          (map.thread_model == Model::ASYNCCOMMON) ? map.input_maxcachenum[i]
+                                                   : 0,
+          map.mode_when_full,
+          (map.thread_model == Model::ASYNCCOMMON && map.fetch_block.size() > i)
+              ? map.fetch_block[i]
+              : true,
+          c);
       input_slot_num++;
     }
   }
@@ -456,7 +466,7 @@ bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
       out_slot_num++;
     }
   }
-#ifdef DEBUG
+#ifndef NDEBUG
   c->SetMarkName(mark);
   c->SetExpectProcessTime(exp_process_time);
 #else
@@ -525,7 +535,7 @@ void Flow::RemoveDownFlow(std::shared_ptr<Flow> down) {
 }
 
 void Flow::SendInput(std::shared_ptr<MediaBuffer> &input, int in_slot_index) {
-#ifdef DEBUG
+#ifndef NDEBUG
   if (in_slot_index < 0 || in_slot_index >= input_slot_num) {
     errno = EINVAL;
     return;
@@ -537,18 +547,20 @@ void Flow::SendInput(std::shared_ptr<MediaBuffer> &input, int in_slot_index) {
   }
 }
 
-void Flow::SetOutput(const std::shared_ptr<MediaBuffer> &output,
+bool Flow::SetOutput(const std::shared_ptr<MediaBuffer> &output,
                      int out_slot_index) {
-#ifdef DEBUG
+#ifndef NDEBUG
   if (out_slot_index < 0 || out_slot_index >= out_slot_num) {
     errno = EINVAL;
-    return;
+    return false;
   }
 #endif
   if (enable) {
     auto &out = downflowmap[out_slot_index];
     CALL_MEMBER_FN(out, out.set_output_behavior)(output);
+    return true;
   }
+  return false;
 }
 
 void Flow::Input::SyncSendInputBehavior(std::shared_ptr<MediaBuffer> &input) {
@@ -648,6 +660,27 @@ void ParseParamToSlotMap(std::map<std::string, std::string> &params,
       LOG("warning, input cache num = %d\n", cache_num);
     input_maxcachenum = cache_num;
   }
+}
+
+std::string JoinFlowParam(const std::string &flow_param, size_t num_elem, ...) {
+  std::string ret;
+  ret.append(flow_param);
+  va_list va;
+  va_start(va, num_elem);
+  while (num_elem--) {
+    const std::string &elem_param = va_arg(va, const std::string);
+    ret.append(1, FLOW_PARAM_SEPARATE_CHAR).append(elem_param);
+  }
+  va_end(va);
+  return std::move(ret);
+}
+
+std::list<std::string> ParseFlowParamToList(const char *param) {
+  std::list<std::string> separate_list;
+  if (!parse_media_param_list(param, separate_list, FLOW_PARAM_SEPARATE_CHAR) ||
+      separate_list.size() < 2)
+    separate_list.clear();
+  return std::move(separate_list);
 }
 
 } // namespace easymedia
