@@ -26,24 +26,24 @@
 namespace easymedia {
 
 LockMutex::LockMutex()
-#ifdef DEBUG
+#ifndef NDEBUG
     : lock_times(0)
 #endif
 {
 }
 LockMutex::~LockMutex() {
-#ifdef DEBUG
+#ifndef NDEBUG
   assert(lock_times == 0 && "mutex lock/unlock mismatch");
 #endif
 }
 
 void LockMutex::locktimeinc() {
-#ifdef DEBUG
+#ifndef NDEBUG
   lock_times++;
 #endif
 }
 void LockMutex::locktimedec() {
-#ifdef DEBUG
+#ifndef NDEBUG
   lock_times--;
 #endif
 }

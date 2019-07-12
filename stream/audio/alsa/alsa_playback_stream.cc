@@ -130,7 +130,7 @@ static int ALSA_finalize_hardware(snd_pcm_t *pcm_handle, uint32_t samples,
     goto err;
   }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   if (bufsize != samples * sample_size) {
     LOG("warning: bufsize != samples * %d; %lu != %u * %d\n", sample_size,
         bufsize, samples, sample_size);
@@ -142,7 +142,7 @@ static int ALSA_finalize_hardware(snd_pcm_t *pcm_handle, uint32_t samples,
 
 err:
   snd_pcm_hw_params_get_period_size(hwparams, period_size, NULL);
-#ifdef DEBUG
+#ifndef NDEBUG
   /* This is useful for debugging */
   do {
     unsigned int periods = 0;

@@ -872,7 +872,7 @@ const std::string &GetStringOfDRMFmts() { return priv_types.types; }
 
 DRMDevice::DRMDevice(const std::string &drm_path)
     : fd(-1)
-#ifdef DEBUG
+#ifndef NDEBUG
       ,
       path(drm_path)
 #endif

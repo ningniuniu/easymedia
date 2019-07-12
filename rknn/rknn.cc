@@ -84,7 +84,8 @@ static uint8_t *load_model(const char *filename, int *model_size) {
     fclose(fp);
     return nullptr;
   }
-  uint8_t *model = (uint8_t *)malloc(model_len);
+  // there is a buffer overflow buggy on librknn_runtime.so, malloc more
+  uint8_t *model = (uint8_t *)malloc(model_len + 1024);
   if (model) {
     fseek(fp, 0, SEEK_SET);
     if (model_len != (long)fread(model, 1, model_len, fp)) {

@@ -103,7 +103,7 @@ snd_pcm_t *AlsaCommonOpenSetHwParams(const char *device,
     LOG("Couldn't get hardware config: %s\n", snd_strerror(status));
     goto err;
   }
-#ifdef DEBUG
+#ifndef NDEBUG
   {
     snd_output_t *log = NULL;
     snd_output_stdio_attach(&log, stderr, 0);

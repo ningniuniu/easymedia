@@ -38,7 +38,7 @@ public:
   virtual void notify() = 0;
   void locktimeinc();
   void locktimedec();
-#ifdef DEBUG
+#ifndef NDEBUG
 protected:
   int lock_times;
 #endif

@@ -202,7 +202,7 @@ int DRMStream::Close() {
 }
 
 bool DRMStream::GetAgreeableIDSet() {
-#ifdef DEBUG
+#ifndef NDEBUG
   dump_suitable_ids(res);
 #endif
   // get an agreeable set of ids, but may be not the most suitable one

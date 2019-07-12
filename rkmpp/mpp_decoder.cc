@@ -29,19 +29,23 @@
 namespace easymedia {
 
 MPPDecoder::MPPDecoder(const char *param)
-    : fg_limit_num(kFRAMEGROUP_MAX_FRAMES), need_split(1),
-      timeout(MPP_POLL_NON_BLOCK), coding_type(MPP_VIDEO_CodingUnused),
-      support_sync(false) {
+    : output_format(PIX_FMT_NONE), fg_limit_num(kFRAMEGROUP_MAX_FRAMES),
+      need_split(1), timeout(MPP_POLL_NON_BLOCK),
+      coding_type(MPP_VIDEO_CodingUnused), support_sync(true),
+      support_async(true) {
   MediaConfig &cfg = GetConfig();
   ImageInfo &img_info = cfg.img_cfg.image_info;
   img_info.pix_fmt = PIX_FMT_NONE;
   std::map<std::string, std::string> params;
   std::list<std::pair<const std::string, std::string &>> req_list;
+  std::string output_data_type;
   std::string limit_max_frame_num;
   std::string split_mode;
   std::string stimeout;
   req_list.push_back(std::pair<const std::string, std::string &>(
       KEY_INPUTDATATYPE, input_data_type));
+  req_list.push_back(std::pair<const std::string, std::string &>(
+      KEY_OUTPUTDATATYPE, output_data_type));
   req_list.push_back(std::pair<const std::string, std::string &>(
       KEY_MPP_GROUP_MAX_FRAMES, limit_max_frame_num));
   req_list.push_back(std::pair<const std::string, std::string &>(
@@ -52,14 +56,19 @@ MPPDecoder::MPPDecoder(const char *param)
   int ret = parse_media_param_match(param, params, req_list);
   if (ret == 0 || input_data_type.empty()) {
     LOG("missing %s\n", KEY_INPUTDATATYPE);
-    errno = EINVAL;
     return;
+  }
+  if (!output_data_type.empty()) {
+    output_format = GetPixFmtByString(output_data_type.c_str());
+    if (output_format == PIX_FMT_NONE) {
+      LOG("invalid output format %s\n", output_data_type.c_str());
+      return;
+    }
   }
   if (!limit_max_frame_num.empty()) {
     fg_limit_num = std::stoi(limit_max_frame_num);
     if (fg_limit_num > 0 && fg_limit_num <= 3) {
       LOG("invalid framegroup limit frame num: %d\n", fg_limit_num);
-      errno = EINVAL;
       return;
     }
   }
@@ -85,8 +94,10 @@ bool MPPDecoder::Init() {
   coding_type = get_codingtype(input_data_type);
   if (coding_type == MPP_VIDEO_CodingUnused)
     return false;
-  if (coding_type == MPP_VIDEO_CodingMJPEG)
-    support_sync = true;
+  if (coding_type == MPP_VIDEO_CodingMJPEG) {
+    // now mpp jpegd can not be async
+    support_async = false;
+  }
   mpp_ctx = std::make_shared<MPPContext>();
   if (!mpp_ctx)
     return false;
@@ -146,6 +157,19 @@ bool MPPDecoder::Init() {
     LOG("mpi set group limit = %d\n", fg_limit_num);
   }
 
+  if (coding_type == MPP_VIDEO_CodingMJPEG && output_format != PIX_FMT_NONE) {
+    auto oformat = ConvertToMppPixFmt(output_format);
+    if (oformat < 0) {
+      LOG("unsupport set output format=%s\n", PixFmtToString(output_format));
+      return false;
+    }
+    ret = mpi->control(ctx, MPP_DEC_SET_OUTPUT_FORMAT, &oformat);
+    if (ret != MPP_OK) {
+      LOG("Failed to set output format (ret = %d)\n", ret);
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -195,6 +219,7 @@ static int SetImageBufferWithMppFrame(std::shared_ptr<ImageBuffer> ib,
     }
     ib->SetFD(mpp_buffer_get_fd(buffer));
     ib->SetPtr(mpp_buffer_get_ptr(buffer));
+    assert(size <= mpp_buffer_get_size(buffer));
     ib->SetSize(mpp_buffer_get_size(buffer));
     ib->SetUserData(ctx, __free_mppframecontext);
   } else {
@@ -202,7 +227,7 @@ static int SetImageBufferWithMppFrame(std::shared_ptr<ImageBuffer> ib,
     if (!ib->IsHwBuffer()) {
       void *ptr = ib->GetPtr();
       assert(ptr);
-      LOG("extra time-consuming memcpy to cpu!\n");
+      LOGD("extra time-consuming memcpy to cpu!\n");
       memcpy(ptr, mpp_buffer_get_ptr(buffer), size);
       // sync to cpu?
     }
@@ -218,8 +243,10 @@ static int SetImageBufferWithMppFrame(std::shared_ptr<ImageBuffer> ib,
 int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
                         std::shared_ptr<MediaBuffer> output,
                         std::shared_ptr<MediaBuffer> extra_output _UNUSED) {
-  if (!support_sync)
+  if (!support_sync) {
+    errno = ENOSYS;
     return -ENOSYS;
+  }
 
   if (!input || !input->IsValid())
     return 0;
@@ -238,13 +265,13 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
   MppFrame frame_out = NULL;
   MppCtx ctx = mpp_ctx->ctx;
   MppApi *mpi = mpp_ctx->mpi;
+  size_t output_buffer_size = 0;
 
   ret = init_mpp_buffer_with_content(mpp_buf, input);
-  if (ret) {
+  if (ret || !mpp_buf) {
     LOG("Failed to init MPP buffer with content (ret = %d)\n", ret);
     return -EFAULT;
   }
-  assert(mpp_buf);
   ret = mpp_packet_init_with_buffer(&packet, mpp_buf);
   mpp_buffer_put(mpp_buf);
   mpp_buf = NULL;
@@ -253,16 +280,91 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
     goto out;
   }
   assert(packet);
+  mpp_packet_set_length(packet, input->GetValidSize());
+  mpp_packet_set_pts(packet, input->GetTimeStamp());
   if (input->IsEOF()) {
     LOG("send eos packet to MPP\n");
     mpp_packet_set_eos(packet);
   }
-  if (output->GetSize() == 0) {
-    LOG("TODO: mpp need external output buffer now\n");
-    goto out;
+  output_buffer_size = output->GetSize();
+  if (output_buffer_size == 0 || !output->IsHwBuffer()) {
+    if (coding_type == MPP_VIDEO_CodingMJPEG) {
+      // parse width and height
+      int a;
+      uint8_t *buffer = static_cast<uint8_t *>(input->GetPtr());
+      size_t buffer_size = input->GetValidSize();
+      size_t pos = 0;
+      int w = 0, h = 0;
+      if (buffer_size < 4)
+        goto out;
+      a = (int)buffer[pos++];
+      if (a != 0xFF || buffer[pos++] != 0xD8) {
+        LOG("input is not jpeg\n");
+        goto out;
+      }
+      for (;;) {
+        int marker = 0;
+        uint16_t itemlen;
+        uint16_t ll, lh;
+        if (pos > buffer_size - 1)
+          break;
+        for (a = 0; a <= 16 && pos < buffer_size - 1; a++) {
+          marker = (int)buffer[pos++];
+          if (marker != 0xff)
+            break;
+          if (a >= 16) {
+            LOG("too many padding bytes\n");
+            goto out;
+          }
+        }
+        if (marker == 0xD9)
+          break;
+        if (pos > buffer_size - 2)
+          break;
+        lh = (uint16_t)buffer[pos++];
+        ll = (uint16_t)buffer[pos++];
+        itemlen = (lh << 8) | ll;
+        if (itemlen < 2) {
+          LOG("invalid marker\n");
+          goto out;
+        }
+        if (pos + itemlen - 2 > buffer_size) {
+          LOG("Premature end of jpeg?\n");
+          goto out;
+        }
+        if (((marker >> 4) ^ 0xC) == 0) {
+          // LOGD("got marker 0x%02X\n", marker);
+          if (pos + 5 > buffer_size) {
+            LOG("Invalid Section Marker 0x%02X\n", marker);
+            goto out;
+          }
+          lh = (uint16_t)buffer[pos + 1];
+          ll = (uint16_t)buffer[pos + 2];
+          h = (lh << 8) | ll;
+          lh = (uint16_t)buffer[pos + 3];
+          ll = (uint16_t)buffer[pos + 4];
+          w = (lh << 8) | ll;
+          // LOGD("input w/h: %d, %d\n", w, h);
+          break;
+        }
+        pos += itemlen - 2;
+      }
+      if (w == 0 && h == 0) {
+        LOG("can not get width and height of jpeg\n");
+        goto out;
+      }
+      auto fmt = output_format;
+      if (fmt == PIX_FMT_NONE)
+        fmt = PIX_FMT_ARGB8888;
+      output_buffer_size = CalPixFmtSize(fmt, UPALIGNTO16(w), UPALIGNTO16(h)) +
+                           UPALIGNTO16(w) * UPALIGNTO16(h) / 2;
+    } else {
+      LOG("TODO: mpp need external output buffer now\n");
+      goto out;
+    }
   }
-  ret = init_mpp_buffer(mpp_buf, output, output->GetSize());
-  if (ret) {
+  ret = init_mpp_buffer(mpp_buf, output, output_buffer_size);
+  if (ret || !mpp_buf) {
     LOG("Failed to init MPP buffer (ret = %d)\n", ret);
     goto out;
   }
@@ -332,7 +434,11 @@ out:
   return -EFAULT;
 }
 
-int MPPDecoder::SendInput(std::shared_ptr<MediaBuffer> input _UNUSED) {
+int MPPDecoder::SendInput(std::shared_ptr<MediaBuffer> input) {
+  if (!support_async) {
+    errno = ENOSYS;
+    return -ENOSYS;
+  }
   if (!input)
     return 0;
   int fret = 0;
@@ -373,8 +479,8 @@ std::shared_ptr<MediaBuffer> MPPDecoder::FetchOutput() {
   MPP_RET ret = mpi->decode_get_frame(ctx, &mppframe);
   errno = 0;
   if (ret != MPP_OK) {
-    // MPP_ERR_TIMEOUT
-    LOG("Failed to get a frame from MPP (ret = %d)\n", ret);
+    if (ret != MPP_ERR_TIMEOUT)
+      LOG("Failed to get a frame from MPP (ret = %d)\n", ret);
     return nullptr;
   }
   if (!mppframe) {

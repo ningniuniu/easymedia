@@ -224,7 +224,7 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
       // !!time-consuming operation
       void *ptr = output->GetPtr();
       assert(ptr);
-      LOG("extra time-consuming memcpy to cpu!\n");
+      LOGD("extra time-consuming memcpy to cpu!\n");
       memcpy(ptr, mpp_packet_get_data(packet), packet_len);
       // sync to cpu?
     }

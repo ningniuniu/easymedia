@@ -69,11 +69,11 @@ bool encode(Flow *f, MediaBufferVector &input_vector) {
     LOG("encoder failed\n");
     return false;
   }
-  vf->SetOutput(dst, 0);
+  bool ret = vf->SetOutput(dst, 0);
   if (vf->extra_output)
-    vf->SetOutput(extra_dst, 1);
+    ret &= vf->SetOutput(extra_dst, 1);
 
-  return true;
+  return ret;
 }
 
 VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {

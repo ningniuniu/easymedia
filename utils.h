@@ -28,7 +28,13 @@
 #define _LOCAL __attribute__((visibility("hidden")))
 #define _API __attribute__((visibility("default")))
 
+#ifndef NDEBUG
 _API void LOG(const char *format, ...);
+_API void LOGD(const char *format, ...);
+#else
+#define LOG(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
+#define LOGD(...)
+#endif
 
 #define LOG_NO_MEMORY()                                                        \
   fprintf(stderr, "No memory %s: %d\n", __FUNCTION__, __LINE__)
@@ -128,6 +134,10 @@ inline int xioctl(Ioctl_f f, int fd, int request, void *argp) {
   return r;
 }
 
+#ifndef NDEBUG
+_API bool DumpToFile(std::string path, const char *ptr, size_t len);
+#endif
+
 class AutoDuration {
 public:
   AutoDuration() { Reset(); }
@@ -147,7 +157,7 @@ private:
 #define CALL_MEMBER_FN(object, ptrToMember) ((object).*(ptrToMember))
 
 class AutoPrintLine {
-#ifdef DEBUG
+#ifndef NDEBUG
 public:
   AutoPrintLine(const char *f) : func(f) { LOG("Enter %s\n", f); }
   ~AutoPrintLine() { LOG("Exit %s\n", func); }

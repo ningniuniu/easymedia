@@ -125,7 +125,7 @@ int AlsaCaptureStream::Open() {
     LOG("cannot set parameters (%s)\n", snd_strerror(status));
     goto err;
   }
-#ifdef DEBUG
+#ifndef NDEBUG
   /* This is useful for debugging */
   do {
     unsigned int periods = 0;

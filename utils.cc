@@ -27,6 +27,13 @@
 #include <algorithm>
 #include <sstream>
 
+static void LogPrintf(const char *prefix, const char *fmt, va_list vl) {
+  char line[1024];
+  fprintf(stderr, "%s", (char *)prefix);
+  vsnprintf(line, sizeof(line), fmt, vl);
+  fprintf(stderr, "%s", line);
+}
+
 void LOG(const char *format, ...) {
   char line[1024];
   va_list vl;
@@ -34,6 +41,13 @@ void LOG(const char *format, ...) {
   vsnprintf(line, sizeof(line), format, vl);
   va_end(vl);
   fprintf(stderr, "%s", line);
+}
+
+void LOGD(const char *format, ...) {
+  va_list vl;
+  va_start(vl, format);
+  LogPrintf("Debug - ", format, vl);
+  va_end(vl);
 }
 
 namespace easymedia {
@@ -126,4 +140,22 @@ bool string_end_withs(std::string const &fullString,
   }
 }
 
-}; // namespace easymedia
+#ifndef NDEBUG
+
+#include <fcntl.h>
+#include <unistd.h>
+
+bool DumpToFile(std::string path, const char *ptr, size_t len) {
+  int fd = open(path.c_str(), O_CREAT | O_WRONLY | O_FSYNC);
+  if (fd < 0) {
+    LOG("Fail to open %s\n", path.c_str());
+    return false;
+  }
+  write(fd, ptr, len);
+  close(fd);
+  return true;
+}
+
+#endif // #ifndef NDEBUG
+
+} // namespace easymedia
