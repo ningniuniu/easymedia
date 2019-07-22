@@ -33,7 +33,7 @@ _API void LOG(const char *format, ...);
 _API void LOGD(const char *format, ...);
 #else
 #define LOG(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
-#define LOGD(...)
+#define LOGD(...) fprintf(stderr, format, ##__VA_ARGS__)
 #endif
 
 #define LOG_NO_MEMORY()                                                        \

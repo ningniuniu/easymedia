@@ -122,7 +122,7 @@ bool FlowCoroutine::Start() {
     send_down_func = &FlowCoroutine::SendBufferDown;
     break;
   default:
-    LOG("invalid model %d\n", model);
+    LOG("invalid model %d\n", (int)model);
     return false;
   }
   in_vector.resize(in_slots.size());
@@ -411,7 +411,7 @@ bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
     if (i >= (int)v_input.size())
       continue;
     if (v_input[i].valid) {
-      LOG("input slot %d has been set\n");
+      LOG("input slot %d has been set\n", i);
       ret = false;
     }
   }
@@ -425,7 +425,7 @@ bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
     if (i >= (int)downflowmap.size())
       continue;
     if (downflowmap[i].valid) {
-      LOG("output slot %d has been set\n");
+      LOG("output slot %d has been set\n", i);
       ret = false;
     }
   }

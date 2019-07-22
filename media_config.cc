@@ -38,7 +38,7 @@ bool ParseMediaConfigFromMap(std::map<std::string, std::string> &params,
   bool video_in = string_start_withs(value, VIDEO_PREFIX);
   bool audio_in = string_start_withs(value, AUDIO_PREFIX);
   if (!image_in && !video_in && !audio_in) {
-    LOG("unsupport outtype %d\n", value.c_str());
+    LOG("unsupport outtype %s\n", value.c_str());
     return false;
   }
   ImageInfo info;
@@ -130,7 +130,7 @@ std::string to_param_string(const MediaConfig &mc,
   bool video_in = string_start_withs(out_type, VIDEO_PREFIX);
   bool audio_in = string_start_withs(out_type, AUDIO_PREFIX);
   if (!image_in && !video_in && !audio_in) {
-    LOG("unsupport outtype %d\n", out_type.c_str());
+    LOG("unsupport outtype %s\n", out_type.c_str());
     return ret;
   }
 

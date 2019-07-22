@@ -110,7 +110,7 @@ bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
   CHECK_EMPTY(value, params, type)
   info.pix_fmt = GetPixFmtByString(value.c_str());
   if (info.pix_fmt == PIX_FMT_NONE) {
-    LOG("unsupport pix fmt %d\n", value.c_str());
+    LOG("unsupport pix fmt %s\n", value.c_str());
     return false;
   }
   CHECK_EMPTY(value, params, KEY_BUFFER_WIDTH)
