@@ -332,7 +332,8 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
           LOG("Premature end of jpeg?\n");
           goto out;
         }
-        if (((marker >> 4) ^ 0xC) == 0) {
+        if (((marker >> 4) ^ 0xC) == 0 &&
+            marker != 0xC4 && marker != 0xC8 && marker != 0xCC) {
           // LOGD("got marker 0x%02X\n", marker);
           if (pos + 5 > buffer_size) {
             LOG("Invalid Section Marker 0x%02X\n", marker);
