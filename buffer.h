@@ -93,7 +93,7 @@ public:
       userdata.reset();
     }
   }
-
+  void SetUserData(std::shared_ptr<void> user_data) { userdata = user_data; }
   std::shared_ptr<void> GetUserData() { return userdata; }
 
   bool IsValid() { return valid_size > 0; }
