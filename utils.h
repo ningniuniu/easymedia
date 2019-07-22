@@ -28,12 +28,11 @@
 #define _LOCAL __attribute__((visibility("hidden")))
 #define _API __attribute__((visibility("default")))
 
+#define LOG(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
 #ifndef NDEBUG
-_API void LOG(const char *format, ...);
 _API void LOGD(const char *format, ...);
 #else
-#define LOG(format, ...) fprintf(stderr, format, ##__VA_ARGS__)
-#define LOGD(...) fprintf(stderr, format, ##__VA_ARGS__)
+#define LOGD(...)
 #endif
 
 #define LOG_NO_MEMORY()                                                        \
@@ -159,8 +158,8 @@ private:
 class AutoPrintLine {
 #ifndef NDEBUG
 public:
-  AutoPrintLine(const char *f) : func(f) { LOG("Enter %s\n", f); }
-  ~AutoPrintLine() { LOG("Exit %s\n", func); }
+  AutoPrintLine(const char *f) : func(f) { LOGD("Enter %s\n", f); }
+  ~AutoPrintLine() { LOGD("Exit %s\n", func); }
 
 private:
   const char *func;

@@ -35,15 +35,6 @@ static void LogPrintf(const char *prefix, const char *fmt, va_list vl) {
   fprintf(stderr, "%s", line);
 }
 
-void LOG(const char *format, ...) {
-  char line[1024];
-  va_list vl;
-  va_start(vl, format);
-  vsnprintf(line, sizeof(line), format, vl);
-  va_end(vl);
-  fprintf(stderr, "%s", line);
-}
-
 void LOGD(const char *format, ...) {
   va_list vl;
   va_start(vl, format);

@@ -170,7 +170,8 @@ static int ALSA_set_period_size(snd_pcm_t *pcm_handle, uint32_t samples,
   status = snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, &frames,
                                                   NULL);
   if (status < 0) {
-    LOG("Couldn't set period size<%d> : %s\n", frames, snd_strerror(status));
+    LOG("Couldn't set period size<%d> : %s\n", (int)frames,
+        snd_strerror(status));
     return -1;
   }
 
@@ -207,7 +208,8 @@ static int ALSA_set_buffer_size(snd_pcm_t *pcm_handle, uint32_t samples,
   status =
       snd_pcm_hw_params_set_buffer_size_near(pcm_handle, hwparams, &frames);
   if (status < 0) {
-    LOG("Couldn't set buffer size<%d> : %s\n", frames, snd_strerror(status));
+    LOG("Couldn't set buffer size<%d> : %s\n", (int)frames,
+        snd_strerror(status));
     return -1;
   }
 
@@ -259,8 +261,8 @@ int AlsaPlayBackStream::Open() {
   }
   status = snd_pcm_sw_params_set_avail_min(pcm_handle, swparams, period_size);
   if (status < 0) {
-    LOG("Couldn't set minimum available period_size <%d>: %s\n", period_size,
-        snd_strerror(status));
+    LOG("Couldn't set minimum available period_size <%d>: %s\n",
+        (int)period_size, snd_strerror(status));
     goto err;
   }
   status = snd_pcm_sw_params_set_start_threshold(pcm_handle, swparams, 0);

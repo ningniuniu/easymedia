@@ -267,7 +267,8 @@ int DRMOutPutStream::IoCtrl(unsigned long int request, ...) {
     if (!support_scale && ((dst_rect.w != 0 && rect->w != dst_rect.w) ||
                            (dst_rect.h != 0 && rect->h != dst_rect.h))) {
       LOG("plane[%d] do not support scale, the source rect should the same to "
-          "the destination rect\n");
+          "the destination rect\n",
+          plane_id);
       return -1;
     }
     DRM_ATOMIC_ADD_PROP_EXTRA(-1, {
@@ -287,7 +288,8 @@ int DRMOutPutStream::IoCtrl(unsigned long int request, ...) {
     if (!support_scale && ((src_rect.w != 0 && rect->w != src_rect.w) ||
                            (src_rect.h != 0 && rect->h != src_rect.h))) {
       LOG("plane[%d] do not support scale, the destination rect should the "
-          "same to the source rect\n");
+          "same to the source rect\n",
+          plane_id);
       return -1;
     }
     DRM_ATOMIC_ADD_PROP_EXTRA(-1, {
@@ -304,7 +306,8 @@ int DRMOutPutStream::IoCtrl(unsigned long int request, ...) {
     ImageRect *rect = (static_cast<ImageRect *>(arg));
     if (!support_scale && (rect[0].w != rect[1].w || rect[0].h != rect[1].h)) {
       LOG("plane[%d] do not support scale, input source rect and destination "
-          "rect should be the same\n");
+          "rect should be the same\n",
+          plane_id);
       return -1;
     }
     DRM_ATOMIC_ADD_PROP_EXTRA(-1, {
