@@ -81,7 +81,7 @@ bool MPPJpegEncoder::InitConfig(const MediaConfig &cfg) {
 
   ret = EncodeControl(MPP_ENC_SET_CODEC_CFG, &codec_cfg);
   if (ret) {
-    LOG("mpi control enc set codec cfg failed\n", ret);
+    LOG("mpi control enc set codec cfg failed, ret=%d\n", ret);
     return false;
   }
 
@@ -110,7 +110,7 @@ bool MPPJpegEncoder::CheckConfigChange(
 
     ret = EncodeControl(MPP_ENC_SET_CODEC_CFG, &codec_cfg);
     if (ret) {
-      LOG("mpi control enc change codec cfg failed\n", ret);
+      LOG("mpi control enc change codec cfg failed, ret=%d\n", ret);
       return false;
     }
 

@@ -143,7 +143,7 @@ std::shared_ptr<MediaBuffer> OggVorbisDemuxer::Read(size_t request_size) {
   } else if (ret == 0) {
     sb->SetEOF(true);
   } else if (ret < 0) {
-    LOG("ov_read failed: ret=%d\n", ret);
+    LOG("ov_read failed: ret=%d\n", (int)ret);
     ret = 0;
   }
   sb->SetValidSize(ret);

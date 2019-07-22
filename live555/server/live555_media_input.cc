@@ -173,9 +173,9 @@ h264_packet_reduction(std::list<std::shared_ptr<MediaBuffer>> &mb_list) {
     if (!(b->GetUserFlag() & MediaBuffer::kExtraIntra))
       break;
   }
-  LOG("h264 reduction before, num: %d \n", mb_list.size());
+  LOG("h264 reduction before, num: %d \n", (int)mb_list.size());
   mb_list.erase(iter, (++i).base());
-  LOG("h264 reduction after, num: %d \n", mb_list.size());
+  LOG("h264 reduction after, num: %d \n", (int)mb_list.size());
 }
 
 Boolean Live555MediaInput::initVideo(UsageEnvironment &env _UNUSED) {
@@ -216,7 +216,7 @@ Live555MediaInput::Source::~Source() {
     ::close(wakeFds[1]);
     wakeFds[1] = -1;
   }
-  LOG("remain %d buffers, will auto release\n", cached_buffers.size());
+  LOG("remain %d buffers, will auto release\n", (int)cached_buffers.size());
 }
 
 bool Live555MediaInput::Source::Init(ListReductionPtr func) {
