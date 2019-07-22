@@ -153,7 +153,7 @@ void FileReadFlow::ReadThreadRun() {
     if (read_size) {
       size = fstream->Read(buffer->GetPtr(), 1, read_size);
       if (size != read_size && !fstream->Eof()) {
-        LOG("read get %d != expect %d\n", size, read_size);
+        LOG("read get %d != expect %d\n", (int)size, (int)read_size);
         SetDisable();
         break;
       }

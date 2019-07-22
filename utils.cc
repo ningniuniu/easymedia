@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <sstream>
 
+#ifndef NDEBUG
 static void LogPrintf(const char *prefix, const char *fmt, va_list vl) {
   char line[1024];
   fprintf(stderr, "%s", (char *)prefix);
@@ -49,6 +50,7 @@ void LOGD(const char *format, ...) {
   LogPrintf("Debug - ", format, vl);
   va_end(vl);
 }
+#endif // #ifndef NDEBUG
 
 namespace easymedia {
 
