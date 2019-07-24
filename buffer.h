@@ -168,6 +168,10 @@ public:
   ImageBuffer(const MediaBuffer &buffer, const ImageInfo &info)
       : MediaBuffer(buffer), image_info(info) {
     SetType(Type::Image);
+    // if set a valid info, set valid size
+    size_t s = CalPixFmtSize(info);
+    if (s > 0)
+      SetValidSize(s);
   }
   virtual ~ImageBuffer() = default;
   virtual PixelFormat GetPixelFormat() const override {
