@@ -317,7 +317,7 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
             goto out;
           }
         }
-        if (marker == 0xD9)
+        if (marker == 0xD9 || marker == 0xDA)
           break;
         if (pos > buffer_size - 2)
           break;
@@ -379,8 +379,7 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
     mpp_buffer_put(mpp_buf);
     mpp_buf = NULL;
   }
-
-  ret = mpi->poll(ctx, MPP_PORT_INPUT, MPP_POLL_BLOCK);
+  ret = mpi->poll(ctx, MPP_PORT_INPUT, MPP_POLL_MAX);
   if (ret) {
     LOG("mpp input poll failed (ret = %d)\n", ret);
     goto out;
@@ -399,7 +398,7 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
     LOG("mpp task input enqueue failed (ret = %d)\n", ret);
     goto out;
   }
-  ret = mpi->poll(ctx, MPP_PORT_OUTPUT, MPP_POLL_BLOCK);
+  ret = mpi->poll(ctx, MPP_PORT_OUTPUT, (MppPollType)timeout);
   if (ret) {
     LOG("mpp output poll failed (ret = %d)\n", ret);
     goto out;

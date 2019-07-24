@@ -259,7 +259,8 @@ void FlowCoroutine::SendBufferDownFromDeque(
     SendNullBufferDown(flows);
     return;
   }
-  assert(!fm.cached_buffers.empty());
+  if (fm.cached_buffers.empty())
+    return;
   for (auto &buffer : fm.cached_buffers) {
     for (auto &f : flows)
       f.flow->SendInput(buffer, f.index_of_in);

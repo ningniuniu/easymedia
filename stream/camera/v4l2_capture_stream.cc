@@ -334,11 +334,13 @@ std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
   struct timeval buf_ts = buf.timestamp;
   MediaBuffer &mb = buffer_vec[buf.index];
   std::shared_ptr<MediaBuffer> ret_buf;
-  if (pix_fmt != PIX_FMT_NONE) {
-    ImageInfo info{pix_fmt, width, height, width, height};
-    ret_buf = std::make_shared<AutoQBUFImageBuffer>(mb, info, v4l2_ctx, buf);
-  } else {
-    ret_buf = std::make_shared<AutoQBUFMediaBuffer>(mb, v4l2_ctx, buf);
+  if (buf.bytesused > 0) {
+    if (pix_fmt != PIX_FMT_NONE) {
+      ImageInfo info{pix_fmt, width, height, width, height};
+      ret_buf = std::make_shared<AutoQBUFImageBuffer>(mb, info, v4l2_ctx, buf);
+    } else {
+      ret_buf = std::make_shared<AutoQBUFMediaBuffer>(mb, v4l2_ctx, buf);
+    }
   }
   if (ret_buf) {
     assert(ret_buf->GetFD() == mb.GetFD());
@@ -346,7 +348,6 @@ std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
       assert(ret_buf->GetFD() == buf.m.fd);
     }
     ret_buf->SetTimeStamp(buf_ts.tv_sec * 1000LL + buf_ts.tv_usec / 1000LL);
-    assert(buf.bytesused > 0);
     ret_buf->SetValidSize(buf.bytesused);
   } else {
     if (IoCtrl(VIDIOC_QBUF, &buf) < 0)
