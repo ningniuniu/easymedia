@@ -74,7 +74,7 @@ int RgaFilter::Process(std::shared_ptr<MediaBuffer> input,
     return -EINVAL;
   if (!input || input->GetType() != Type::Image)
     return -EINVAL;
-  if (!output || (output && output->GetType() != Type::Image))
+  if (!output || output->GetType() != Type::Image)
     return -EINVAL;
 
   auto src = std::static_pointer_cast<easymedia::ImageBuffer>(input);
@@ -85,6 +85,7 @@ int RgaFilter::Process(std::shared_ptr<MediaBuffer> input,
   ImageRect *dst_rect = nullptr;
   if (vec_rect[1].w > 0 && vec_rect[1].h > 0)
     dst_rect = &vec_rect[1];
+  assert(!dst_rect || (dst_rect && dst->IsValid()));
   if (!dst_rect && !dst->IsValid()) {
     // the same to src
     ImageInfo info = src->GetImageInfo();
