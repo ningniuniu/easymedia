@@ -104,10 +104,15 @@ bool do_decode(Flow *f, MediaBufferVector &input_vector) {
   bool ret = false;
   std::shared_ptr<MediaBuffer> output;
   if (flow->support_async) {
-    if (decoder->SendInput(in) == -EAGAIN) {
-      flow->SendInput(in, 0);
+    int send_ret = 0;
+    do {
+      send_ret = decoder->SendInput(in);
+      if (send_ret != -EAGAIN)
+        break;
+      msleep(5);
+    } while (true);
+    if (send_ret)
       return false;
-    }
     do {
       output = decoder->FetchOutput();
       if (!output)

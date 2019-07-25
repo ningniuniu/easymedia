@@ -113,7 +113,7 @@ protected:
     void SetOutputToQueueBehavior(const std::shared_ptr<MediaBuffer> &output);
 
   public:
-    FlowMap() : valid(false) {}
+    FlowMap() : valid(false) { assert(list_mtx.valid); }
     FlowMap(FlowMap &&);
     void Init(Model m);
     bool valid;
@@ -121,7 +121,7 @@ protected:
     void AddFlow(std::shared_ptr<Flow> flow, int index);
     void RemoveFlow(std::shared_ptr<Flow> flow);
     std::list<FlowInputMap> flows;
-    std::mutex list_mtx;
+    ReadWriteLockMutex list_mtx;
     std::deque<std::shared_ptr<MediaBuffer>> cached_buffers; // never drop
     std::shared_ptr<MediaBuffer> cached_buffer;
     decltype(&FlowMap::SetOutputBehavior) set_output_behavior;

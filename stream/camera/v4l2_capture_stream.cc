@@ -253,6 +253,7 @@ int V4L2CaptureStream::Open() {
       mb.SetPtr(ptr);
       buffer->length = buf.length;
       mb.SetSize(buf.length);
+      LOGD("query buf.length=%d\n", (int)buf.length);
     }
     for (size_t i = 0; i < req.count; ++i) {
       struct v4l2_buffer buf;

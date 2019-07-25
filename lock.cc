@@ -21,7 +21,7 @@
 
 #include "lock.h"
 
-#include <assert.h>
+#include <stdio.h>
 
 namespace easymedia {
 
@@ -58,6 +58,34 @@ void ConditionLockMutex::unlock() {
 }
 void ConditionLockMutex::wait() { cond.wait(mtx); }
 void ConditionLockMutex::notify() { cond.notify_all(); }
+
+ReadWriteLockMutex::ReadWriteLockMutex() : valid(true) {
+  int ret = pthread_rwlock_init(&rwlock, NULL);
+  if (ret) {
+    fprintf(stderr, "Fail to pthread_rwlock_init\n");
+    valid = false;
+  }
+}
+ReadWriteLockMutex::~ReadWriteLockMutex() {
+  if (valid)
+    pthread_rwlock_destroy(&rwlock);
+}
+void ReadWriteLockMutex::lock() {
+  // write lock
+  if (valid)
+    pthread_rwlock_wrlock(&rwlock);
+  locktimeinc();
+}
+void ReadWriteLockMutex::unlock() {
+  locktimedec();
+  if (valid)
+    pthread_rwlock_unlock(&rwlock);
+}
+void ReadWriteLockMutex::read_lock() {
+  if (valid)
+    pthread_rwlock_rdlock(&rwlock);
+  locktimeinc();
+}
 
 SpinLockMutex::SpinLockMutex() : flag(ATOMIC_FLAG_INIT) {}
 void SpinLockMutex::lock() {

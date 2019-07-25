@@ -90,9 +90,7 @@ FlowCoroutine::~FlowCoroutine() {
     th->join();
     delete th;
   }
-#ifndef NDEBUG
-  LOG("%s quit\n", name.c_str());
-#endif
+  LOGD("%s quit\n", name.c_str());
 }
 
 void FlowCoroutine::Bind(std::vector<int> &in, std::vector<int> &out) {
@@ -163,7 +161,7 @@ void FlowCoroutine::RunOnce() {
   for (int idx : out_slots) {
     auto &fm = flow->downflowmap[idx];
     std::list<Flow::FlowInputMap> flows;
-    fm.list_mtx.lock();
+    fm.list_mtx.read_lock();
     flows = fm.flows;
     fm.list_mtx.unlock();
     (this->*send_down_func)(fm, flows, ret);
@@ -399,6 +397,8 @@ bool Flow::SetAsSource(const std::vector<int> &input_slots,
 
 bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
                           int exp_process_time) {
+  LOGD("%s, thread_model=%d, mode_when_full=%d\n", mark.c_str(),
+       map.thread_model, map.mode_when_full);
   // parameters validity check
   auto &in_slots = map.input_slots;
   if (in_slots.size() > 1 && map.thread_model == Model::SYNC) {
@@ -479,7 +479,7 @@ bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
 }
 
 void Flow::FlowMap::AddFlow(std::shared_ptr<Flow> flow, int index) {
-  std::lock_guard<std::mutex> _lg(list_mtx);
+  AutoLockMutex _lg(list_mtx);
   auto i = std::find(flows.begin(), flows.end(), flow);
   if (i != flows.end()) {
     LOG("repeatedly add, update index\n");
@@ -491,7 +491,7 @@ void Flow::FlowMap::AddFlow(std::shared_ptr<Flow> flow, int index) {
 }
 
 void Flow::FlowMap::RemoveFlow(std::shared_ptr<Flow> flow) {
-  std::lock_guard<std::mutex> _lg(list_mtx);
+  AutoLockMutex _lg(list_mtx);
   flows.remove_if([&flow](FlowInputMap &fm) { return fm == flow; });
 }
 
@@ -522,6 +522,8 @@ bool Flow::AddDownFlow(std::shared_ptr<Flow> down, int out_slot_index,
 void Flow::RemoveDownFlow(std::shared_ptr<Flow> down) {
   if (out_slot_num <= 0 || (int)downflowmap.size() != out_slot_num)
     return;
+  // if (down->down_flow_num > 0)
+  //   LOG("the removing flow has down flows, remove them first\n");
   for (auto &dm : downflowmap) {
     if (!dm.valid)
       continue;
