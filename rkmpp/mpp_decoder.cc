@@ -288,10 +288,10 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
   }
   output_buffer_size = output->GetSize();
   if (output_buffer_size == 0 || !output->IsHwBuffer()) {
-    if (coding_type == MPP_VIDEO_CodingMJPEG) {
+    uint8_t *buffer = static_cast<uint8_t *>(input->GetPtr());
+    if (coding_type == MPP_VIDEO_CodingMJPEG && buffer) {
       // parse width and height
       int a;
-      uint8_t *buffer = static_cast<uint8_t *>(input->GetPtr());
       size_t buffer_size = input->GetValidSize();
       size_t pos = 0;
       int w = 0, h = 0;
