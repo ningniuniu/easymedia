@@ -382,7 +382,7 @@ bool DRMOutPutStream::Write(std::shared_ptr<MediaBuffer> input) {
   uint32_t disp_fb_id = 0;
   auto disp =
       std::make_shared<DRMDisplayBuffer>(input_img, fd, drm_fmt, num, den);
-  if (!disp || (disp_fb_id = disp_buffer->GetFBID()))
+  if (!disp || (disp_fb_id = disp->GetFBID()) == 0)
     return false;
   int ret = 0;
   if (0) {
