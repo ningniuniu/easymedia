@@ -102,6 +102,14 @@ public:
   ~DRMDisplayBuffer() {
     if (fb_id > 0)
       drmModeRmFB(drm_fd, fb_id);
+    if (handle > 0) {
+      struct drm_mode_destroy_dumb data = {
+          .handle = handle,
+      };
+      int ret = drmIoctl(drm_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &data);
+      if (ret)
+        LOG("Failed to free drm handle <%d>: %m\n", handle);
+    }
   }
   uint32_t GetFBID() { return fb_id; }
 
