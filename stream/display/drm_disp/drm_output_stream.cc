@@ -65,7 +65,6 @@ public:
       offsets[1] = pitches[0] * h;
       break;
     case DRM_FORMAT_RGB332:
-      w = w * num / den;
       handles[0] = handle;
       pitches[0] = w;
       offsets[0] = 0;
@@ -94,12 +93,23 @@ public:
     }
     ret = drmModeAddFB2(drm_fd, w, h, drm_fmt, handles, pitches, offsets,
                         &fb_id, 0);
-    if (ret)
+    if (ret) {
       LOG("Fail to drmModeAddFB2, ret=%d, %m\n", ret);
+      LOG("num/den=%d/%d, w=%d, h=%d, drm_fmt=%c%c%c%c\n", num, den, w, h,
+          DUMP_FOURCC(drm_fmt));
+    }
   }
   ~DRMDisplayBuffer() {
     if (fb_id > 0)
       drmModeRmFB(drm_fd, fb_id);
+    if (handle > 0) {
+      struct drm_mode_destroy_dumb data = {
+          .handle = handle,
+      };
+      int ret = drmIoctl(drm_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &data);
+      if (ret)
+        LOG("Failed to free drm handle <%d>: %m\n", handle);
+    }
   }
   uint32_t GetFBID() { return fb_id; }
 
@@ -187,11 +197,12 @@ int DRMOutPutStream::Open() {
     auto fb = std::make_shared<ImageBuffer>(mb, img_info);
     if (!fb)
       return -1;
+    uint32_t disp_fb_id = 0;
     disp_buffer = std::make_shared<DRMDisplayBuffer>(fb, fd, drm_fmt);
-    if (!disp_buffer)
+    if (!disp_buffer || (disp_fb_id = disp_buffer->GetFBID()) == 0)
       return -1;
-    ret = drmModeSetCrtc(fd, crtc_id, disp_buffer->GetFBID(), 0, 0,
-                         &connector_id, 1, &cur_mode);
+    ret = drmModeSetCrtc(fd, crtc_id, disp_fb_id, 0, 0, &connector_id, 1,
+                         &cur_mode);
     if (ret) {
       LOG("Fail to set crtc, ret=%d, %m\n", ret);
       return -1;
@@ -376,19 +387,19 @@ bool DRMOutPutStream::Write(std::shared_ptr<MediaBuffer> input) {
     num = in_num * drm_den;
     den = in_den * drm_num;
   }
+  uint32_t disp_fb_id = 0;
   auto disp =
       std::make_shared<DRMDisplayBuffer>(input_img, fd, drm_fmt, num, den);
-  if (!disp)
+  if (!disp || (disp_fb_id = disp->GetFBID()) == 0)
     return false;
   int ret = 0;
   if (0) {
-    ret = drmModeSetPlane(fd, plane_id, crtc_id, disp->GetFBID(), 0, dst_rect.x,
+    ret = drmModeSetPlane(fd, plane_id, crtc_id, disp_fb_id, 0, dst_rect.x,
                           dst_rect.y, dst_rect.w, dst_rect.h, src_rect.x << 16,
                           src_rect.y << 16, src_rect.w << 16, src_rect.h << 16);
   } else {
     DRM_ATOMIC_ADD_PROP_EXTRA(
-        false,
-        DRM_ATOMIC_ADD_PROP(plane_id, plane_prop_ids.fb_id, disp->GetFBID());)
+        false, DRM_ATOMIC_ADD_PROP(plane_id, plane_prop_ids.fb_id, disp_fb_id);)
   }
   if (!ret) {
     disp_buffer = disp;
