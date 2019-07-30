@@ -163,10 +163,12 @@ int rga_blit(std::shared_ptr<ImageBuffer> src, std::shared_ptr<ImageBuffer> dst,
                  get_rga_format(dst->GetPixelFormat()));
 
   int ret = RgaFilter::gRkRga.RkRgaBlit(&src_info, &dst_info, NULL);
-  if (ret)
+  if (ret) {
     LOG("Fail to RkRgaBlit, ret=%d\n", ret);
-  else
-    dst->SetTimeStamp(src->GetTimeStamp());
+  } else {
+    if (src->GetTimeStamp() > dst->GetTimeStamp())
+      dst->SetTimeStamp(src->GetTimeStamp());
+  }
   return ret;
 }
 

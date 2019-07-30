@@ -350,7 +350,7 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
         }
         pos += itemlen - 2;
       }
-      if (w == 0 && h == 0) {
+      if (w == 0 || h == 0) {
         LOG("can not get width and height of jpeg\n");
         goto out;
       }
@@ -413,11 +413,13 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
     goto out;
   mpp_task_meta_get_frame(task, KEY_OUTPUT_FRAME, &frame_out);
   assert(frame_out == frame); // one in, one out
-  if (mpp_frame_get_errinfo(frame_out))
-    goto out;
   ret = mpi->enqueue(ctx, MPP_PORT_OUTPUT, task);
   if (ret)
     LOG("mpp task output enqueue failed\n");
+  if (mpp_frame_get_errinfo(frame_out)) {
+    LOG("Received a errinfo frame.\n");
+    goto out;
+  }
   if (SetImageBufferWithMppFrame(std::static_pointer_cast<ImageBuffer>(output),
                                  mpp_ctx, frame))
     goto out;
