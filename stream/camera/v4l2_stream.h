@@ -26,7 +26,7 @@
 
 #include <assert.h>
 
-#include <atomic>
+#include <mutex>
 
 #include "v4l2_utils.h"
 
@@ -46,7 +46,8 @@ private:
   int fd;
   enum v4l2_buf_type capture_type;
   v4l2_io io_func;
-  std::atomic_bool started;
+  std::mutex mtx;
+  volatile bool started;
 };
 
 class V4L2Stream : public Stream {

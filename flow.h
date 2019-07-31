@@ -32,6 +32,8 @@
 #include <type_traits>
 #include <vector>
 
+#include "control.h"
+
 namespace easymedia {
 
 DECLARE_FACTORY(Flow)
@@ -91,6 +93,10 @@ public:
 
   // The Control must be called in the same thread to that create flow
   virtual int Control(unsigned long int request _UNUSED, ...) { return -1; }
+  virtual int SubControl(unsigned long int request, void *arg) {
+    SubRequest subreq = {request, arg};
+    return Control(S_SUB_REQUEST, &subreq);
+  }
 
   // The global event hander is the same thread to the born thread of this
   // object.

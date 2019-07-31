@@ -91,6 +91,9 @@ SourceStreamFlow::SourceStreamFlow(const char *param)
 
 SourceStreamFlow::~SourceStreamFlow() {
   StopAllThread();
+  int stop = 1;
+  if (stream && Control(S_STREAM_OFF, &stop))
+    LOG("Fail to stop source stream\n");
   if (read_thread) {
     source_start_cond_mtx->lock();
     loop = false;

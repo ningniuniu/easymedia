@@ -23,6 +23,8 @@
 
 #include <fcntl.h>
 
+#include "control.h"
+
 namespace easymedia {
 
 V4L2Context::V4L2Context(enum v4l2_buf_type cap_type, v4l2_io vio,
@@ -42,6 +44,7 @@ V4L2Context::~V4L2Context() {
 }
 
 bool V4L2Context::SetStarted(bool val) {
+  std::lock_guard<std::mutex> _lk(mtx);
   if (started == val)
     return true;
   enum v4l2_buf_type cap_type = capture_type;
@@ -105,7 +108,10 @@ int V4L2Stream::Open() {
 }
 
 int V4L2Stream::Close() {
-  v4l2_ctx = nullptr; // release reference
+  if (v4l2_ctx) {
+    v4l2_ctx->SetStarted(false);
+    v4l2_ctx = nullptr; // release reference
+  }
   fd = -1;
   return 0;
 }
@@ -115,7 +121,16 @@ int V4L2Stream::IoCtrl(unsigned long int request, ...) {
   va_start(vl, request);
   void *arg = va_arg(vl, void *);
   va_end(vl);
-  return V4L2IoCtl(&vio, fd, request, arg);
+  switch (request) {
+  case S_SUB_REQUEST: {
+    auto sub = (SubRequest *)arg;
+    return V4L2IoCtl(&vio, fd, sub->sub_request, sub->arg);
+  }
+  case S_STREAM_OFF: {
+    return v4l2_ctx->SetStarted(false) ? 0 : -1;
+  }
+  }
+  return -1;
 }
 
 } // namespace easymedia

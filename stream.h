@@ -38,6 +38,7 @@ typedef struct {
 }
 #endif
 
+#include "control.h"
 #include "image.h"
 #include "media_reflector.h"
 
@@ -89,6 +90,10 @@ public:
   virtual bool Write(std::shared_ptr<MediaBuffer>) { return false; }
   // The IoCtrl must be called in the same thread of Read()/Write()
   virtual int IoCtrl(unsigned long int request _UNUSED, ...) { return -1; }
+  virtual int SubIoCtrl(unsigned long int request _UNUSED, void *arg) {
+    SubRequest subreq = {request, arg};
+    return IoCtrl(S_SUB_REQUEST, &subreq);
+  }
 
   // read data as image by ImageInfo
   bool ReadImage(void *ptr, const ImageInfo &info);
