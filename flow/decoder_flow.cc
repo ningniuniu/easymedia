@@ -48,23 +48,13 @@ private:
 
 VideoDecoderFlow::VideoDecoderFlow(const char *param)
     : support_async(true), thread_model(Model::NONE), out_index(0) {
-  std::list<std::string> &&separate_list = ParseFlowParamToList(param);
-  if (separate_list.empty()) {
-    SetError(-EINVAL);
-    return;
-  }
+  std::list<std::string> separate_list;
   std::map<std::string, std::string> params;
-  if (!parse_media_param_map(separate_list.front().c_str(), params)) {
+  if (!ParseWrapFlowParams(param, params, separate_list)) {
     SetError(-EINVAL);
     return;
   }
-  separate_list.pop_front();
   std::string &name = params[KEY_NAME];
-  if (name.empty()) {
-    LOG("missing decoder name\n");
-    SetError(-EINVAL);
-    return;
-  }
   const char *decoder_name = name.c_str();
   const std::string &decode_param = separate_list.back();
   decoder = REFLECTOR(Decoder)::Create<VideoDecoder>(decoder_name,

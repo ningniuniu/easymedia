@@ -99,7 +99,7 @@ int V4L2CaptureStream::BufferExport(enum v4l2_buf_type bt, int index,
   memset(&expbuf, 0, sizeof(expbuf));
   expbuf.type = bt;
   expbuf.index = index;
-  if (IoCtrl(VIDIOC_EXPBUF, &expbuf) == -1) {
+  if (v4l2_ctx->IoCtrl(VIDIOC_EXPBUF, &expbuf) == -1) {
     LOG("VIDIOC_EXPBUF  %d failed, %m", index);
     return -1;
   }
@@ -140,7 +140,7 @@ int V4L2CaptureStream::Open() {
 
   struct v4l2_capability cap;
   memset(&cap, 0, sizeof(cap));
-  if (IoCtrl(VIDIOC_QUERYCAP, &cap) < 0) {
+  if (v4l2_ctx->IoCtrl(VIDIOC_QUERYCAP, &cap) < 0) {
     LOG("Failed to ioctl(VIDIOC_QUERYCAP): %m\n");
     return -1;
   }
@@ -166,7 +166,7 @@ int V4L2CaptureStream::Open() {
     LOG("unsupport input format : %s\n", data_type_str);
     return -1;
   }
-  if (IoCtrl(VIDIOC_S_FMT, &fmt) < 0) {
+  if (v4l2_ctx->IoCtrl(VIDIOC_S_FMT, &fmt) < 0) {
     LOG("%s, s fmt failed(cap type=%d, %c%c%c%c), %m\n", dev, capture_type,
         DUMP_FOURCC(fmt.fmt.pix.pixelformat));
     return -1;
@@ -191,7 +191,7 @@ int V4L2CaptureStream::Open() {
   req.type = capture_type;
   req.count = loop_num;
   req.memory = memory_type;
-  if (IoCtrl(VIDIOC_REQBUFS, &req) < 0) {
+  if (v4l2_ctx->IoCtrl(VIDIOC_REQBUFS, &req) < 0) {
     LOG("%s, count=%d, ioctl(VIDIOC_REQBUFS): %m\n", dev, loop_num);
     return -1;
   }
@@ -216,7 +216,7 @@ int V4L2CaptureStream::Open() {
       buffer_vec.push_back(buffer);
       buf.m.fd = buffer.GetFD();
       buf.length = buffer.GetSize();
-      if (IoCtrl(VIDIOC_QBUF, &buf) < 0) {
+      if (v4l2_ctx->IoCtrl(VIDIOC_QBUF, &buf) < 0) {
         LOG("%s ioctl(VIDIOC_QBUF): %m\n", dev);
         return -1;
       }
@@ -237,7 +237,7 @@ int V4L2CaptureStream::Open() {
       buf.type = req.type;
       buf.index = i;
       buf.memory = req.memory;
-      if (IoCtrl(VIDIOC_QUERYBUF, &buf) < 0) {
+      if (v4l2_ctx->IoCtrl(VIDIOC_QUERYBUF, &buf) < 0) {
         LOG("%s ioctl(VIDIOC_QUERYBUF): %m\n", dev);
         return -1;
       }
@@ -263,7 +263,7 @@ int V4L2CaptureStream::Open() {
       buf.type = req.type;
       buf.memory = req.memory;
       buf.index = i;
-      if (IoCtrl(VIDIOC_QBUF, &buf) < 0) {
+      if (v4l2_ctx->IoCtrl(VIDIOC_QBUF, &buf) < 0) {
         LOG("%s, ioctl(VIDIOC_QBUF): %m\n", dev);
         return -1;
       }
@@ -327,7 +327,7 @@ std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
   memset(&buf, 0, sizeof(buf));
   buf.type = capture_type;
   buf.memory = memory_type;
-  int ret = IoCtrl(VIDIOC_DQBUF, &buf);
+  int ret = v4l2_ctx->IoCtrl(VIDIOC_DQBUF, &buf);
   if (ret < 0) {
     LOG("%s, ioctl(VIDIOC_DQBUF): %m\n", dev);
     return nullptr;
@@ -351,7 +351,7 @@ std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
     ret_buf->SetTimeStamp(buf_ts.tv_sec * 1000LL + buf_ts.tv_usec / 1000LL);
     ret_buf->SetValidSize(buf.bytesused);
   } else {
-    if (IoCtrl(VIDIOC_QBUF, &buf) < 0)
+    if (v4l2_ctx->IoCtrl(VIDIOC_QBUF, &buf) < 0)
       LOG("%s, index=%d, ioctl(VIDIOC_QBUF): %m\n", dev, buf.index);
   }
 

@@ -118,12 +118,12 @@ MPPContext::~MPPContext() {
     mpi->reset(ctx);
     mpp_destroy(ctx);
     ctx = NULL;
-    LOG("mpp destroy ctx done");
+    LOG("mpp destroy ctx done\n");
   }
   if (frame_group) {
     mpp_buffer_group_put(frame_group);
     frame_group = NULL;
-    LOG("mpp buffer group free done");
+    LOG("mpp buffer group free done\n");
   }
 }
 

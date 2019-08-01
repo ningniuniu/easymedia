@@ -31,9 +31,14 @@ typedef struct {
   uint64_t value;
 } DRMPropertyArg;
 
+typedef struct {
+  unsigned long int sub_request;
+  void *arg;
+} SubRequest;
+
 enum {
-  S_FIRST_CONTROL = 10000, // 10000 may be enough larger than other value of
-                           // other libraries or kernel modules
+  S_FIRST_CONTROL = 10000,
+  S_SUB_REQUEST, // many devices have their kernel controls
   // ImageRect
   S_SOURCE_RECT,
   S_DESTINATION_RECT,
@@ -45,6 +50,8 @@ enum {
   // DRMPropertyArg
   S_CRTC_PROPERTY,
   S_CONNECTOR_PROPERTY,
+  // any type
+  S_STREAM_OFF,
 };
 
 } // namespace easymedia

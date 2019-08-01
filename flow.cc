@@ -566,6 +566,22 @@ bool Flow::SetOutput(const std::shared_ptr<MediaBuffer> &output,
   return false;
 }
 
+bool Flow::ParseWrapFlowParams(const char *param,
+                               std::map<std::string, std::string> &flow_params,
+                               std::list<std::string> &sub_param_list) {
+  sub_param_list = ParseFlowParamToList(param);
+  if (sub_param_list.empty())
+    return false;
+  if (!parse_media_param_map(sub_param_list.front().c_str(), flow_params))
+    return false;
+  sub_param_list.pop_front();
+  if (flow_params[KEY_NAME].empty()) {
+    LOG("missing key name\n");
+    return false;
+  }
+  return true;
+}
+
 void Flow::Input::SyncSendInputBehavior(std::shared_ptr<MediaBuffer> &input) {
   cached_buffer = input;
   coroutine->RunOnce();
@@ -663,6 +679,13 @@ void ParseParamToSlotMap(std::map<std::string, std::string> &params,
       LOG("warning, input cache num = %d\n", cache_num);
     input_maxcachenum = cache_num;
   }
+}
+
+void FlowOutputHoldInput(std::shared_ptr<MediaBuffer> &out_buffer,
+                         const MediaBufferVector &input_vector) {
+  assert(out_buffer);
+  for (size_t i = 0; i < input_vector.size(); i++)
+    out_buffer->SetRelatedSPtr(input_vector[i], i);
 }
 
 std::string JoinFlowParam(const std::string &flow_param, size_t num_elem, ...) {

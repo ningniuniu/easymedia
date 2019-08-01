@@ -32,6 +32,8 @@
 #include <type_traits>
 #include <vector>
 
+#include "control.h"
+
 namespace easymedia {
 
 DECLARE_FACTORY(Flow)
@@ -91,6 +93,10 @@ public:
 
   // The Control must be called in the same thread to that create flow
   virtual int Control(unsigned long int request _UNUSED, ...) { return -1; }
+  virtual int SubControl(unsigned long int request, void *arg) {
+    SubRequest subreq = {request, arg};
+    return Control(S_SUB_REQUEST, &subreq);
+  }
 
   // The global event hander is the same thread to the born thread of this
   // object.
@@ -174,6 +180,9 @@ protected:
                       int exp_process_time);
   bool SetOutput(const std::shared_ptr<MediaBuffer> &output,
                  int out_slot_index);
+  bool ParseWrapFlowParams(const char *param,
+                           std::map<std::string, std::string> &flow_params,
+                           std::list<std::string> &sub_param_list);
   // As sub threads may call the variable of child class,
   // we should define this for child class when it deconstruct.
   void StopAllThread();
@@ -200,6 +209,8 @@ Model GetModelByString(const std::string &model);
 InputMode GetInputModelByString(const std::string &in_model);
 void ParseParamToSlotMap(std::map<std::string, std::string> &params,
                          SlotMap &sm, int &input_maxcachenum);
+void FlowOutputHoldInput(std::shared_ptr<MediaBuffer> &out_buffer,
+                         const MediaBufferVector &input_vector);
 
 // the separator of flow params and flow core element params
 #define FLOW_PARAM_SEPARATE_CHAR ' '
