@@ -112,7 +112,7 @@ if(WARNINGS_AS_ERRORS)
   endif()
 endif(WARNINGS_AS_ERRORS)
 
-option(SANITIZER "compile with sanitizer" ON)
+option(SANITIZER "compile with sanitizer" OFF)
 option(FILTER "compile: filter" ON)
 option(ENCODER "compile: encoder" ON)
 option(DECODER "compile: decoder" ON)

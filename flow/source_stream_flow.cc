@@ -51,22 +51,12 @@ private:
 SourceStreamFlow::SourceStreamFlow(const char *param)
     : loop(false), read_thread(nullptr) {
   std::list<std::string> separate_list;
-  if (!parse_media_param_list(param, separate_list, ' ') ||
-      separate_list.size() != 2) {
-    SetError(-EINVAL);
-    return;
-  }
   std::map<std::string, std::string> params;
-  if (!parse_media_param_map(separate_list.front().c_str(), params)) {
+  if (!ParseWrapFlowParams(param, params, separate_list)) {
     SetError(-EINVAL);
     return;
   }
   std::string &name = params[KEY_NAME];
-  if (name.empty()) {
-    LOG("missing stream name\n");
-    SetError(-EINVAL);
-    return;
-  }
   const char *stream_name = name.c_str();
   const std::string &stream_param = separate_list.back();
   stream = REFLECTOR(Stream)::Create<Stream>(stream_name, stream_param.c_str());

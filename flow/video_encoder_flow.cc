@@ -77,6 +77,7 @@ bool encode(Flow *f, MediaBufferVector &input_vector) {
 }
 
 VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
+  // TODO: ParseWrapFlowParams
   std::map<std::string, std::string> params;
   if (!parse_media_param_map(param, params)) {
     SetError(-EINVAL);

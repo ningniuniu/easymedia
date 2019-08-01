@@ -43,32 +43,23 @@ private:
   Model thread_model;
   PixelFormat input_pix_fmt; // a hack for rga copy yuyv, by set fake rgb565
   ImageInfo out_img_info;
+  bool hold_input;
 
   friend bool do_filters(Flow *f, MediaBufferVector &input_vector);
 };
 
 FilterFlow::FilterFlow(const char *param)
     : support_async(true), thread_model(Model::NONE),
-      input_pix_fmt(PIX_FMT_NONE) {
+      input_pix_fmt(PIX_FMT_NONE), hold_input(false) {
   memset(&out_img_info, 0, sizeof(out_img_info));
   out_img_info.pix_fmt = PIX_FMT_NONE;
-  std::list<std::string> &&separate_list = ParseFlowParamToList(param);
-  if (separate_list.empty()) {
-    SetError(-EINVAL);
-    return;
-  }
+  std::list<std::string> separate_list;
   std::map<std::string, std::string> params;
-  if (!parse_media_param_map(separate_list.front().c_str(), params)) {
+  if (!ParseWrapFlowParams(param, params, separate_list)) {
     SetError(-EINVAL);
     return;
   }
-  separate_list.pop_front();
   std::string &name = params[KEY_NAME];
-  if (name.empty()) {
-    LOG("missing filter name\n");
-    SetError(-EINVAL);
-    return;
-  }
   const char *filter_name = name.c_str();
   // check input/output type
   std::string &&rule = gen_datatype_rule(params);
@@ -80,6 +71,9 @@ FilterFlow::FilterFlow(const char *param)
     }
   }
   input_pix_fmt = GetPixFmtByString(params[KEY_INPUTDATATYPE].c_str());
+  auto &hold = params[KEY_OUTPUT_HOLD_INPUT];
+  if (!hold.empty())
+    hold_input = !!std::stoi(hold);
   SlotMap sm;
   int input_maxcachenum = 2;
   ParseParamToSlotMap(params, sm, input_maxcachenum);
@@ -195,6 +189,8 @@ bool do_filters(Flow *f, MediaBufferVector &input_vector) {
   }
   bool ret = false;
   if (!flow->support_async) {
+    if (flow->hold_input)
+      FlowOutputHoldInput(out_buffer, input_vector);
     ret = flow->SetOutput(out_buffer, 0);
   } else {
     // flow->thread_model == Model::SYNC;
@@ -202,6 +198,8 @@ bool do_filters(Flow *f, MediaBufferVector &input_vector) {
       auto out = last_filter->FetchOutput();
       if (!out)
         break;
+      if (flow->hold_input)
+        FlowOutputHoldInput(out, input_vector);
       if (flow->SetOutput(out, 0))
         ret = true;
     } while (true);

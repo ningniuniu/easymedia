@@ -113,6 +113,8 @@
 #define KEY_INPUT_CACHE_NUM "input_cache_num"
 #define KEY_OUTPUT_CACHE_NUM "output_cache_num"
 
+#define KEY_OUTPUT_HOLD_INPUT "output_hold_input"
+
 // drm
 #define KEY_CONNECTOR_ID "connector_id"
 #define KEY_CRTC_ID "crtc_id"

@@ -180,6 +180,9 @@ protected:
                       int exp_process_time);
   bool SetOutput(const std::shared_ptr<MediaBuffer> &output,
                  int out_slot_index);
+  bool ParseWrapFlowParams(const char *param,
+                           std::map<std::string, std::string> &flow_params,
+                           std::list<std::string> &sub_param_list);
   // As sub threads may call the variable of child class,
   // we should define this for child class when it deconstruct.
   void StopAllThread();
@@ -206,6 +209,8 @@ Model GetModelByString(const std::string &model);
 InputMode GetInputModelByString(const std::string &in_model);
 void ParseParamToSlotMap(std::map<std::string, std::string> &params,
                          SlotMap &sm, int &input_maxcachenum);
+void FlowOutputHoldInput(std::shared_ptr<MediaBuffer> &out_buffer,
+                         const MediaBufferVector &input_vector);
 
 // the separator of flow params and flow core element params
 #define FLOW_PARAM_SEPARATE_CHAR ' '

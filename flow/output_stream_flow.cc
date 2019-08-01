@@ -48,22 +48,12 @@ private:
 
 OutPutStreamFlow::OutPutStreamFlow(const char *param) {
   std::list<std::string> separate_list;
-  if (!parse_media_param_list(param, separate_list, ' ') ||
-      separate_list.size() != 2) {
-    SetError(-EINVAL);
-    return;
-  }
   std::map<std::string, std::string> params;
-  if (!parse_media_param_map(separate_list.front().c_str(), params)) {
+  if (!ParseWrapFlowParams(param, params, separate_list)) {
     SetError(-EINVAL);
     return;
   }
   std::string &name = params[KEY_NAME];
-  if (name.empty()) {
-    LOG("missing stream name\n");
-    SetError(-EINVAL);
-    return;
-  }
   const char *stream_name = name.c_str();
   SlotMap sm;
   int input_maxcachenum = 1;

@@ -96,6 +96,19 @@ public:
   void SetUserData(std::shared_ptr<void> user_data) { userdata = user_data; }
   std::shared_ptr<void> GetUserData() { return userdata; }
 
+  void SetRelatedSPtr(const std::shared_ptr<void> &rdata, int index = -1) {
+    if (index < 0) {
+      related_sptrs.push_back(rdata);
+      return;
+    } else if (index >= (int)related_sptrs.size()) {
+      related_sptrs.resize(index + 1);
+    }
+    related_sptrs[index] = rdata;
+  }
+  std::vector<std::shared_ptr<void>> &GetRelatedSPtrs() {
+    return related_sptrs;
+  }
+
   bool IsValid() { return valid_size > 0; }
   bool IsHwBuffer() { return fd >= 0; }
 
@@ -130,6 +143,7 @@ private:
   bool eof;
 
   std::shared_ptr<void> userdata;
+  std::vector<std::shared_ptr<void>> related_sptrs;
 };
 
 MediaBuffer::MemType StringToMemType(const char *s);

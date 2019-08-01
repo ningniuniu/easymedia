@@ -52,7 +52,9 @@ _API void LOGD(const char *format, ...);
 
 #define MATH_LOG2(x) (31 - __builtin_clz((x) | 1))
 
+#ifndef PAGE_SIZE
 #define PAGE_SIZE (sysconf(_SC_PAGESIZE))
+#endif
 
 #define DUMP_FOURCC(f)                                                         \
   f & 0xFF, (f >> 8) & 0xFF, (f >> 16) & 0xFF, (f >> 24) & 0xFF
