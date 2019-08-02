@@ -45,7 +45,7 @@ V4L2Context::V4L2Context(enum v4l2_buf_type cap_type, v4l2_io vio,
 V4L2Context::~V4L2Context() {
   if (fd >= 0) {
     SetStarted(false);
-    close(fd);
+    v4l2_close(fd);
     LOGD("close %s, fd %d\n", path.c_str(), fd);
   }
 }
