@@ -42,9 +42,11 @@ struct plane_property_ids {
 
 class DRMDisplayBuffer {
 public:
-  DRMDisplayBuffer(std::shared_ptr<ImageBuffer> buffer, int drm,
-                   uint32_t drm_fmt, int num = 1, int den = 1)
-      : ib(buffer), drm_fd(drm), handle(0), fb_id(0) {
+  DRMDisplayBuffer(std::shared_ptr<ImageBuffer> buffer,
+                   std::shared_ptr<DRMDevice> dev, uint32_t drm_fmt,
+                   int num = 1, int den = 1)
+      : ib(buffer), drm_dev(dev), drm_fd(dev->GetDeviceFd()), handle(0),
+        fb_id(0) {
     int fd = buffer->GetFD();
     int ret = drmPrimeFDToHandle(drm_fd, fd, &handle);
     if (ret) {
@@ -108,13 +110,14 @@ public:
       };
       int ret = drmIoctl(drm_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &data);
       if (ret)
-        LOG("Failed to free drm handle <%d>: %m\n", handle);
+        LOG("Fail to free drm handle <%d>: %m\n", handle);
     }
   }
   uint32_t GetFBID() { return fb_id; }
 
 private:
   std::shared_ptr<ImageBuffer> ib;
+  std::shared_ptr<DRMDevice> drm_dev;
   int drm_fd;
   uint32_t handle;
   uint32_t fb_id;
@@ -198,7 +201,7 @@ int DRMOutPutStream::Open() {
     if (!fb)
       return -1;
     uint32_t disp_fb_id = 0;
-    disp_buffer = std::make_shared<DRMDisplayBuffer>(fb, fd, drm_fmt);
+    disp_buffer = std::make_shared<DRMDisplayBuffer>(fb, dev, drm_fmt);
     if (!disp_buffer || (disp_fb_id = disp_buffer->GetFBID()) == 0)
       return -1;
     ret = drmModeSetCrtc(fd, crtc_id, disp_fb_id, 0, 0, &connector_id, 1,
@@ -389,7 +392,7 @@ bool DRMOutPutStream::Write(std::shared_ptr<MediaBuffer> input) {
   }
   uint32_t disp_fb_id = 0;
   auto disp =
-      std::make_shared<DRMDisplayBuffer>(input_img, fd, drm_fmt, num, den);
+      std::make_shared<DRMDisplayBuffer>(input_img, dev, drm_fmt, num, den);
   if (!disp || (disp_fb_id = disp->GetFBID()) == 0)
     return false;
   int ret = 0;

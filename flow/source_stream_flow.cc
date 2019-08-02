@@ -80,6 +80,7 @@ SourceStreamFlow::SourceStreamFlow(const char *param)
 }
 
 SourceStreamFlow::~SourceStreamFlow() {
+  loop = false;
   StopAllThread();
   int stop = 1;
   if (stream && Control(S_STREAM_OFF, &stop))
