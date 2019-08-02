@@ -52,6 +52,7 @@ class MediaBuffer;
 enum class Model { NONE, ASYNCCOMMON, ASYNCATOMIC, SYNC };
 enum class InputMode { NONE, BLOCKING, DROPFRONT, DROPCURRENT };
 using MediaBufferVector = std::vector<std::shared_ptr<MediaBuffer>>;
+// TODO: outputs ret, outslot index
 using FunctionProcess =
     std::add_pointer<bool(Flow *f, MediaBufferVector &input_vector)>::type;
 template <int in_index, int out_index>

@@ -144,6 +144,7 @@ bool DumpToFile(std::string path, const char *ptr, size_t len) {
     LOG("Fail to open %s\n", path.c_str());
     return false;
   }
+  LOGD("dump to %s, size %d\n", path.c_str(), (int)len);
   write(fd, ptr, len);
   close(fd);
   return true;

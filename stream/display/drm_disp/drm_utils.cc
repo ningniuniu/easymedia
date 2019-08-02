@@ -879,6 +879,7 @@ DRMDevice::DRMDevice(const std::string &drm_path)
 {
 #if 1
   fd = open(drm_path.c_str(), O_RDWR | O_CLOEXEC);
+  LOGD("open %s = %d\n", drm_path.c_str(), fd);
 #else
   int drm_fd = open(drm_path.c_str(), O_RDWR | O_CLOEXEC);
   if (drm_fd >= 0) {
@@ -896,6 +897,7 @@ DRMDevice::DRMDevice(const std::string &drm_path)
 DRMDevice::~DRMDevice() {
   if (fd >= 0) {
     close(fd);
+    LOGD("close %s = %d\n", path.c_str(), fd);
     fd = -1;
   }
 }
