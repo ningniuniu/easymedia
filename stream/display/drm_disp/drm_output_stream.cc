@@ -43,7 +43,7 @@ struct plane_property_ids {
 class DRMDisplayBuffer {
 public:
   DRMDisplayBuffer(std::shared_ptr<ImageBuffer> buffer,
-                   std::shared_ptr<DRMDevice> dev, uint32_t drm_fmt,
+                   const std::shared_ptr<DRMDevice> &dev, uint32_t drm_fmt,
                    int num = 1, int den = 1)
       : ib(buffer), drm_dev(dev), drm_fd(dev->GetDeviceFd()), handle(0),
         fb_id(0) {
