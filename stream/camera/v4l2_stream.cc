@@ -29,17 +29,24 @@ namespace easymedia {
 
 V4L2Context::V4L2Context(enum v4l2_buf_type cap_type, v4l2_io vio,
                          const std::string &device)
-    : fd(-1), capture_type(cap_type), io_func(vio), started(false) {
+    : fd(-1), capture_type(cap_type), io_func(vio), started(false)
+#ifndef NDEBUG
+      ,
+      path(device)
+#endif
+{
   const char *dev = device.c_str();
   fd = v4l2_open(dev, O_RDWR, 0);
   if (fd < 0)
     LOG("open %s failed %m\n", dev);
+  LOGD("open %s, fd %d\n", dev, fd);
 }
 
 V4L2Context::~V4L2Context() {
   if (fd >= 0) {
     SetStarted(false);
     close(fd);
+    LOGD("close %s, fd %d\n", path.c_str(), fd);
   }
 }
 

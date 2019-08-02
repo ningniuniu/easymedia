@@ -48,6 +48,9 @@ private:
   v4l2_io io_func;
   std::mutex mtx;
   volatile bool started;
+#ifndef NDEBUG
+  std::string path;
+#endif
 };
 
 class V4L2Stream : public Stream {
