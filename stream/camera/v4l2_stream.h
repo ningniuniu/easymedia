@@ -34,7 +34,7 @@ namespace easymedia {
 
 class V4L2Context {
 public:
-  V4L2Context(enum v4l2_buf_type cap_type, v4l2_io vio,
+  V4L2Context(enum v4l2_buf_type cap_type, v4l2_io io_func,
               const std::string &device);
   ~V4L2Context();
   int GetDeviceFd() { return fd; }
@@ -45,7 +45,7 @@ public:
 private:
   int fd;
   enum v4l2_buf_type capture_type;
-  v4l2_io io_func;
+  v4l2_io vio;
   std::mutex mtx;
   volatile bool started;
 #ifndef NDEBUG
