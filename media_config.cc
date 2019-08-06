@@ -21,11 +21,35 @@
 
 #include "media_config.h"
 
+#include <strings.h>
+
 #include "key_string.h"
 #include "media_type.h"
 #include "utils.h"
 
 namespace easymedia {
+
+const char *rc_quality_strings[7] = {KEY_WORST,  KEY_WORSE, KEY_MEDIUM,
+                                     KEY_BETTER, KEY_BEST,  KEY_CQP,
+                                     KEY_AQ_ONLY};
+const char *rc_mode_strings[2] = {KEY_VBR, KEY_CBR};
+
+static const char *convert2constchar(const std::string &s, const char *array[],
+                                     size_t array_len) {
+  for (size_t i = 0; i < array_len; i++)
+    if (!strcasecmp(s.c_str(), array[i]))
+      return array[i];
+  return nullptr;
+}
+
+static const char *ConvertRcQuality(const std::string &s) {
+  return convert2constchar(s, rc_quality_strings,
+                           ARRAY_ELEMS(rc_quality_strings));
+}
+
+static const char *ConvertRcMode(const std::string &s) {
+  return convert2constchar(s, rc_mode_strings, ARRAY_ELEMS(rc_mode_strings));
+}
 
 bool ParseMediaConfigFromMap(std::map<std::string, std::string> &params,
                              MediaConfig &mc) {
@@ -86,10 +110,10 @@ bool ParseMediaConfigFromMap(std::map<std::string, std::string> &params,
     vid_cfg.profile = std::stoi(value);
     CHECK_EMPTY_WITH_DECLARE(const std::string &, rc_q, params,
                              KEY_COMPRESS_RC_QUALITY)
-    vid_cfg.rc_quality = rc_q.c_str(); // be careful, value may be free
+    vid_cfg.rc_quality = ConvertRcQuality(rc_q);
     CHECK_EMPTY_WITH_DECLARE(const std::string &, rc_m, params,
                              KEY_COMPRESS_RC_MODE)
-    vid_cfg.rc_mode = rc_m.c_str();
+    vid_cfg.rc_mode = ConvertRcMode(rc_m);
   }
   return true;
 }
@@ -134,7 +158,7 @@ std::string to_param_string(const MediaConfig &mc,
     return ret;
   }
 
-  ret.append(KEY_OUTPUTDATATYPE "=").append(out_type).append("\n");
+  PARAM_STRING_APPEND(ret, KEY_OUTPUTDATATYPE, out_type);
   if (image_in)
     ret.append(to_param_string(mc.img_cfg));
 

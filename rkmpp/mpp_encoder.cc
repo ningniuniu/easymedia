@@ -31,6 +31,8 @@ namespace easymedia {
 MPPEncoder::MPPEncoder() : coding_type(MPP_VIDEO_CodingAutoDetect) {}
 
 bool MPPEncoder::Init() {
+  if (coding_type == MPP_VIDEO_CodingUnused)
+    return false;
   mpp_ctx = std::make_shared<MPPContext>();
   if (!mpp_ctx)
     return false;
@@ -52,10 +54,6 @@ bool MPPEncoder::Init() {
     return false;
   }
   return true;
-}
-
-bool MPPEncoder::InitConfig(const MediaConfig &cfg) {
-  return VideoEncoder::InitConfig(cfg);
 }
 
 int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,

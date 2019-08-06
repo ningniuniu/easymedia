@@ -25,7 +25,7 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
 - 接口及范例流程说明
 
     * (可不调用)easymedia::REFLECTOR(Encoder)::DumpFactories() ：列出当前编入的编码模块
-    * easymedia::REFLECTOR(Encoder)::Create\<easymedia::VideoEncoder\> ：创建视频编码器实例，参数为上述的DumpFactories中列出的一个模块对应的字符串
+    * easymedia::REFLECTOR(Encoder)::Create\<easymedia::VideoEncoder\> ：创建视频编码器实例，参数为上述的DumpFactories中列出的一个模块对应的字符串，以及对应的输出数据类型
     * InitConfig：初始化编码器，参数为所需编码算法对应的设置系数
     * GetExtraData：获取参数信息数据，h264的pps和sps数据在此返回的buffer里
     * Process：执行编码，参数为原始未压缩图像数据buffer、压缩图像输出的buffer以及额外的输出buffer（如需要h264中的mv数据，在此buffer输出）  

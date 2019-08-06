@@ -46,15 +46,18 @@ DECLARE_REFLECTOR(Encoder)
 class Encoder : public Codec {
 public:
   virtual ~Encoder() = default;
-  virtual bool InitConfig(const MediaConfig &cfg) = 0;
+  virtual bool InitConfig(const MediaConfig &cfg);
 };
 
 // self define by user
 class ParameterBuffer {
 public:
-  ParameterBuffer(size_t st) : size(st), ptr(nullptr), user_data(nullptr) {
-    if (sizeof(int) != st)
+  ParameterBuffer(size_t st = sizeof(int)) : size(st), ptr(nullptr) {
+    if (sizeof(int) != st && st != 0) {
       ptr = malloc(st);
+      if (!ptr)
+        size = 0;
+    }
   }
   ~ParameterBuffer() {
     if (ptr)
@@ -63,15 +66,18 @@ public:
   size_t GetSize() { return size; }
   int GetValue() { return value; }
   void SetValue(int v) { value = v; }
-  void *GetBufferPtr() { return ptr; }
-  void *GetUserData() { return user_data; }
-  void SetUserData(void *data) { user_data = data; }
+  void *GetPtr() { return ptr; }
+  void SetPtr(void *data, size_t data_len) {
+    if (ptr && ptr != data)
+      free(ptr);
+    ptr = data;
+    size = data_len;
+  }
 
 private:
   size_t size;
   int value;
   void *ptr;
-  void *user_data;
 };
 
 #define DEFINE_VIDEO_ENCODER_FACTORY(REAL_PRODUCT)                             \
@@ -88,7 +94,6 @@ public:
 
   virtual ~VideoEncoder() = default;
   void RequestChange(uint32_t change, std::shared_ptr<ParameterBuffer> value);
-  virtual bool InitConfig(const MediaConfig &cfg) override;
 
 protected:
   bool HasChangeReq() { return !change_list.empty(); }
@@ -107,7 +112,6 @@ private:
 class _API AudioEncoder : public Encoder {
 public:
   virtual ~AudioEncoder() = default;
-  virtual bool InitConfig(const MediaConfig &cfg) override;
 
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Encoder)
 };

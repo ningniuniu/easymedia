@@ -57,6 +57,7 @@ enum class Type { None = -1, Audio = 0, Image, Video, Text };
 
 #define VIDEO_PREFIX "video:"
 #define VIDEO_H264 "video:h264"
+#define VIDEO_H265 "video:h265"
 
 #define AUDIO_PREFIX "audio:"
 #define AUDIO_VORBIS "audio:vorbis"

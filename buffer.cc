@@ -23,7 +23,6 @@
 
 #include <assert.h>
 #include <fcntl.h>
-#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 

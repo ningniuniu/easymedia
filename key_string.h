@@ -30,9 +30,6 @@
 #define KEY_DEVICE "device"
 
 #define KEY_NAME "name"
-#define KEY_CODEC_NAME "codecname"
-#define KEY_CODEC_PARAM "codecparam"
-
 #define KEY_INPUTDATATYPE "input_data_type"
 #define KEY_OUTPUTDATATYPE "output_data_type"
 
@@ -61,6 +58,18 @@
 #define KEY_PROFILE "profile"
 #define KEY_COMPRESS_RC_QUALITY "rc_quality"
 #define KEY_COMPRESS_RC_MODE "rc_mode"
+#define KEY_NEED_EXTRA_OUTPUT "need_extra_output"
+
+#define KEY_WORST "worst"
+#define KEY_WORSE "worse"
+#define KEY_MEDIUM "medium"
+#define KEY_BETTER "better"
+#define KEY_BEST "best"
+#define KEY_CQP "cqp"
+#define KEY_AQ_ONLY "aq_only"
+
+#define KEY_VBR "vbr"
+#define KEY_CBR "cbr"
 
 // mpp special
 #define KEY_MPP_GROUP_MAX_FRAMES "fg_max_frames" // framegroup max frame num

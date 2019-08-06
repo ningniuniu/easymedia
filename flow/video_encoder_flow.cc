@@ -77,15 +77,15 @@ bool encode(Flow *f, MediaBufferVector &input_vector) {
 }
 
 VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
-  // TODO: ParseWrapFlowParams
+  std::list<std::string> separate_list;
   std::map<std::string, std::string> params;
-  if (!parse_media_param_map(param, params)) {
+  if (!ParseWrapFlowParams(param, params, separate_list)) {
     SetError(-EINVAL);
     return;
   }
-  std::string &codec_name = params[KEY_CODEC_NAME];
+  std::string &codec_name = params[KEY_NAME];
   if (codec_name.empty()) {
-    LOG("missing %s\n", KEY_CODEC_NAME);
+    LOG("missing codec name\n");
     SetError(-EINVAL);
     return;
   }
@@ -96,29 +96,29 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
     SetError(-EINVAL);
     return;
   }
-  // std::string value;
-  // CHECK_EMPTY_SETERRNO(value, params, KEY_INPUTDATATYPE, EINVAL)
-  // PARAM_STRING_APPEND(rule, KEY_INPUTDATATYPE, value);
-  // CHECK_EMPTY_SETERRNO(value, params, KEY_OUTPUTDATATYPE, EINVAL)
-  // PARAM_STRING_APPEND(rule, KEY_OUTPUTDATATYPE, value);
   if (!REFLECTOR(Encoder)::IsMatch(ccodec_name, rule.c_str())) {
     LOG("Unsupport for video encoder %s : [%s]\n", ccodec_name, rule.c_str());
     SetError(-EINVAL);
     return;
   }
 
+  const std::string &enc_param_str = separate_list.back();
+  std::map<std::string, std::string> enc_params;
+  if (!parse_media_param_map(enc_param_str.c_str(), enc_params)) {
+    SetError(-EINVAL);
+    return;
+  }
   MediaConfig mc;
-  if (!ParseMediaConfigFromMap(params, mc)) {
+  if (!ParseMediaConfigFromMap(enc_params, mc)) {
     SetError(-EINVAL);
     return;
   }
 
-  std::string &codec_param = params[KEY_CODEC_PARAM];
   auto encoder = REFLECTOR(Encoder)::Create<VideoEncoder>(
-      ccodec_name, codec_param.empty() ? nullptr : codec_param.c_str());
+      ccodec_name, enc_param_str.c_str());
   if (!encoder) {
     LOG("Fail to create video encoder %s<%s>\n", ccodec_name,
-        codec_param.c_str());
+        enc_param_str.c_str());
     SetError(-EINVAL);
     return;
   }
@@ -133,7 +133,9 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
   size_t extra_data_size = 0;
   encoder->GetExtraData(extra_data, extra_data_size);
   // TODO: if not h264
-  if (extra_data && extra_data_size > 0)
+  const std::string &output_dt = enc_params[KEY_OUTPUTDATATYPE];
+  if (extra_data && extra_data_size > 0 &&
+      (output_dt == VIDEO_H264 || output_dt == VIDEO_H265))
     extra_buffer_list = split_h264_separate((const uint8_t *)extra_data,
                                             extra_data_size, gettimeofday());
 
@@ -142,7 +144,7 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
   SlotMap sm;
   sm.input_slots.push_back(0);
   sm.output_slots.push_back(0);
-  if (params["extra_output"] == "y") {
+  if (params[KEY_NEED_EXTRA_OUTPUT] == "y") {
     extra_output = true;
     sm.output_slots.push_back(1);
   }

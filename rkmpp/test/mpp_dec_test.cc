@@ -49,7 +49,10 @@ static void dump_output(std::shared_ptr<easymedia::ImageBuffer> out_image) {
   // hardware always need aligh width/height, we write the whole buffer with
   // virtual region which may contains invalid data
   if (output_file_fd >= 0 && out_image->GetValidSize() > 0) {
-    LOG("got one frame\n");
+    const ImageInfo &info = out_image->GetImageInfo();
+    fprintf(stderr, "got one frame, format: %s <%dx%d>in<%dx%d>\n",
+            PixFmtToString(info.pix_fmt), info.width, info.height,
+            info.vir_width, info.vir_height);
     write(output_file_fd, out_image->GetPtr(),
           CalPixFmtSize(out_image->GetPixelFormat(), out_image->GetVirWidth(),
                         out_image->GetVirHeight()));
@@ -131,6 +134,8 @@ int main(int argc, char **argv) {
         input_format = IMAGE_JPEG;
       else if (input_format == "h264")
         input_format = VIDEO_H264;
+      else if (input_format == "h265")
+        input_format = VIDEO_H265;
       break;
     case 'w':
       width = atoi(optarg);
@@ -143,14 +148,16 @@ int main(int argc, char **argv) {
       printf("usage example: \n");
       printf("rkmpp_dec_test -i mpp_dec_test.h264 -f h264 -o output.nv12 -t "
              "0/1\n");
+      printf("rkmpp_dec_test -i mpp_dec_test.hevc -f h265 -o output.nv12 -t "
+             "0/1\n");
       printf("rkmpp_dec_test -i mpp_dec_test.jpg -f jpeg -w <width> -h "
-             "<height> -o output.img -t 0/1\n");
+             "<height> -o output.img\n");
       printf("rkmpp_dec_test -d h264_frames_dir -f h264 -o output.nv12 -t "
              "0/1\n\n");
       printf("On PC:\n\t"
-             "ffplay -f rawvideo -video_size <width>x<height> -pixel_format "
-             "nv12 -framerate 25 output.nv12\n\t(jpeg output may not nv12, "
-             "depend its raw data format in input file)\n");
+             "ffplay -f rawvideo -video_size <vir_width>x<vir_height> "
+             "-pixel_format nv12 -framerate 25 output.nv12\n\t(jpeg output may "
+             "not nv12, depend its raw data format in input file)\n");
       exit(0);
     }
   }
@@ -243,14 +250,10 @@ int main(int argc, char **argv) {
     assert(rsize == len);
     input->SetValidSize(rsize);
     int ret = mpp_dec->Process(input, output);
-    if (ret) {
+    if (ret)
       fprintf(stderr, "mpp dec process ret = %d\n", ret);
-    } else {
+    else
       dump_output(output);
-      const ImageInfo &info = output->GetImageInfo();
-      LOG("format: %s <%dx%d>in<%dx%d>\n", PixFmtToString(info.pix_fmt),
-          info.width, info.height, info.vir_width, info.vir_height);
-    }
   }
 
   std::thread *out_thread = nullptr;
@@ -298,7 +301,7 @@ int main(int argc, char **argv) {
 
       if (feof(f)) {
         file_eos = true;
-        LOG("file end\n");
+        fprintf(stderr, "file end\n");
         goto try_get_frame;
       } else {
         buffer = easymedia::MediaBuffer::Alloc(read_size);

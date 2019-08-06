@@ -294,7 +294,9 @@ int main(int argc, char **argv) {
   // 2. encoder
   flow_name = "video_enc";
   param = "";
-  PARAM_STRING_APPEND(param, KEY_CODEC_NAME, "rkmpp_h264");
+  PARAM_STRING_APPEND(param, KEY_NAME, "rkmpp");
+  PARAM_STRING_APPEND(param, KEY_INPUTDATATYPE, IMAGE_NV12);
+  PARAM_STRING_APPEND(param, KEY_OUTPUTDATATYPE, VIDEO_H264);
   MediaConfig enc_config;
   VideoConfig &vid_cfg = enc_config.vid_cfg;
   ImageConfig &img_cfg = vid_cfg.image_cfg;
@@ -313,9 +315,11 @@ int main(int argc, char **argv) {
   vid_cfg.gop_size = fps;
   vid_cfg.profile = 100;
   // vid_cfg.rc_quality = "aq_only"; vid_cfg.rc_mode = "vbr";
-  vid_cfg.rc_quality = "best";
-  vid_cfg.rc_mode = "cbr";
-  param.append(easymedia::to_param_string(enc_config, VIDEO_H264));
+  vid_cfg.rc_quality = KEY_BEST;
+  vid_cfg.rc_mode = KEY_CBR;
+  std::string enc_param;
+  enc_param.append(easymedia::to_param_string(enc_config, VIDEO_H264));
+  param = JoinFlowParam(param, 1, enc_param);
   printf("\nparam 2:\n%s\n", param.c_str());
   auto enc_flow = easymedia::REFLECTOR(Flow)::Create<easymedia::Flow>(
       flow_name.c_str(), param.c_str());

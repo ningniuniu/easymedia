@@ -38,6 +38,7 @@ MPPDecoder::MPPDecoder(const char *param)
   img_info.pix_fmt = PIX_FMT_NONE;
   std::map<std::string, std::string> params;
   std::list<std::pair<const std::string, std::string &>> req_list;
+  std::string input_data_type;
   std::string output_data_type;
   std::string limit_max_frame_num;
   std::string split_mode;
@@ -58,6 +59,7 @@ MPPDecoder::MPPDecoder(const char *param)
     LOG("missing %s\n", KEY_INPUTDATATYPE);
     return;
   }
+  coding_type = GetMPPCodingType(input_data_type);
   if (!output_data_type.empty()) {
     output_format = GetPixFmtByString(output_data_type.c_str());
     if (output_format == PIX_FMT_NONE) {
@@ -81,17 +83,7 @@ MPPDecoder::MPPDecoder(const char *param)
   }
 }
 
-static MppCodingType get_codingtype(const std::string &data_type) {
-  if (data_type == VIDEO_H264)
-    return MPP_VIDEO_CodingAVC;
-  if (data_type == IMAGE_JPEG)
-    return MPP_VIDEO_CodingMJPEG;
-  LOG("mpp decoder TODO for %s\n", data_type.c_str());
-  return MPP_VIDEO_CodingUnused;
-}
-
 bool MPPDecoder::Init() {
-  coding_type = get_codingtype(input_data_type);
   if (coding_type == MPP_VIDEO_CodingUnused)
     return false;
   if (coding_type == MPP_VIDEO_CodingMJPEG) {
@@ -541,7 +533,7 @@ out:
 
 DEFINE_VIDEO_DECODER_FACTORY(MPPDecoder)
 const char *FACTORY(MPPDecoder)::ExpectedInputDataType() {
-  return TYPENEAR(IMAGE_JPEG) TYPENEAR(VIDEO_H264);
+  return TYPENEAR(IMAGE_JPEG) TYPENEAR(VIDEO_H264) TYPENEAR(VIDEO_H265);
 }
 const char *FACTORY(MPPDecoder)::OutPutDataType() { return IMAGE_NV12; }
 

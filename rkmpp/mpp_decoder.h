@@ -42,7 +42,6 @@ public:
   virtual std::shared_ptr<MediaBuffer> FetchOutput() override;
 
 private:
-  std::string input_data_type;
   PixelFormat output_format;
   RK_S32 fg_limit_num;
   RK_U32 need_split;
