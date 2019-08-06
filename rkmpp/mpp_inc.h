@@ -26,6 +26,7 @@
 #include "image.h"
 #include <rk_mpi.h>
 
+namespace easymedia {
 // mpp_packet_impl.h which define MPP_PACKET_FLAG_INTRA is not exposed,
 // here define the same MPP_PACKET_FLAG_INTRA.
 #ifndef MPP_PACKET_FLAG_INTRA
@@ -35,8 +36,9 @@
 MppFrameFormat ConvertToMppPixFmt(const PixelFormat &fmt);
 PixelFormat ConvertToPixFmt(const MppFrameFormat &mfmt);
 const char *MppAcceptImageFmts();
-
-namespace easymedia {
+MppCodingType GetMPPCodingType(const std::string &data_type);
+MppEncRcQuality GetMPPRCQuality(const char *quality);
+MppEncRcMode GetMPPRCMode(const char *rc_mode);
 
 struct MPPContext {
   MPPContext();

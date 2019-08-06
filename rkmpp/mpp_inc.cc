@@ -23,9 +23,11 @@
 
 #include <assert.h>
 
+#include "media_config.h"
 #include "media_type.h"
 #include "utils.h"
 
+namespace easymedia {
 MppFrameFormat ConvertToMppPixFmt(const PixelFormat &fmt) {
   // static const MppFrameFormat invalid_mpp_fmt =
   // static_cast<MppFrameFormat>(-1);
@@ -110,7 +112,49 @@ static _MPP_SUPPORT_TYPES priv_types;
 
 const char *MppAcceptImageFmts() { return priv_types.types.c_str(); }
 
-namespace easymedia {
+MppCodingType GetMPPCodingType(const std::string &data_type) {
+  if (data_type == VIDEO_H264)
+    return MPP_VIDEO_CodingAVC;
+  if (data_type == VIDEO_H265)
+    return MPP_VIDEO_CodingHEVC;
+  else if (data_type == IMAGE_JPEG)
+    return MPP_VIDEO_CodingMJPEG;
+  LOG("mpp decoder TODO for %s\n", data_type.c_str());
+  return MPP_VIDEO_CodingUnused;
+}
+
+static MppEncRcQuality mpp_rc_qualitys[] = {
+    MPP_ENC_RC_QUALITY_WORST,  MPP_ENC_RC_QUALITY_WORSE,
+    MPP_ENC_RC_QUALITY_MEDIUM, MPP_ENC_RC_QUALITY_BETTER,
+    MPP_ENC_RC_QUALITY_BEST,   MPP_ENC_RC_QUALITY_CQP,
+    MPP_ENC_RC_QUALITY_AQ_ONLY};
+
+MppEncRcQuality GetMPPRCQuality(const char *quality) {
+  static_assert(ARRAY_ELEMS(rc_quality_strings) == ARRAY_ELEMS(mpp_rc_qualitys),
+                "rc quality strings miss match mpp rc quality enum");
+  if (!quality)
+    return MPP_ENC_RC_QUALITY_BUTT;
+  for (size_t i = 0; i < ARRAY_ELEMS(rc_quality_strings); i++)
+    if (!strcasecmp(quality, rc_quality_strings[i]))
+      return mpp_rc_qualitys[i];
+
+  return MPP_ENC_RC_QUALITY_BUTT;
+}
+
+static const MppEncRcMode mpp_rc_modes[] = {MPP_ENC_RC_MODE_VBR,
+                                            MPP_ENC_RC_MODE_CBR};
+
+MppEncRcMode GetMPPRCMode(const char *rc_mode) {
+  static_assert(ARRAY_ELEMS(rc_mode_strings) == ARRAY_ELEMS(mpp_rc_modes),
+                "rc mode strings miss match mpp rc mode enum");
+  if (!rc_mode)
+    return MPP_ENC_RC_MODE_BUTT;
+  for (size_t i = 0; i < ARRAY_ELEMS(rc_mode_strings); i++)
+    if (!strcasecmp(rc_mode, rc_mode_strings[i]))
+      return mpp_rc_modes[i];
+
+  return MPP_ENC_RC_MODE_BUTT;
+}
 
 MPPContext::MPPContext() : ctx(NULL), mpi(NULL), frame_group(NULL) {}
 MPPContext::~MPPContext() {

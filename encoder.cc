@@ -28,6 +28,11 @@ DEFINE_REFLECTOR(Encoder)
 // request should equal codec_name
 DEFINE_FACTORY_COMMON_PARSE(Encoder)
 
+bool Encoder::InitConfig(const MediaConfig &cfg) {
+  Codec::SetConfig(cfg);
+  return true;
+}
+
 void VideoEncoder::RequestChange(uint32_t change,
                                  std::shared_ptr<ParameterBuffer> value) {
   auto p = std::make_pair(change, value);
@@ -39,27 +44,18 @@ void VideoEncoder::RequestChange(uint32_t change,
 std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>
 VideoEncoder::PeekChange() {
   std::lock_guard<std::mutex> _lg(change_mtx);
-  if (change_list.empty())
-    return std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>(0, nullptr);
-
+  if (change_list.empty()) {
+    static auto empty =
+        std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>(0, nullptr);
+    return empty;
+  }
   std::pair<uint32_t, std::shared_ptr<ParameterBuffer>> &p =
       change_list.front();
   change_list.pop_front();
   return std::move(p);
 }
 
-bool VideoEncoder::InitConfig(const MediaConfig &cfg) {
-  Codec::SetConfig(cfg);
-  return true;
-}
-
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(VideoEncoder, Encoder)
-
-bool AudioEncoder::InitConfig(const MediaConfig &cfg) {
-  Codec::SetConfig(cfg);
-  return true;
-}
-
 DEFINE_PART_FINAL_EXPOSE_PRODUCT(AudioEncoder, Encoder)
 
 } // namespace easymedia

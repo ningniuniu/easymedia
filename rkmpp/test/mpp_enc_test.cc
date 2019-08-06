@@ -36,6 +36,7 @@
 
 #include "buffer.h"
 #include "encoder.h"
+#include "key_string.h"
 
 static char optstr[] = "?i:o:w:h:f:";
 
@@ -75,7 +76,11 @@ int main(int argc, char **argv) {
       output_format = cut + 1;
       if (output_format == "jpg" || output_format == "mjpg" ||
           output_format == "mjpeg")
-        output_format = "jpeg";
+        output_format = IMAGE_JPEG;
+      else if (output_format == "h264")
+        output_format = VIDEO_H264;
+      else if (output_format == "h265")
+        output_format = VIDEO_H265;
       printf("input format: %s\n", input_format.c_str());
       printf("output format: %s\n", output_format.c_str());
     } break;
@@ -84,6 +89,8 @@ int main(int argc, char **argv) {
       printf("usage example: \n");
       printf("rkmpp_enc_test -i input.yuv -o output.h264 -w 320 -h 240 -f "
              "nv12_h264\n");
+      printf("rkmpp_enc_test -i input.yuv -o output.hevc -w 320 -h 240 -f "
+             "nv12_h265\n");
       printf("rkmpp_enc_test -i input.yuv -o output.mjpeg -w 320 -h 240 -f "
              "nv12_jpeg\n");
       exit(0);
@@ -115,10 +122,11 @@ int main(int argc, char **argv) {
 
   easymedia::REFLECTOR(Encoder)::DumpFactories();
 
-  // rkmpp_h264 / rkmpp_jpeg
-  std::string mpp_codec = std::string("rkmpp_") + output_format;
+  std::string mpp_codec = "rkmpp";
+  std::string param;
+  PARAM_STRING_APPEND(param, KEY_OUTPUTDATATYPE, output_format);
   auto mpp_enc = easymedia::REFLECTOR(Encoder)::Create<easymedia::VideoEncoder>(
-      mpp_codec.c_str(), nullptr);
+      mpp_codec.c_str(), param.c_str());
 
   if (!mpp_enc) {
     fprintf(stderr, "Create encoder %s failed\n", mpp_codec.c_str());
@@ -128,7 +136,7 @@ int main(int argc, char **argv) {
   ImageInfo info = {fmt, w, h, UPALIGNTO16(w), UPALIGNTO16(h)};
   MediaConfig enc_config;
 
-  if (output_format == "h264") {
+  if (output_format == VIDEO_H264 || output_format == VIDEO_H265) {
     VideoConfig &vid_cfg = enc_config.vid_cfg;
     ImageConfig &img_cfg = vid_cfg.image_cfg;
     img_cfg.image_info = info;
@@ -146,9 +154,9 @@ int main(int argc, char **argv) {
     vid_cfg.gop_size = vid_cfg.frame_rate;
     vid_cfg.profile = 100;
     // vid_cfg.rc_quality = "aq_only"; vid_cfg.rc_mode = "vbr";
-    vid_cfg.rc_quality = "best";
-    vid_cfg.rc_mode = "cbr";
-  } else if (output_format == "jpeg") {
+    vid_cfg.rc_quality = KEY_BEST;
+    vid_cfg.rc_mode = KEY_CBR;
+  } else if (output_format == IMAGE_JPEG) {
     ImageConfig &img_cfg = enc_config.img_cfg;
     img_cfg.image_info = info;
     img_cfg.qp_init = 10;

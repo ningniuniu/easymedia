@@ -17,8 +17,7 @@ if(RKMPP_ENCODER)
   set(EASY_MEDIA_RKMPP_SOURCE_FILES
       ${EASY_MEDIA_RKMPP_SOURCE_FILES}
       rkmpp/mpp_encoder.cc
-      rkmpp/mpp_h264_encoder.cc
-      rkmpp/mpp_jpeg_encoder.cc)
+      rkmpp/mpp_final_encoder.cc)
 endif()
 
 option(RKMPP_DECODER "compile: rkmpp decode wrapper" OFF)

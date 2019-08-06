@@ -35,7 +35,6 @@ public:
   virtual ~MPPEncoder() = default;
 
   virtual bool Init() override;
-  virtual bool InitConfig(const MediaConfig &cfg) override;
 
   // sync encode the raw input buffer to output buffer
   virtual int Process(std::shared_ptr<MediaBuffer> input,
@@ -46,6 +45,7 @@ public:
   virtual std::shared_ptr<MediaBuffer> FetchOutput() override;
 
 protected:
+  MppCodingType coding_type;
   // call before Init()
   void SetMppCodeingType(MppCodingType type) { coding_type = type; }
   virtual bool
@@ -64,8 +64,10 @@ protected:
   int Process(MppFrame frame, MppPacket &packet, MppBuffer &mv_buf);
 
 private:
-  MppCodingType coding_type;
   std::shared_ptr<MPPContext> mpp_ctx;
+
+  friend class MPPMJPEGConfig;
+  friend class MPPCommonConfig;
 };
 
 } // namespace easymedia

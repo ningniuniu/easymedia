@@ -25,6 +25,8 @@
 #include "image.h"
 #include "sound.h"
 
+#include <string>
+
 typedef struct {
   ImageInfo image_info;
   int qp_init; // h264 : 0 - 48, higher value means higher compress
@@ -68,9 +70,10 @@ typedef union {
 } MediaConfig;
 
 #include <map>
-#include <string>
 
 namespace easymedia {
+extern const char *rc_quality_strings[7];
+extern const char *rc_mode_strings[2];
 bool ParseMediaConfigFromMap(std::map<std::string, std::string> &params,
                              MediaConfig &mc);
 _API std::string to_param_string(const ImageConfig &img_cfg);
