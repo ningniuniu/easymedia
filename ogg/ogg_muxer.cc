@@ -38,8 +38,9 @@ public:
   static const char *GetMuxName() { return "liboggmuxer"; }
 
   virtual bool Init() override { return true; }
-  virtual bool NewMuxerStream(std::shared_ptr<Encoder> enc,
-                              int &stream_no) override;
+  virtual bool
+  NewMuxerStream(const std::shared_ptr<MediaBuffer> &enc_extra_data,
+                 int &stream_no) override;
   virtual std::shared_ptr<MediaBuffer> WriteHeader(int stream_no);
   virtual std::shared_ptr<MediaBuffer>
   Write(std::shared_ptr<MediaBuffer> orig_data, int stream_no) override;
@@ -53,7 +54,8 @@ OggMuxer::OggMuxer(const char *param) : Muxer(param), stream_number(0) {}
 
 OggMuxer::~OggMuxer() { assert(streams.empty()); }
 
-bool OggMuxer::NewMuxerStream(std::shared_ptr<Encoder> enc, int &stream_no) {
+bool OggMuxer::NewMuxerStream(
+    const std::shared_ptr<MediaBuffer> &enc_extra_data, int &stream_no) {
   int ret;
   ogg_stream_state os;
   int stream_index = stream_number + 1;
@@ -63,10 +65,14 @@ bool OggMuxer::NewMuxerStream(std::shared_ptr<Encoder> enc, int &stream_no) {
     return false;
   }
 
-  void *extradata = nullptr;
-  size_t extradatasize = 0;
-  enc->GetExtraData(extradata, extradatasize);
-  if (extradata) {
+  if (enc_extra_data) {
+    if (!(enc_extra_data->GetUserFlag() & MediaBuffer::kBuildinLibvorbisenc)) {
+      LOG("buildin muxer[liboggmuxer] only accept data from encoder "
+          "[libvorbisenc]\n");
+      return false;
+    }
+    void *extradata = enc_extra_data->GetPtr();
+    size_t extradatasize = enc_extra_data->GetValidSize();
     std::list<ogg_packet> ogg_packets;
     if (UnpackOggData(extradata, extradatasize, ogg_packets)) {
       for (auto &p : ogg_packets) {
@@ -167,6 +173,7 @@ out:
 
 std::shared_ptr<MediaBuffer>
 OggMuxer::Write(std::shared_ptr<MediaBuffer> orig_data, int stream_no) {
+  assert(orig_data->GetUserFlag() & MediaBuffer::kBuildinLibvorbisenc);
   auto s = streams.find(stream_no);
   if (s == streams.end()) {
     LOG("Invalid stream no : %d\n", stream_no);

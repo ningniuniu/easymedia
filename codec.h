@@ -37,11 +37,9 @@ public:
   static const char *GetCodecName() { return nullptr; }
   MediaConfig &GetConfig() { return config; }
   void SetConfig(const MediaConfig &cfg) { config = cfg; }
-  bool SetExtraData(void *data, size_t size, bool realloc = true);
-  void GetExtraData(void *&data, size_t &size) {
-    data = extra_data;
-    size = extra_data_size;
-  }
+  _API std::shared_ptr<MediaBuffer> GetExtraData(void **data = nullptr,
+                                                 size_t *size = nullptr);
+  _API bool SetExtraData(void *data, size_t size, bool realloc = true);
 
   virtual bool Init() = 0;
   // sync call, input and output must be valid
@@ -56,8 +54,7 @@ public:
 
 private:
   MediaConfig config;
-  void *extra_data;
-  size_t extra_data_size;
+  std::shared_ptr<MediaBuffer> extra_data;
 };
 
 _API const uint8_t *find_h264_startcode(const uint8_t *p, const uint8_t *end);

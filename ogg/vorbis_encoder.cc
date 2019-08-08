@@ -62,6 +62,7 @@ private:
 
   std::deque<std::shared_ptr<MediaBuffer>> cached_ogg_packets;
   static const int MAX_CACHED_SIZE = 8;
+  static const uint32_t gBufferFlag = MediaBuffer::kBuildinLibvorbisenc;
 };
 
 VorbisEncoder::VorbisEncoder(const char *param _UNUSED) {
@@ -121,7 +122,11 @@ bool VorbisEncoder::InitConfig(const MediaConfig &cfg) {
   ogg_packets.push_back(header_comm);
   ogg_packets.push_back(header_code);
   if (PackOggPackets(ogg_packets, &extradata, &extradatasize)) {
-    SetExtraData(extradata, extradatasize, false);
+    if (!SetExtraData(extradata, extradatasize, false)) {
+      LOG("SetExtraData failed\n");
+      return false;
+    }
+    GetExtraData()->SetUserFlag(gBufferFlag);
   } else {
     LOG("PackOggPackets failed\n");
     return false;
@@ -193,6 +198,7 @@ int VorbisEncoder::SendInput(std::shared_ptr<MediaBuffer> input) {
       buffer->SetValidSize(op.bytes);
       buffer->SetTimeStamp(op.granulepos);
       buffer->SetEOF(op.e_o_s);
+      buffer->SetUserFlag(gBufferFlag);
       cached_ogg_packets.push_back(buffer);
     }
     if (ret < 0) {

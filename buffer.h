@@ -46,6 +46,9 @@ public:
   static const uint32_t kBiPredictive = (1 << 3);
   static const uint32_t kBiDirectional = (1 << 4);
 
+  // special flags
+  static const uint32_t kBuildinLibvorbisenc = (1 << 16);
+
   MediaBuffer()
       : ptr(nullptr), size(0), fd(-1), valid_size(0), type(Type::None),
         user_flag(0), timestamp(0), eof(false) {}

@@ -131,7 +131,7 @@ VideoEncoderFlow::VideoEncoderFlow(const char *param) : extra_output(false) {
 
   void *extra_data = nullptr;
   size_t extra_data_size = 0;
-  encoder->GetExtraData(extra_data, extra_data_size);
+  encoder->GetExtraData(&extra_data, &extra_data_size);
   // TODO: if not h264
   const std::string &output_dt = enc_params[KEY_OUTPUTDATATYPE];
   if (extra_data && extra_data_size > 0 &&

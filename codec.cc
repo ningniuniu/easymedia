@@ -28,38 +28,43 @@
 
 namespace easymedia {
 
-Codec::Codec() : extra_data(nullptr), extra_data_size(0) {
-  memset(&config, 0, sizeof(config));
-}
+Codec::Codec() { memset(&config, 0, sizeof(config)); }
 
-Codec::~Codec() {
-  if (extra_data) {
-    free(extra_data);
-    extra_data_size = 0;
+Codec::~Codec() {}
+
+std::shared_ptr<MediaBuffer> Codec::GetExtraData(void **data, size_t *size) {
+  if (data && size && extra_data) {
+    *data = extra_data->GetPtr();
+    *size = extra_data->GetValidSize();
   }
+  return extra_data;
 }
 
 bool Codec::SetExtraData(void *data, size_t size, bool realloc) {
-  if (extra_data) {
-    free(extra_data);
-    extra_data_size = 0;
-  }
   if (!realloc) {
-    extra_data = data;
-    extra_data_size = size;
+    if (!extra_data) {
+      extra_data = std::make_shared<MediaBuffer>();
+      if (!extra_data)
+        return false;
+    }
+    extra_data->SetPtr(data);
+    extra_data->SetValidSize(size);
+    extra_data->SetSize(size);
+    extra_data->SetUserData(nullptr);
     return true;
   }
+
   if (!data || size == 0)
     return false;
-  extra_data = malloc(size);
-  if (!extra_data) {
+
+  auto extradata = MediaBuffer::Alloc(size);
+  if (!extradata || extradata->GetSize() < size) {
     LOG_NO_MEMORY();
     return false;
   }
-  memcpy(extra_data, data, size);
-  extra_data_size = size;
-  memset(&config, 0, sizeof(config));
-
+  memcpy(extradata->GetPtr(), data, size);
+  extradata->SetValidSize(size);
+  extra_data = extradata;
   return true;
 }
 

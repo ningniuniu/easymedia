@@ -54,7 +54,9 @@ public:
   virtual bool Init() = 0;
   virtual bool IncludeEncoder() { return false; }
   // create a new muxer stream by encoder, return the stream number
-  virtual bool NewMuxerStream(std::shared_ptr<Encoder> enc, int &stream_no) = 0;
+  virtual bool
+  NewMuxerStream(const std::shared_ptr<MediaBuffer> &enc_extra_data,
+                 int &stream_no) = 0;
   // Some muxer has close integrated io operation, such as ffmpeg.
   // Need set into a corresponding Stream.
   // If set io stream, the following function 'Write' may always return nullptr.

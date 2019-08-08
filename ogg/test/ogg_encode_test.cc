@@ -185,7 +185,8 @@ int main(int argc, char **argv) {
         fprintf(stderr, "init config failed\n");
         exit(EXIT_FAILURE);
       }
-      if (!mux->NewMuxerStream(enc, mux_stream_no)) {
+      auto extra_data = enc->GetExtraData();
+      if (!mux->NewMuxerStream(extra_data, mux_stream_no)) {
         fprintf(stderr, "NewMuxerStream failed\n");
         exit(EXIT_FAILURE);
       }

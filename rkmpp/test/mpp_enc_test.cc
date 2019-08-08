@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
 
   void *extra_data = nullptr;
   size_t extra_data_size = 0;
-  mpp_enc->GetExtraData(extra_data, extra_data_size);
+  mpp_enc->GetExtraData(&extra_data, &extra_data_size);
   fprintf(stderr, "extra_data: %p, extra_data_size: %d\n", extra_data,
           (int)extra_data_size);
   if (extra_data && extra_data_size > 0) {
