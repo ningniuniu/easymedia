@@ -46,8 +46,10 @@ public:
 
 protected:
   MppCodingType coding_type;
+  uint32_t output_mb_flags;
+  PixelFormat output_fmt;
   // call before Init()
-  void SetMppCodeingType(MppCodingType type) { coding_type = type; }
+  void SetMppCodeingType(MppCodingType type);
   virtual bool
   CheckConfigChange(std::pair<uint32_t, std::shared_ptr<ParameterBuffer>>) {
     return true;

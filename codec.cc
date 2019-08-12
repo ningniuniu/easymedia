@@ -154,7 +154,7 @@ split_h264_separate(const uint8_t *buffer, size_t length, int64_t timestamp) {
     memcpy(sub_buffer->GetPtr(), nal_start - start_len, size);
     sub_buffer->SetValidSize(size);
     sub_buffer->SetUserFlag(flag);
-    sub_buffer->SetTimeStamp(timestamp);
+    sub_buffer->SetUSTimeStamp(timestamp);
     l.push_back(sub_buffer);
 
     nal_start = nal_end;

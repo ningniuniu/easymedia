@@ -397,7 +397,7 @@ std::shared_ptr<MediaBuffer> MediaBuffer::Clone(MediaBuffer &src,
 void MediaBuffer::CopyAttribute(MediaBuffer &src_attr) {
   type = src_attr.GetType();
   user_flag = src_attr.GetUserFlag();
-  timestamp = src_attr.GetTimeStamp();
+  ustimestamp = src_attr.GetUSTimeStamp();
   eof = src_attr.IsEOF();
 }
 

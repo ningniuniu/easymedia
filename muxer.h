@@ -24,6 +24,7 @@
 
 #include "media_config.h"
 #include "media_reflector.h"
+#include "media_type.h"
 #include "stream.h"
 
 namespace easymedia {
@@ -55,7 +56,8 @@ public:
   virtual bool IncludeEncoder() { return false; }
   // create a new muxer stream by encoder, return the stream number
   virtual bool
-  NewMuxerStream(const std::shared_ptr<MediaBuffer> &enc_extra_data,
+  NewMuxerStream(const MediaConfig &mc,
+                 const std::shared_ptr<MediaBuffer> &enc_extra_data,
                  int &stream_no) = 0;
   // Some muxer has close integrated io operation, such as ffmpeg.
   // Need set into a corresponding Stream.

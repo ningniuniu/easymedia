@@ -294,6 +294,7 @@ bool MPPCommonConfig::InitConfig(MPPEncoder &mpp_enc, const MediaConfig &cfg) {
       LOG("SetExtraData failed\n");
       return false;
     }
+    mpp_enc.GetExtraData()->SetUserFlag(MediaBuffer::kExtraIntra);
     packet = NULL;
   }
 
@@ -392,18 +393,7 @@ bool MPPCommonConfig::CheckConfigChange(MPPEncoder &mpp_enc, uint32_t change,
 
 class MPPFinalEncoder : public MPPEncoder {
 public:
-  MPPFinalEncoder(const char *param) : mpp_config(nullptr) {
-    std::map<std::string, std::string> params;
-    std::list<std::pair<const std::string, std::string &>> req_list;
-    std::string output_data_type;
-    req_list.push_back(std::pair<const std::string, std::string &>(
-        KEY_OUTPUTDATATYPE, output_data_type));
-    int ret = parse_media_param_match(param, params, req_list);
-    UNUSED(ret);
-    SetMppCodeingType(output_data_type.empty()
-                          ? MPP_VIDEO_CodingUnused
-                          : GetMPPCodingType(output_data_type));
-  }
+  MPPFinalEncoder(const char *param);
   virtual ~MPPFinalEncoder() {
     if (mpp_config)
       delete mpp_config;
@@ -419,6 +409,19 @@ protected:
 
   MPPConfig *mpp_config;
 };
+
+MPPFinalEncoder::MPPFinalEncoder(const char *param) : mpp_config(nullptr) {
+  std::map<std::string, std::string> params;
+  std::list<std::pair<const std::string, std::string &>> req_list;
+  std::string output_data_type;
+  req_list.push_back(std::pair<const std::string, std::string &>(
+      KEY_OUTPUTDATATYPE, output_data_type));
+  int ret = parse_media_param_match(param, params, req_list);
+  UNUSED(ret);
+  SetMppCodeingType(output_data_type.empty()
+                        ? MPP_VIDEO_CodingUnused
+                        : GetMPPCodingType(output_data_type));
+}
 
 bool MPPFinalEncoder::InitConfig(const MediaConfig &cfg) {
   assert(!mpp_config);

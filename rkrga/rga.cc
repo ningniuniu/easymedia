@@ -166,8 +166,8 @@ int rga_blit(std::shared_ptr<ImageBuffer> src, std::shared_ptr<ImageBuffer> dst,
   if (ret) {
     LOG("Fail to RkRgaBlit, ret=%d\n", ret);
   } else {
-    if (src->GetTimeStamp() > dst->GetTimeStamp())
-      dst->SetTimeStamp(src->GetTimeStamp());
+    if (src->GetUSTimeStamp() > dst->GetUSTimeStamp())
+      dst->SetUSTimeStamp(src->GetUSTimeStamp());
   }
   return ret;
 }

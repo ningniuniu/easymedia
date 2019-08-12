@@ -112,16 +112,34 @@ _API bool string_start_withs(std::string const &fullString,
 _API bool string_end_withs(std::string const &fullString,
                            std::string const &ending);
 
-// return milliseconds
+#define FIND_ENTRY_TARGET(INPUT, MAP, KEY, TARGET)                             \
+  for (size_t i = 0; i < ARRAY_ELEMS(MAP) - 1; i++) {                          \
+    if (INPUT == MAP[i].KEY)                                                   \
+      return MAP[i].TARGET;                                                    \
+  }
+
+#define FIND_ENTRY_TARGET_BY_STRCMP(INPUT, MAP, KEY, TARGET)                   \
+  if (INPUT) {                                                                 \
+    for (size_t i = 0; i < ARRAY_ELEMS(MAP) - 1; i++) {                        \
+      if (!strcmp(INPUT, MAP[i].KEY))                                          \
+        return MAP[i].TARGET;                                                  \
+    }                                                                          \
+  }
+
+// return microseconds
 _API inline int64_t gettimeofday() {
-  std::chrono::milliseconds ms =
-      std::chrono::duration_cast<std::chrono::milliseconds>(
+  std::chrono::microseconds us =
+      std::chrono::duration_cast<std::chrono::microseconds>(
           std::chrono::system_clock::now().time_since_epoch());
-  return ms.count();
+  return us.count();
 }
 
 _API inline void msleep(int ms) {
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
+
+_API inline void usleep(int us) {
+  std::this_thread::sleep_for(std::chrono::microseconds(us));
 }
 
 typedef int (*Ioctl_f)(int fd, unsigned long int request, ...);

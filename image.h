@@ -43,6 +43,9 @@ typedef enum {
   PIX_FMT_BGR888,
   PIX_FMT_ARGB8888,
   PIX_FMT_ABGR8888,
+  PIX_FMT_JPEG,
+  PIX_FMT_H264,
+  PIX_FMT_H265,
   PIX_FMT_NB
 } PixelFormat;
 

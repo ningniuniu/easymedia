@@ -28,29 +28,20 @@
 
 namespace easymedia {
 
-bool PackOggPackets(const std::list<ogg_packet> &ogg_packets, void **out_buffer,
-                    size_t *out_size) {
+std::shared_ptr<MediaBuffer>
+PackOggPackets(const std::list<ogg_packet> &ogg_packets) {
   size_t total_size = 0;
   for (const ogg_packet &packet : ogg_packets)
     total_size += (sizeof(ogg_packet) + packet.bytes);
   if (total_size == 0)
-    return false;
-  void *out = *out_buffer;
+    return nullptr;
+  auto out = MediaBuffer::Alloc(total_size);
   if (!out) {
-    out = malloc(total_size);
-    if (!out) {
-      LOG_NO_MEMORY();
-      return false;
-    }
-    *out_buffer = out;
-    *out_size = total_size;
-  } else {
-    if (*out_size < total_size) {
-      LOG("buffer is too small to pack all ogg packets.\n");
-      return false;
-    }
+    LOG_NO_MEMORY();
+    return nullptr;
   }
-  unsigned char *buffer = (unsigned char *)out;
+
+  unsigned char *buffer = (unsigned char *)out->GetPtr();
   for (ogg_packet packet : ogg_packets) {
     unsigned char *packet_data = packet.packet;
     packet.packet = buffer + sizeof(packet);
@@ -59,7 +50,7 @@ bool PackOggPackets(const std::list<ogg_packet> &ogg_packets, void **out_buffer,
     memcpy(buffer, packet_data, packet.bytes);
     buffer += packet.bytes;
   }
-  return true;
+  return out;
 }
 
 bool UnpackOggData(void *in_buffer, size_t in_size,

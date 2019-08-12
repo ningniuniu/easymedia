@@ -40,6 +40,9 @@ public:
   _API std::shared_ptr<MediaBuffer> GetExtraData(void **data = nullptr,
                                                  size_t *size = nullptr);
   _API bool SetExtraData(void *data, size_t size, bool realloc = true);
+  void SetExtraData(const std::shared_ptr<MediaBuffer> &data) {
+    extra_data = data;
+  }
 
   virtual bool Init() = 0;
   // sync call, input and output must be valid

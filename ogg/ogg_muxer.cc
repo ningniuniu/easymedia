@@ -21,11 +21,11 @@
 
 #include "muxer.h"
 
+#include <assert.h>
+
 #include <ogg/ogg.h>
 
-#include "assert.h"
 #include "buffer.h"
-#include "encoder.h"
 #include "media_type.h"
 #include "ogg_utils.h"
 
@@ -39,7 +39,8 @@ public:
 
   virtual bool Init() override { return true; }
   virtual bool
-  NewMuxerStream(const std::shared_ptr<MediaBuffer> &enc_extra_data,
+  NewMuxerStream(const MediaConfig &mc,
+                 const std::shared_ptr<MediaBuffer> &enc_extra_data,
                  int &stream_no) override;
   virtual std::shared_ptr<MediaBuffer> WriteHeader(int stream_no);
   virtual std::shared_ptr<MediaBuffer>
@@ -55,6 +56,7 @@ OggMuxer::OggMuxer(const char *param) : Muxer(param), stream_number(0) {}
 OggMuxer::~OggMuxer() { assert(streams.empty()); }
 
 bool OggMuxer::NewMuxerStream(
+    const MediaConfig &mc _UNUSED,
     const std::shared_ptr<MediaBuffer> &enc_extra_data, int &stream_no) {
   int ret;
   ogg_stream_state os;
@@ -66,6 +68,7 @@ bool OggMuxer::NewMuxerStream(
   }
 
   if (enc_extra_data) {
+    int r = 0;
     if (!(enc_extra_data->GetUserFlag() & MediaBuffer::kBuildinLibvorbisenc)) {
       LOG("buildin muxer[liboggmuxer] only accept data from encoder "
           "[libvorbisenc]\n");
@@ -76,16 +79,17 @@ bool OggMuxer::NewMuxerStream(
     std::list<ogg_packet> ogg_packets;
     if (UnpackOggData(extradata, extradatasize, ogg_packets)) {
       for (auto &p : ogg_packets) {
-        ret = ogg_stream_packetin(&os, &p);
-        if (ret)
+        r = ogg_stream_packetin(&os, &p);
+        if (r)
           break;
       }
     } else {
-      ret = -1;
+      r = -1;
     }
-    if (ret) {
+    if (r) {
       LOG("ogg get header failed, ret = %d\n", ret);
       ogg_stream_clear(&os);
+      streams.erase(stream_no);
       return false;
     }
   }
@@ -148,10 +152,9 @@ std::shared_ptr<MediaBuffer> OggMuxer::WriteHeader(int stream_no) {
     LOG("Invalid stream no : %d\n", stream_no);
     return nullptr;
   }
-
+  ogg_stream_state &os = s->second;
   std::shared_ptr<MediaBuffer> ret;
   size_t total_len = 0;
-  ogg_stream_state &os = s->second;
   std::list<std::pair<void *, size_t>> pages;
   while (true) {
     ogg_page og;
@@ -188,7 +191,7 @@ OggMuxer::Write(std::shared_ptr<MediaBuffer> orig_data, int stream_no) {
   op.bytes = orig_data->GetValidSize();
   op.b_o_s = 0;
   op.e_o_s = orig_data->IsEOF() ? 1 : 0;
-  op.granulepos = orig_data->GetTimeStamp();
+  op.granulepos = orig_data->GetUSTimeStamp();
   op.packetno = 0;
 
   int result = ogg_stream_packetin(&os, &op);

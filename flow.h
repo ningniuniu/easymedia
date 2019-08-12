@@ -70,6 +70,7 @@ public:
   std::vector<bool> fetch_block; // if ASYNCCOMMON
   std::vector<int> input_maxcachenum;
   std::vector<int> output_slots;
+  // std::vector<DataSetModel> output_ds_model;
   std::vector<bool> hold_input;
   FunctionProcess process;
   float interval;

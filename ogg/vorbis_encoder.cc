@@ -115,18 +115,14 @@ bool VorbisEncoder::InitConfig(const MediaConfig &cfg) {
     LOG("vorbis_analysis_headerout failed, ret = %d\n", ret);
     return false;
   }
-  void *extradata = nullptr;
-  size_t extradatasize = 0;
   std::list<ogg_packet> ogg_packets;
   ogg_packets.push_back(header);
   ogg_packets.push_back(header_comm);
   ogg_packets.push_back(header_code);
-  if (PackOggPackets(ogg_packets, &extradata, &extradatasize)) {
-    if (!SetExtraData(extradata, extradatasize, false)) {
-      LOG("SetExtraData failed\n");
-      return false;
-    }
-    GetExtraData()->SetUserFlag(gBufferFlag);
+  auto extradata = PackOggPackets(ogg_packets);
+  if (extradata) {
+    extradata->SetUserFlag(gBufferFlag);
+    SetExtraData(extradata);
   } else {
     LOG("PackOggPackets failed\n");
     return false;
@@ -187,16 +183,15 @@ int VorbisEncoder::SendInput(std::shared_ptr<MediaBuffer> input) {
         errno = ENOMEM;
         return -1;
       }
-      auto buffer =
-          std::make_shared<MediaBuffer>(new_packet->packet, new_packet->bytes,
-                                        -1, new_packet, __ogg_packet_free);
+      MediaBuffer mb(new_packet->packet, new_packet->bytes, -1, new_packet,
+                     __ogg_packet_free);
+      auto buffer = std::make_shared<SampleBuffer>(mb, SAMPLE_FMT_VORBIS);
       if (!buffer) {
         errno = ENOMEM;
         return -1;
       }
-      buffer->SetType(Type::Audio);
       buffer->SetValidSize(op.bytes);
-      buffer->SetTimeStamp(op.granulepos);
+      buffer->SetUSTimeStamp(op.granulepos);
       buffer->SetEOF(op.e_o_s);
       buffer->SetUserFlag(gBufferFlag);
       cached_ogg_packets.push_back(buffer);

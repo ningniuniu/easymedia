@@ -28,10 +28,12 @@ extern "C" {
 
 #include <list>
 
+#include "buffer.h"
+
 namespace easymedia {
 
-bool PackOggPackets(const std::list<ogg_packet> &ogg_packets, void **out_buffer,
-                    size_t *out_size);
+std::shared_ptr<MediaBuffer>
+PackOggPackets(const std::list<ogg_packet> &ogg_packets);
 bool UnpackOggData(void *in_buffer, size_t in_size,
                    std::list<ogg_packet> &ogg_packets);
 

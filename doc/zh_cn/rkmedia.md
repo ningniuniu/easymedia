@@ -140,11 +140,16 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
 - 编译
 
     确保对应CMakeLists.txt设置-D\<FORMAT\>_MUXER=ON  
-    比如OGG音频封装ogg，就是-DOGGVORBIS=ON -DOGG_MUXER=ON
+    比如OGG音频封装ogg，就是-DOGGVORBIS=ON -DOGG_MUXER=ON  
 
-- 范例：[ogg_encode_test.cc](../../frameworks/media/ogg/test/ogg_encode_test.cc)
+    ffmpeg的话，确认-DFFMPEG=ON即可
 
-    使用命令查看使用方法：./ogg_encode_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
+- 范例：
+
+    [ogg_encode_test.cc](../../frameworks/media/ogg/test/ogg_encode_test.cc)  
+    [ffmpeg_enc_mux_test.cc](../../frameworks/media/ffmpeg/test/ffmpeg_enc_mux_test.cc)
+
+    使用命令查看使用方法：./ogg_encode_test -? / ./ffmpeg_enc_mux_test -?（可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
 
 - 接口及范例流程说明
 
@@ -152,7 +157,8 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
     * easymedia::REFLECTOR(Muxer)::Create\<easymedia::Muxer\>：创建格式封装实例，参数为上述的DumpFactories中列出的一个模块对应的字符串，比如范例中的liboggmuxer
     * IncludeEncoder()：判断是否此解封装模块已包含了编码功能。如果没有，需要按章节[音频编码](#音频编码)所述创建编码器实例先做编码再传入做封装
     * NewMuxerStream：创建一路数据流，返回数据流对应序号于参数stream_no
-    * SetIoStream：托管封装后数据写入的io stream。如果调用了该函数，则封装后立刻调用此io stream的Write方法写入数据；否则需要外部程序自行处理输出的封装数据
+    * SetIoStream：托管封装后数据写入的io stream。如果调用了该函数，则封装后立刻调用此io stream的Write方法写入数据；否则需要外部程序自行处理输出的封装数据  
+    ffmpeg因为其内部的读写逻辑，不支持此函数
     * WriteHeader：获取封装格式头信息数据
     * Write：传入编码后的数据和对应数据流的序号，输出封装数据
 

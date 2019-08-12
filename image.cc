@@ -59,7 +59,7 @@ void GetPixFmtNumDen(const PixelFormat &fmt, int &num, int &den) {
     num = 4;
     break;
   default:
-    LOG("unsupport for pixel fmt: %d\n", fmt);
+    LOG("unsupport get num/den for pixel fmt: %d\n", fmt);
   }
 }
 
@@ -81,24 +81,19 @@ static const struct PixFmtStringEntry {
     {PIX_FMT_RGB332, IMAGE_RGB332},     {PIX_FMT_RGB565, IMAGE_RGB565},
     {PIX_FMT_BGR565, IMAGE_BGR565},     {PIX_FMT_RGB888, IMAGE_RGB888},
     {PIX_FMT_BGR888, IMAGE_BGR888},     {PIX_FMT_ARGB8888, IMAGE_ARGB8888},
-    {PIX_FMT_ABGR8888, IMAGE_ABGR8888},
+    {PIX_FMT_ABGR8888, IMAGE_ABGR8888}, {PIX_FMT_JPEG, IMAGE_JPEG},
+    {PIX_FMT_H264, VIDEO_H264},         {PIX_FMT_H265, VIDEO_H265},
 };
 
 PixelFormat GetPixFmtByString(const char *type) {
   if (!type)
     return PIX_FMT_NONE;
-  for (size_t i = 0; i < ARRAY_ELEMS(pix_fmt_string_map) - 1; i++) {
-    if (!strcmp(type, pix_fmt_string_map[i].type_str))
-      return pix_fmt_string_map[i].fmt;
-  }
+  FIND_ENTRY_TARGET_BY_STRCMP(type, pix_fmt_string_map, type_str, fmt)
   return PIX_FMT_NONE;
 }
 
 const char *PixFmtToString(PixelFormat fmt) {
-  for (size_t i = 0; i < ARRAY_ELEMS(pix_fmt_string_map) - 1; i++) {
-    if (fmt == pix_fmt_string_map[i].fmt)
-      return pix_fmt_string_map[i].type_str;
-  }
+  FIND_ENTRY_TARGET(fmt, pix_fmt_string_map, fmt, type_str)
   return nullptr;
 }
 

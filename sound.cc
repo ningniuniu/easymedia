@@ -34,21 +34,16 @@ static const struct SampleFormatEntry {
     {SAMPLE_FMT_U8, AUDIO_PCM_U8},
     {SAMPLE_FMT_S16, AUDIO_PCM_S16},
     {SAMPLE_FMT_S32, AUDIO_PCM_S32},
+    {SAMPLE_FMT_VORBIS, AUDIO_VORBIS},
 };
 
 const char *SampleFormatToString(SampleFormat fmt) {
-  for (size_t i = 0; i < ARRAY_ELEMS(sample_format_string_map) - 1; i++) {
-    if (fmt == sample_format_string_map[i].fmt)
-      return sample_format_string_map[i].fmt_str;
-  }
+  FIND_ENTRY_TARGET(fmt, sample_format_string_map, fmt, fmt_str)
   return nullptr;
 }
 
 SampleFormat StringToSampleFormat(const char *fmt_str) {
-  for (size_t i = 0; i < ARRAY_ELEMS(sample_format_string_map) - 1; i++) {
-    if (!strcmp(sample_format_string_map[i].fmt_str, fmt_str))
-      return sample_format_string_map[i].fmt;
-  }
+  FIND_ENTRY_TARGET_BY_STRCMP(fmt_str, sample_format_string_map, fmt_str, fmt)
   return SAMPLE_FMT_NONE;
 }
 

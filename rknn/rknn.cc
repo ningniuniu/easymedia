@@ -282,7 +282,7 @@ int RKNNFilter::Process(std::shared_ptr<MediaBuffer> input,
   output->SetSize(io_num.n_output * sizeof(rknn_output));
   output->SetUserData(out, __free_rknnoutputs);
   output->SetValidSize(io_num.n_output);
-  output->SetTimeStamp(input->GetTimeStamp());
+  output->SetUSTimeStamp(input->GetUSTimeStamp());
   return 0;
 }
 

@@ -226,7 +226,7 @@ static int SetImageBufferWithMppFrame(std::shared_ptr<ImageBuffer> ib,
     mpp_frame_deinit(&frame);
   }
   ib->SetValidSize(size);
-  ib->SetTimeStamp(pts);
+  ib->SetUSTimeStamp(pts);
   ib->SetEOF(eos);
 
   return 0;
@@ -273,7 +273,7 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
   }
   assert(packet);
   mpp_packet_set_length(packet, input->GetValidSize());
-  mpp_packet_set_pts(packet, input->GetTimeStamp());
+  mpp_packet_set_pts(packet, input->GetUSTimeStamp());
   if (input->IsEOF()) {
     LOG("send eos packet to MPP\n");
     mpp_packet_set_eos(packet);
@@ -448,7 +448,7 @@ int MPPDecoder::SendInput(std::shared_ptr<MediaBuffer> input) {
     LOG("Failed to init MPP packet (ret = %d)\n", ret);
     return -EFAULT;
   }
-  mpp_packet_set_pts(packet, input->GetTimeStamp());
+  mpp_packet_set_pts(packet, input->GetUSTimeStamp());
   if (input->IsEOF()) {
     LOG("send eos packet to MPP\n");
     mpp_packet_set_eos(packet);
@@ -504,7 +504,7 @@ std::shared_ptr<MediaBuffer> MPPDecoder::FetchOutput() {
       errno = ENOMEM;
       goto out;
     }
-    mb->SetTimeStamp(mpp_frame_get_pts(mppframe));
+    mb->SetUSTimeStamp(mpp_frame_get_pts(mppframe));
     mb->SetEOF(true);
     mpp_frame_deinit(&mppframe);
     return mb;

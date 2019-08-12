@@ -134,17 +134,15 @@ int main(int argc, char **argv) {
       fprintf(stderr, "unsupport data type\n");
       exit(EXIT_FAILURE);
     }
-    params = "device=";
-    params += alsa_device + "\n";
-    params += "format=" + fmt_str + "\n";
-    params += "channels=" + std::to_string(sample_info.channels) + "\n";
-    params += "sample_rate=" + std::to_string(sample_info.sample_rate) + "\n";
+    PARAM_STRING_APPEND(params, KEY_DEVICE, alsa_device);
+    PARAM_STRING_APPEND(params, KEY_SAMPLE_FMT, fmt_str);
+    PARAM_STRING_APPEND_TO(params, KEY_CHANNELS, sample_info.channels);
+    PARAM_STRING_APPEND_TO(params, KEY_SAMPLE_RATE, sample_info.sample_rate);
     LOG("params:\n%s\n", params.c_str());
   } else if (easymedia::string_end_withs(input_path, ".pcm")) {
     stream_name = "file_read_stream";
-    params = "path=";
-    params += input_path + "\n";
-    params += "mode=re\n"; // read and close-on-exec
+    PARAM_STRING_APPEND(params, KEY_PATH, input_path);
+    PARAM_STRING_APPEND(params, KEY_OPEN_MODE, "re"); // read and close-on-exec
   } else {
     assert(0);
   }
@@ -157,9 +155,9 @@ int main(int argc, char **argv) {
   }
 
   stream_name = "file_write_stream";
-  params = "path=";
-  params += output_path + "\n";
-  params += "mode=we\n"; // write and close-on-exec
+  params = "";
+  PARAM_STRING_APPEND(params, KEY_PATH, output_path);
+  PARAM_STRING_APPEND(params, KEY_OPEN_MODE, "we"); // write and close-on-exec
   std::shared_ptr<easymedia::Stream> out_stream = easymedia::REFLECTOR(
       Stream)::Create<easymedia::Stream>(stream_name.c_str(), params.c_str());
   if (!out_stream) {
@@ -185,8 +183,8 @@ int main(int argc, char **argv) {
         fprintf(stderr, "init config failed\n");
         exit(EXIT_FAILURE);
       }
-      auto extra_data = enc->GetExtraData();
-      if (!mux->NewMuxerStream(extra_data, mux_stream_no)) {
+      if (!mux->NewMuxerStream(enc->GetConfig(), enc->GetExtraData(),
+                               mux_stream_no)) {
         fprintf(stderr, "NewMuxerStream failed\n");
         exit(EXIT_FAILURE);
       }
@@ -196,6 +194,8 @@ int main(int argc, char **argv) {
     auto header = mux->WriteHeader(mux_stream_no);
     if (!header)
       fprintf(stderr, "warning: WriteHeader return nullptr\n");
+    else if (write_stream && header->GetValidSize() > 0)
+      write_stream->Write(header->GetPtr(), 1, header->GetValidSize());
   }
 
   const int read_frames = 1024;

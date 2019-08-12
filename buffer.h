@@ -45,18 +45,19 @@ public:
   static const uint32_t kPredicted = (1 << 2);
   static const uint32_t kBiPredictive = (1 << 3);
   static const uint32_t kBiDirectional = (1 << 4);
+  static const uint32_t kSingleNalUnit = (1 << 5);
 
   // special flags
   static const uint32_t kBuildinLibvorbisenc = (1 << 16);
 
   MediaBuffer()
       : ptr(nullptr), size(0), fd(-1), valid_size(0), type(Type::None),
-        user_flag(0), timestamp(0), eof(false) {}
+        user_flag(0), ustimestamp(0), eof(false) {}
   // Set userdata and delete function if you want free resource when destrut.
   MediaBuffer(void *buffer_ptr, size_t buffer_size, int buffer_fd = -1,
               void *user_data = nullptr, DeleteFun df = nullptr)
       : ptr(buffer_ptr), size(buffer_size), fd(buffer_fd), valid_size(0),
-        type(Type::None), user_flag(0), timestamp(0), eof(false) {
+        type(Type::None), user_flag(0), ustimestamp(0), eof(false) {
     SetUserData(user_data, df);
   }
   virtual ~MediaBuffer() = default;
@@ -71,18 +72,23 @@ public:
   size_t GetValidSize() const { return valid_size; }
   void SetValidSize(size_t s) { valid_size = s; }
   Type GetType() const { return type; }
+  // be careful to set type, depends on final buffer class.
+  // Maybe it should be set Protected.
   void SetType(Type t) { type = t; }
   uint32_t GetUserFlag() const { return user_flag; }
   void SetUserFlag(uint32_t flag) { user_flag = flag; }
-  int64_t GetTimeStamp() const { return timestamp; }
+  // microsecond
+  int64_t GetUSTimeStamp() const { return ustimestamp; }
   struct timeval GetTimeVal() const {
-    // timestamp always milliseconds ?
     struct timeval ret;
-    ret.tv_sec = timestamp / 1000;
-    ret.tv_usec = (timestamp % 1000) * 1000;
+    ret.tv_sec = ustimestamp / 1000000LL;
+    ret.tv_usec = ustimestamp % 1000000LL;
     return ret;
   }
-  void SetTimeStamp(int64_t ts) { timestamp = ts; }
+  void SetUSTimeStamp(int64_t us) { ustimestamp = us; }
+  void SetTimeVal(const struct timeval &val) {
+    ustimestamp = val.tv_sec * 1000000LL + val.tv_usec;
+  }
   bool IsEOF() const { return eof; }
   void SetEOF(bool val) { eof = val; }
 
@@ -142,7 +148,7 @@ private:
   size_t valid_size; // valid data size, less than above size
   Type type;
   uint32_t user_flag;
-  int64_t timestamp;
+  int64_t ustimestamp;
   bool eof;
 
   std::shared_ptr<void> userdata;
@@ -154,6 +160,12 @@ MediaBuffer::MemType StringToMemType(const char *s);
 // Audio sample buffer
 class _API SampleBuffer : public MediaBuffer {
 public:
+  SampleBuffer() { ResetValues(); }
+  SampleBuffer(const MediaBuffer &buffer, SampleFormat fmt = SAMPLE_FMT_NONE)
+      : MediaBuffer(buffer) {
+    ResetValues();
+    sample_info.fmt = fmt;
+  }
   SampleBuffer(const MediaBuffer &buffer, const SampleInfo &info)
       : MediaBuffer(buffer), sample_info(info) {
     SetType(Type::Audio);
@@ -172,6 +184,11 @@ public:
   int GetFrames() const { return sample_info.frames; }
 
 private:
+  void ResetValues() {
+    SetType(Type::Audio);
+    memset(&sample_info, 0, sizeof(sample_info));
+    sample_info.fmt = SAMPLE_FMT_NONE;
+  }
   SampleInfo sample_info;
 };
 

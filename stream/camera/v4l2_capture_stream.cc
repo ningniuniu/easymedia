@@ -198,8 +198,11 @@ int V4L2CaptureStream::Open() {
   int w = UPALIGNTO16(width);
   int h = UPALIGNTO16(height);
   if (memory_type == V4L2_MEMORY_DMABUF) {
-    int size =
-        (pix_fmt != PIX_FMT_NONE) ? CalPixFmtSize(pix_fmt, w, h) : w * h * 4;
+    int size = 0;
+    if (pix_fmt != PIX_FMT_NONE)
+      size = CalPixFmtSize(pix_fmt, w, h);
+    if (size == 0) // unknown pixel format
+      size = w * h * 4;
     for (size_t i = 0; i < req.count; i++) {
       struct v4l2_buffer buf;
       memset(&buf, 0, sizeof(buf));
@@ -348,7 +351,7 @@ std::shared_ptr<MediaBuffer> V4L2CaptureStream::Read() {
     if (buf.memory == V4L2_MEMORY_DMABUF) {
       assert(ret_buf->GetFD() == buf.m.fd);
     }
-    ret_buf->SetTimeStamp(buf_ts.tv_sec * 1000LL + buf_ts.tv_usec / 1000LL);
+    ret_buf->SetTimeVal(buf_ts);
     ret_buf->SetValidSize(buf.bytesused);
   } else {
     if (v4l2_ctx->IoCtrl(VIDIOC_QBUF, &buf) < 0)

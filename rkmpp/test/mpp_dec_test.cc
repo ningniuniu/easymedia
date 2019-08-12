@@ -312,7 +312,7 @@ int main(int argc, char **argv) {
       }
       if (f != single_file)
         fclose(f);
-      buffer->SetTimeStamp(easymedia::gettimeofday());
+      buffer->SetUSTimeStamp(easymedia::gettimeofday());
       int ret = mpp_dec->SendInput(buffer);
       if (ret == -EAGAIN) {
         last_buffer = buffer;
@@ -322,7 +322,7 @@ int main(int argc, char **argv) {
       auto buffer = std::make_shared<easymedia::MediaBuffer>();
       assert(buffer);
       buffer->SetEOF(true);
-      buffer->SetTimeStamp(easymedia::gettimeofday());
+      buffer->SetUSTimeStamp(easymedia::gettimeofday());
       int ret = mpp_dec->SendInput(buffer);
       sent_eos = true;
       if (ret == -EAGAIN) {

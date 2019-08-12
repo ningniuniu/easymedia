@@ -28,7 +28,22 @@
 
 namespace easymedia {
 
-MPPEncoder::MPPEncoder() : coding_type(MPP_VIDEO_CodingAutoDetect) {}
+MPPEncoder::MPPEncoder()
+    : coding_type(MPP_VIDEO_CodingAutoDetect), output_mb_flags(0),
+      output_fmt(PIX_FMT_NONE) {}
+
+void MPPEncoder::SetMppCodeingType(MppCodingType type) {
+  coding_type = type;
+  if (type == MPP_VIDEO_CodingMJPEG)
+    output_fmt = PIX_FMT_JPEG;
+  else if (type == MPP_VIDEO_CodingAVC)
+    output_fmt = PIX_FMT_H264;
+  else if (type == MPP_VIDEO_CodingHEVC)
+    output_fmt = PIX_FMT_H265;
+  // mpp always return a single nal
+  if (type == MPP_VIDEO_CodingAVC || type == MPP_VIDEO_CodingHEVC)
+    output_mb_flags |= MediaBuffer::kSingleNalUnit;
+}
 
 bool MPPEncoder::Init() {
   if (coding_type == MPP_VIDEO_CodingUnused)
@@ -71,8 +86,8 @@ int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
   ImageBuffer *hw_buffer = static_cast<ImageBuffer *>(input.get());
 
   assert(input->GetValidSize() > 0);
-  mpp_frame_set_pts(frame, hw_buffer->GetTimeStamp());
-  mpp_frame_set_dts(frame, hw_buffer->GetTimeStamp());
+  mpp_frame_set_pts(frame, hw_buffer->GetUSTimeStamp());
+  mpp_frame_set_dts(frame, hw_buffer->GetUSTimeStamp());
   mpp_frame_set_width(frame, hw_buffer->GetWidth());
   mpp_frame_set_height(frame, hw_buffer->GetHeight());
   mpp_frame_set_fmt(frame, ConvertToMppPixFmt(fmt));
@@ -166,6 +181,8 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
   RK_U32 out_eof = 0;
   RK_S64 pts = 0;
 
+  Type out_type;
+
   if (!input)
     return 0;
   if (!output)
@@ -240,10 +257,21 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
     packet = nullptr;
   }
   output->SetValidSize(packet_len);
-  output->SetUserFlag(packet_flag);
-  output->SetTimeStamp(pts);
+  output->SetUserFlag(packet_flag | output_mb_flags);
+  output->SetUSTimeStamp(pts);
   output->SetEOF(out_eof ? true : false);
-  output->SetType(Type::Video);
+  out_type = output->GetType();
+  if (out_type == Type::Image) {
+    auto out_img = std::static_pointer_cast<ImageBuffer>(output);
+    auto &info = out_img->GetImageInfo();
+    const auto &in_cfg = GetConfig();
+    info = (coding_type == MPP_VIDEO_CodingMJPEG)
+               ? in_cfg.img_cfg.image_info
+               : in_cfg.vid_cfg.image_cfg.image_info;
+    info.pix_fmt = output_fmt;
+  } else {
+    output->SetType(Type::Video);
+  }
 
   if (mv_buf) {
     if (extra_output->GetFD() < 0) {
@@ -253,7 +281,7 @@ int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
     }
     extra_output->SetValidSize(mpp_buffer_get_size(mv_buf));
     extra_output->SetUserFlag(packet_flag);
-    extra_output->SetTimeStamp(pts);
+    extra_output->SetUSTimeStamp(pts);
   }
 
 ENCODE_OUT:

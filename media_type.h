@@ -69,6 +69,8 @@ enum class Type { None = -1, Audio = 0, Image, Video, Text };
 #define AUDIO_PCM                                                              \
   TYPENEAR(AUDIO_PCM_U8) TYPENEAR(AUDIO_PCM_S16) TYPENEAR(AUDIO_PCM_S32)
 
+#define TEXT_PREFIX "text:"
+
 #define STREAM_OGG "stream:ogg"
 
 #define STREAM_FILE "stream:file"
@@ -80,9 +82,16 @@ enum class Type { None = -1, Audio = 0, Image, Video, Text };
 #define NN_INT16 "nn:int16"
 
 #include <string>
+
+namespace easymedia {
+
+Type StringToDataType(const char *data_type);
+
 class SupportMediaTypes {
 public:
   std::string types;
 };
+
+} // namespace easymedia
 
 #endif // #ifndef EASYMEDIA_MEDIA_TYPE_H_
