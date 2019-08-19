@@ -76,7 +76,7 @@ _API int CalPixFmtSize(const PixelFormat &fmt, const int width,
 _API inline int CalPixFmtSize(const ImageInfo &ii) {
   return CalPixFmtSize(ii.pix_fmt, ii.vir_width, ii.vir_height);
 }
-_API PixelFormat GetPixFmtByString(const char *type);
+_API PixelFormat StringToPixFmt(const char *type);
 _API const char *PixFmtToString(PixelFormat fmt);
 
 #include <map>

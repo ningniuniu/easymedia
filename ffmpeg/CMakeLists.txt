@@ -11,9 +11,16 @@
 option(FFMPEG "compile: ffmpeg wrapper" OFF)
 if(FFMPEG)
   pkg_check_modules(LIBAVFORMAT REQUIRED libavformat>=58.20.100)
+  set(EASY_MEDIA_FFMPEG_SOURCE_FILES ffmpeg/ffmpeg_utils.cc)
+  if(MUXER)
+    set(EASY_MEDIA_FFMPEG_SOURCE_FILES ${EASY_MEDIA_FFMPEG_SOURCE_FILES}
+                                       ffmpeg/ffmpeg_muxer.cc)
+  endif()
+  if(ENCODER)
+    set(EASY_MEDIA_FFMPEG_SOURCE_FILES ${EASY_MEDIA_FFMPEG_SOURCE_FILES}
+                                       ffmpeg/ffmpeg_aud_encoder.cc)
+  endif()
 
-  set(EASY_MEDIA_FFMPEG_SOURCE_FILES ffmpeg/ffmpeg_utils.cc
-                                     ffmpeg/ffmpeg_muxer.cc)
   set(EASY_MEDIA_SOURCE_FILES ${EASY_MEDIA_SOURCE_FILES}
                               ${EASY_MEDIA_FFMPEG_SOURCE_FILES} PARENT_SCOPE)
   set(EASY_MEDIA_DEPENDENT_LIBS

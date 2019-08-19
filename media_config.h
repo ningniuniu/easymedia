@@ -23,9 +23,8 @@
 #define EASYMEDIA_MEDIA_CONFIG_H_
 
 #include "image.h"
+#include "media_type.h"
 #include "sound.h"
-
-#include <string>
 
 typedef struct {
   ImageInfo image_info;
@@ -63,10 +62,13 @@ typedef struct {
   float quality; // vorbis: 0.0 ~ 1.0;
 } AudioConfig;
 
-typedef union {
-  VideoConfig vid_cfg;
-  ImageConfig img_cfg;
-  AudioConfig aud_cfg;
+typedef struct {
+  union {
+    VideoConfig vid_cfg;
+    ImageConfig img_cfg;
+    AudioConfig aud_cfg;
+  };
+  Type type;
 } MediaConfig;
 
 #include <map>

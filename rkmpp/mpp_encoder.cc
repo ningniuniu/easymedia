@@ -29,8 +29,7 @@
 namespace easymedia {
 
 MPPEncoder::MPPEncoder()
-    : coding_type(MPP_VIDEO_CodingAutoDetect), output_mb_flags(0),
-      output_fmt(PIX_FMT_NONE) {}
+    : coding_type(MPP_VIDEO_CodingAutoDetect), output_mb_flags(0) {}
 
 void MPPEncoder::SetMppCodeingType(MppCodingType type) {
   coding_type = type;
@@ -71,7 +70,7 @@ bool MPPEncoder::Init() {
   return true;
 }
 
-int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
+int MPPEncoder::PrepareMppFrame(const std::shared_ptr<MediaBuffer> &input,
                                 MppFrame &frame) {
   MppBuffer pic_buf = nullptr;
   if (input->GetType() != Type::Image) {
@@ -113,7 +112,7 @@ int MPPEncoder::PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
   return 0;
 }
 
-int MPPEncoder::PrepareMppPacket(std::shared_ptr<MediaBuffer> output,
+int MPPEncoder::PrepareMppPacket(std::shared_ptr<MediaBuffer> &output,
                                  MppPacket &packet) {
   MppBuffer mpp_buf = nullptr;
 
@@ -169,8 +168,8 @@ static int __free_mpppacketcontext(void *p) {
   return 0;
 }
 
-int MPPEncoder::Process(std::shared_ptr<MediaBuffer> input,
-                        std::shared_ptr<MediaBuffer> output,
+int MPPEncoder::Process(const std::shared_ptr<MediaBuffer> &input,
+                        std::shared_ptr<MediaBuffer> &output,
                         std::shared_ptr<MediaBuffer> extra_output) {
   MppFrame frame = nullptr;
   MppPacket packet = nullptr;
@@ -359,7 +358,7 @@ int MPPEncoder::Process(MppFrame frame, MppPacket &packet, MppBuffer &mv_buf) {
   return 0;
 }
 
-int MPPEncoder::SendInput(std::shared_ptr<MediaBuffer> input _UNUSED) {
+int MPPEncoder::SendInput(const std::shared_ptr<MediaBuffer> &) {
   errno = ENOSYS;
   return -1;
 }

@@ -48,10 +48,7 @@ public:
   Write(std::shared_ptr<MediaBuffer> orig_data, int stream_no) override;
 
 private:
-  void printf_av_error(int err, const char *log);
-
   std::string path;
-  std::string in_data_type;
   AVFormatContext *context;
   std::vector<AVStream *> streams;
   int nb_streams;
@@ -76,8 +73,6 @@ FFMPEGMuxer::FFMPEGMuxer(const char *param)
   std::list<std::pair<const std::string, std::string &>> req_list;
   req_list.push_back(
       std::pair<const std::string, std::string &>(KEY_PATH, path));
-  req_list.push_back(std::pair<const std::string, std::string &>(
-      KEY_INPUTDATATYPE, in_data_type));
   parse_media_param_match(param, params, req_list);
 }
 
@@ -89,19 +84,11 @@ FFMPEGMuxer::~FFMPEGMuxer() {
   avformat_free_context(context);
 }
 
-void FFMPEGMuxer::printf_av_error(int err, const char *log) {
-  const char *url = path.c_str();
-  char str[AV_ERROR_MAX_STRING_SIZE] = {0};
-  av_strerror(err, str, sizeof(str));
-  LOG("%s ", log);
-  LOG("'%s': %s\n", url, str);
-}
-
 bool FFMPEGMuxer::Init() {
   if (!empty)
     return false;
-  if (path.empty() || in_data_type.empty()) {
-    LOG("missing path or input data type\n");
+  if (path.empty()) {
+    LOG("missing path\n");
     return false;
   }
   AVFormatContext *c = NULL;
@@ -116,30 +103,27 @@ bool FFMPEGMuxer::Init() {
   return true;
 }
 
-static bool _convert_to_avcodecparam(AVFormatContext *c,
-                                     const std::string &data_type,
-                                     const MediaConfig *mc,
+static bool _convert_to_avcodecparam(AVFormatContext *c, const MediaConfig *mc,
                                      AVCodecParameters *par,
                                      AVRational *time_base) {
-  Type type = StringToDataType(data_type.c_str());
+  Type type = mc->type;
   switch (type) {
   case Type::Image:
   case Type::Video: {
     const VideoConfig &vc = mc->vid_cfg;
     const ImageConfig &ic = (type == Type::Image) ? mc->img_cfg : vc.image_cfg;
     par->codec_type = AVMEDIA_TYPE_VIDEO;
-    par->codec_id =
-        (type == Type::Image)
-            ? AV_CODEC_ID_RAWVIDEO
-            : PixFmtToAVCodecID(GetPixFmtByString(data_type.c_str()));
+    par->codec_id = (type == Type::Image)
+                        ? AV_CODEC_ID_RAWVIDEO
+                        : PixFmtToAVCodecID(ic.image_info.pix_fmt);
     if (par->codec_id == AV_CODEC_ID_NONE)
       return false;
+    auto av_fmt = PixFmtToAVPixFmt(ic.image_info.pix_fmt);
     par->codec_tag =
         (type == Type::Image)
-            ? avcodec_pix_fmt_to_codec_tag(
-                  PixFmtToAVPixFmt(GetPixFmtByString(data_type.c_str())))
+            ? avcodec_pix_fmt_to_codec_tag(av_fmt)
             : av_codec_get_tag(c->oformat->codec_tag, par->codec_id);
-    par->format = PixFmtToAVPixFmt(ic.image_info.pix_fmt);
+    par->format = av_fmt;
     par->sw_format = AV_PIX_FMT_NONE; // TODO
     par->width = ic.image_info.width;
     par->height = ic.image_info.height;
@@ -155,12 +139,17 @@ static bool _convert_to_avcodecparam(AVFormatContext *c,
   case Type::Audio: {
     const AudioConfig &ac = mc->aud_cfg;
     par->codec_type = AVMEDIA_TYPE_AUDIO;
-    par->format = SampleFmtToAVSamFmt(StringToSampleFormat(data_type.c_str()));
+    par->codec_id = SampleFmtToAVCodecID(ac.sample_info.fmt);
+    if (par->codec_id == AV_CODEC_ID_NONE)
+      return false;
+    par->codec_tag = av_codec_get_tag(c->oformat->codec_tag, par->codec_id);
+    par->format = SampleFmtToAVSamFmt(ac.sample_info.fmt);
     par->channels = ac.sample_info.channels;
     par->channel_layout = av_get_default_channel_layout(par->channels);
     par->sample_rate = ac.sample_info.sample_rate;
     // par->block_align
-    // par->frame_size
+    if (par->codec_id == AV_CODEC_ID_MP2)
+      par->frame_size = ac.sample_info.nb_samples;
     *time_base = (AVRational){1, par->sample_rate};
   } break;
   case Type::Text: {
@@ -187,8 +176,7 @@ bool FFMPEGMuxer::NewMuxerStream(
     LOG_NO_MEMORY();
     return false;
   }
-  if (!_convert_to_avcodecparam(context, in_data_type, &mc, codecpar,
-                                &time_base))
+  if (!_convert_to_avcodecparam(context, &mc, codecpar, &time_base))
     return false;
   AVStream *s = avformat_new_stream(context, NULL);
   if (!s) {
@@ -204,7 +192,7 @@ bool FFMPEGMuxer::NewMuxerStream(
 #if 1 // make av_dump_format correct
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  if (StringToDataType(in_data_type.c_str()) == Type::Video) {
+  if (mc.type == Type::Video) {
     const VideoConfig &vc = mc.vid_cfg;
     const auto &info = vc.image_cfg.image_info;
     s->codec->qmin = vc.qp_min;
@@ -246,14 +234,16 @@ std::shared_ptr<MediaBuffer> FFMPEGMuxer::WriteHeader(int stream_no) {
     return nullptr;
   }
   const char *url = path.c_str();
-  av_dump_format(context, stream_no, url, 1);
   if (context->pb)
     return empty;
+#ifndef NDEBUG
+  av_dump_format(context, stream_no, url, 1);
+#endif
   int ret;
   if (!(context->oformat->flags & AVFMT_NOFILE)) {
     ret = avio_open(&context->pb, url, AVIO_FLAG_WRITE);
     if (ret < 0) {
-      printf_av_error(ret, "Could not open");
+      PrintAVError(ret, "Could not open", path.c_str());
       return nullptr;
     }
   } else {
@@ -262,11 +252,15 @@ std::shared_ptr<MediaBuffer> FFMPEGMuxer::WriteHeader(int stream_no) {
   }
   ret = avformat_write_header(context, NULL);
   if (ret < 0) {
-    printf_av_error(ret, "Fail to write header");
+    PrintAVError(ret, "Fail to write header", path.c_str());
     return nullptr;
   }
-  LOGD("stream index %d, after write header time_base: %d/%d\n", stream_no,
-       streams[stream_no]->time_base.num, streams[stream_no]->time_base.den);
+#ifndef NDEBUG
+  for (auto no : streams) {
+    LOGD("stream index %d, after write header time_base: %d/%d\n", no,
+         streams[no]->time_base.num, streams[no]->time_base.den);
+  }
+#endif
   return empty;
 }
 
@@ -275,10 +269,10 @@ FFMPEGMuxer::Write(std::shared_ptr<MediaBuffer> data, int stream_no) {
   assert(stream_no >= 0 && stream_no < (int)streams.size());
   int ret;
   bool eof = data->IsEOF();
-  auto s = streams[stream_no];
-  AVPacket avpkt;
   size_t size = data->GetValidSize();
   if (size > 0) {
+    auto s = streams[stream_no];
+    AVPacket avpkt;
     av_init_packet(&avpkt);
     avpkt.data = (uint8_t *)data->GetPtr();
     avpkt.size = size;
@@ -301,10 +295,12 @@ FFMPEGMuxer::Write(std::shared_ptr<MediaBuffer> data, int stream_no) {
       pre_pts[stream_no] = pts;
     }
     avpkt.dts = avpkt.pts = pts;
+    LOGD("[%d] pts = %ld, num/den =%d/%d\n", stream_no, pts, s->time_base.num,
+         s->time_base.den);
     ret = av_write_frame(context, &avpkt);
     av_packet_unref(&avpkt);
     if (ret < 0) {
-      printf_av_error(ret, "Fail to write frame");
+      PrintAVError(ret, "Fail to write frame", path.c_str());
       if (!eof)
         return nullptr;
     }
@@ -313,7 +309,7 @@ FFMPEGMuxer::Write(std::shared_ptr<MediaBuffer> data, int stream_no) {
   if (eof) {
     ret = av_write_trailer(context);
     if (ret < 0) {
-      printf_av_error(ret, "Fail to write trailer");
+      PrintAVError(ret, "Fail to write trailer", path.c_str());
       return nullptr;
     }
   }

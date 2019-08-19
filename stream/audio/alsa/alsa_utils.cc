@@ -57,7 +57,7 @@ int ParseAlsaParams(const char *param,
   for (auto &p : params) {
     const std::string &key = p.first;
     if (key == KEY_SAMPLE_FMT) {
-      SampleFormat fmt = StringToSampleFormat(p.second.c_str());
+      SampleFormat fmt = StringToSampleFmt(p.second.c_str());
       if (fmt == SAMPLE_FMT_NONE) {
         LOG("unknown pcm fmt: %s\n", p.second.c_str());
         return 0;

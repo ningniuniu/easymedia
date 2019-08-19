@@ -107,20 +107,22 @@ int parse_media_param_match(
 bool has_intersection(const char *str, const char *expect,
                       std::list<std::string> *expect_list);
 
+std::string get_media_value_by_key(const char *param, const char *key);
+
 _API bool string_start_withs(std::string const &fullString,
                              std::string const &starting);
 _API bool string_end_withs(std::string const &fullString,
                            std::string const &ending);
 
 #define FIND_ENTRY_TARGET(INPUT, MAP, KEY, TARGET)                             \
-  for (size_t i = 0; i < ARRAY_ELEMS(MAP) - 1; i++) {                          \
+  for (size_t i = 0; i < ARRAY_ELEMS(MAP); i++) {                              \
     if (INPUT == MAP[i].KEY)                                                   \
       return MAP[i].TARGET;                                                    \
   }
 
 #define FIND_ENTRY_TARGET_BY_STRCMP(INPUT, MAP, KEY, TARGET)                   \
   if (INPUT) {                                                                 \
-    for (size_t i = 0; i < ARRAY_ELEMS(MAP) - 1; i++) {                        \
+    for (size_t i = 0; i < ARRAY_ELEMS(MAP); i++) {                            \
       if (!strcmp(INPUT, MAP[i].KEY))                                          \
         return MAP[i].TARGET;                                                  \
     }                                                                          \

@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
   }
   sample_info.channels = input_channels;
   sample_info.sample_rate = input_sample_rate;
-  sample_info.frames = 0;
+  sample_info.nb_samples = 0;
 
   easymedia::REFLECTOR(Stream)::DumpFactories();
 
@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
   std::shared_ptr<easymedia::Stream> in_stream;
   if (!alsa_device.empty()) {
     stream_name = "alsa_capture_stream";
-    std::string fmt_str = SampleFormatToString(sample_info.fmt);
+    std::string fmt_str = SampleFmtToString(sample_info.fmt);
     std::string rule = "output_data_type=" + fmt_str + "\n";
     if (!easymedia::REFLECTOR(Stream)::IsMatch(stream_name.c_str(),
                                                rule.c_str())) {
@@ -199,8 +199,8 @@ int main(int argc, char **argv) {
   }
 
   const int read_frames = 1024;
-  sample_info.frames = read_frames;
-  int buffer_size = GetFrameSize(sample_info) * sample_info.frames;
+  sample_info.nb_samples = read_frames;
+  int buffer_size = GetSampleSize(sample_info) * sample_info.nb_samples;
   void *ptr = malloc(buffer_size);
   assert(ptr);
   std::shared_ptr<easymedia::SampleBuffer> sample_buffer =
@@ -215,11 +215,11 @@ int main(int argc, char **argv) {
     if (start_time > 0 && easymedia::gettimeofday() - start_time > 10 * 1000)
       break;
     size_t read_size = in_stream->Read(
-        sample_buffer->GetPtr(), sample_buffer->GetFrameSize(), read_frames);
+        sample_buffer->GetPtr(), sample_buffer->GetSampleSize(), read_frames);
     if (!read_size && errno != EAGAIN) {
       exit(EXIT_FAILURE); // fatal error
     }
-    sample_buffer->SetFrames(read_size);
+    sample_buffer->SetSamples(read_size);
     if (mux) {
       std::shared_ptr<easymedia::MediaBuffer> mux_output;
       if (enc) {
@@ -247,15 +247,15 @@ int main(int argc, char **argv) {
     } else {
       // write pcm
       write_stream->Write(
-          sample_buffer->GetPtr(), sample_buffer->GetFrameSize(),
+          sample_buffer->GetPtr(), sample_buffer->GetSampleSize(),
           read_size /
-              sample_buffer->GetFrameSize()); // TODO: check the ret value
+              sample_buffer->GetSampleSize()); // TODO: check the ret value
     }
   }
 
   if (mux) {
     std::shared_ptr<easymedia::MediaBuffer> mux_output;
-    sample_buffer->SetFrames(0);
+    sample_buffer->SetSamples(0);
     bool eof = false;
     if (enc) {
       while (!eof) {

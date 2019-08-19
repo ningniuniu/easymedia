@@ -60,14 +60,16 @@ enum class Type { None = -1, Audio = 0, Image, Video, Text };
 #define VIDEO_H265 "video:h265"
 
 #define AUDIO_PREFIX "audio:"
-#define AUDIO_VORBIS "audio:vorbis"
 
 #define AUDIO_PCM_U8 "audio:pcm_u8"
 #define AUDIO_PCM_S16 "audio:pcm_s16"
 #define AUDIO_PCM_S32 "audio:pcm_s32"
-
 #define AUDIO_PCM                                                              \
   TYPENEAR(AUDIO_PCM_U8) TYPENEAR(AUDIO_PCM_S16) TYPENEAR(AUDIO_PCM_S32)
+
+#define AUDIO_AAC "audio:aac"
+#define AUDIO_MP2 "audio:mp2"
+#define AUDIO_VORBIS "audio:vorbis"
 
 #define TEXT_PREFIX "text:"
 

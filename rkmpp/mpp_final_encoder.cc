@@ -78,6 +78,7 @@ bool MPPMJPEGConfig::InitConfig(MPPEncoder &mpp_enc, const MediaConfig &cfg) {
     return false;
   }
   mpp_enc.GetConfig().img_cfg.image_info = img_cfg.image_info;
+  mpp_enc.GetConfig().type = Type::Image;
   ParameterBuffer change;
   change.SetValue(img_cfg.qp_init);
   return CheckConfigChange(mpp_enc, VideoEncoder::kQPChange, &change);
@@ -311,6 +312,7 @@ bool MPPCommonConfig::InitConfig(MPPEncoder &mpp_enc, const MediaConfig &cfg) {
 #endif
 
   mpp_enc.GetConfig().vid_cfg = vconfig;
+  mpp_enc.GetConfig().type = Type::Video;
   return true;
 }
 
@@ -411,13 +413,8 @@ protected:
 };
 
 MPPFinalEncoder::MPPFinalEncoder(const char *param) : mpp_config(nullptr) {
-  std::map<std::string, std::string> params;
-  std::list<std::pair<const std::string, std::string &>> req_list;
-  std::string output_data_type;
-  req_list.push_back(std::pair<const std::string, std::string &>(
-      KEY_OUTPUTDATATYPE, output_data_type));
-  int ret = parse_media_param_match(param, params, req_list);
-  UNUSED(ret);
+  std::string output_data_type =
+      get_media_value_by_key(param, KEY_OUTPUTDATATYPE);
   SetMppCodeingType(output_data_type.empty()
                         ? MPP_VIDEO_CodingUnused
                         : GetMPPCodingType(output_data_type));

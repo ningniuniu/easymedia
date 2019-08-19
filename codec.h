@@ -46,13 +46,13 @@ public:
 
   virtual bool Init() = 0;
   // sync call, input and output must be valid
-  virtual int Process(std::shared_ptr<MediaBuffer> input,
-                      std::shared_ptr<MediaBuffer> output,
+  virtual int Process(const std::shared_ptr<MediaBuffer> &input,
+                      std::shared_ptr<MediaBuffer> &output,
                       std::shared_ptr<MediaBuffer> extra_output = nullptr) = 0;
 
   // some codec may output many buffers with one input.
   // sync or async safe call, depends on specific codec.
-  virtual int SendInput(std::shared_ptr<MediaBuffer> input) = 0;
+  virtual int SendInput(const std::shared_ptr<MediaBuffer> &input) = 0;
   virtual std::shared_ptr<MediaBuffer> FetchOutput() = 0;
 
 private:

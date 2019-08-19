@@ -85,7 +85,7 @@ static const struct PixFmtStringEntry {
     {PIX_FMT_H264, VIDEO_H264},         {PIX_FMT_H265, VIDEO_H265},
 };
 
-PixelFormat GetPixFmtByString(const char *type) {
+PixelFormat StringToPixFmt(const char *type) {
   if (!type)
     return PIX_FMT_NONE;
   FIND_ENTRY_TARGET_BY_STRCMP(type, pix_fmt_string_map, type_str, fmt)
@@ -103,7 +103,7 @@ bool ParseImageInfoFromMap(std::map<std::string, std::string> &params,
   std::string value;
   const char *type = input ? KEY_INPUTDATATYPE : KEY_OUTPUTDATATYPE;
   CHECK_EMPTY(value, params, type)
-  info.pix_fmt = GetPixFmtByString(value.c_str());
+  info.pix_fmt = StringToPixFmt(value.c_str());
   if (info.pix_fmt == PIX_FMT_NONE) {
     LOG("unsupport pix fmt %s\n", value.c_str());
     return false;

@@ -176,12 +176,12 @@ public:
   }
 
   SampleInfo &GetSampleInfo() { return sample_info; }
-  size_t GetFrameSize() const { return ::GetFrameSize(sample_info); }
-  void SetFrames(int num) {
-    sample_info.frames = num;
-    SetValidSize(num * GetFrameSize());
+  size_t GetSampleSize() const { return ::GetSampleSize(sample_info); }
+  void SetSamples(int num) {
+    sample_info.nb_samples = num;
+    SetValidSize(num * GetSampleSize());
   }
-  int GetFrames() const { return sample_info.frames; }
+  int GetSamples() const { return sample_info.nb_samples; }
 
 private:
   void ResetValues() {

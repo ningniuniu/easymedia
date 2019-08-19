@@ -34,7 +34,10 @@ namespace easymedia {
 enum AVPixelFormat PixFmtToAVPixFmt(PixelFormat fmt);
 enum AVCodecID PixFmtToAVCodecID(PixelFormat fmt);
 
+enum AVCodecID SampleFmtToAVCodecID(SampleFormat fmt);
 enum AVSampleFormat SampleFmtToAVSamFmt(SampleFormat sfmt);
+
+void PrintAVError(int err, const char *log, const char *mark);
 
 } // namespace easymedia
 

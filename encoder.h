@@ -92,12 +92,15 @@ public:
   static const uint32_t kForceIdrFrame = (1 << 3);
   static const uint32_t kOSDDataChange = (1 << 4);
 
+  VideoEncoder() : output_fmt(PIX_FMT_NONE) {}
   virtual ~VideoEncoder() = default;
   void RequestChange(uint32_t change, std::shared_ptr<ParameterBuffer> value);
 
 protected:
   bool HasChangeReq() { return !change_list.empty(); }
   std::pair<uint32_t, std::shared_ptr<ParameterBuffer>> PeekChange();
+
+  PixelFormat output_fmt; // out fmt of main output buffer
 
 private:
   std::mutex change_mtx;
@@ -111,7 +114,11 @@ private:
 
 class _API AudioEncoder : public Encoder {
 public:
+  AudioEncoder() : output_fmt(SAMPLE_FMT_NONE) {}
   virtual ~AudioEncoder() = default;
+
+protected:
+  SampleFormat output_fmt; // out fmt of main output buffer
 
   DECLARE_PART_FINAL_EXPOSE_PRODUCT(Encoder)
 };

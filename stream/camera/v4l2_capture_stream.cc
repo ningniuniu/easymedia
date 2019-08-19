@@ -176,7 +176,7 @@ int V4L2CaptureStream::Open() {
         DUMP_FOURCC(fmt.fmt.pix.pixelformat));
     return -1;
   }
-  pix_fmt = GetPixFmtByString(data_type_str);
+  pix_fmt = StringToPixFmt(data_type_str);
   if (width != (int)fmt.fmt.pix.width || height != (int)fmt.fmt.pix.height) {
     LOG("%s change res from %dx%d to %dx%d\n", dev, width, height,
         fmt.fmt.pix.width, fmt.fmt.pix.height);

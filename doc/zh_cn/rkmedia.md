@@ -131,7 +131,7 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
     * easymedia::REFLECTOR(Encoder)::Create\<easymedia::AudioEncoder\>：创建音频编码器实例，参数为上述的DumpFactories中列出的一个模块对应的字符串，比如范例中的libvorbisenc
     * InitConfig：初始化编码器，参数为所需编码算法对应的设置系数
     * Process：如果该函数返回负值且errno==ENOSYS，则表示此编码器不支持该接口，需要调用下面的SendInput和FetchOutput接口
-    * SendInput：传入裸数据SampleBuffer，如果frames为0，则表示告知编码器传入数据结束
+    * SendInput：传入裸数据SampleBuffer，如果nb_samples为0，则表示告知编码器传入数据结束
     * FetchOutput：获取编码后的数据，由于有些编码器，比如libvorbisenc，输入一次，会输出多帧，所以这里需要while循环获取直到无数据
 
 媒体格式封装

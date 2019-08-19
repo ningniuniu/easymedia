@@ -37,17 +37,16 @@ public:
   virtual bool Init() override;
 
   // sync encode the raw input buffer to output buffer
-  virtual int Process(std::shared_ptr<MediaBuffer> input,
-                      std::shared_ptr<MediaBuffer> output,
+  virtual int Process(const std::shared_ptr<MediaBuffer> &input,
+                      std::shared_ptr<MediaBuffer> &output,
                       std::shared_ptr<MediaBuffer> extra_output) override;
 
-  virtual int SendInput(std::shared_ptr<MediaBuffer> input) override;
+  virtual int SendInput(const std::shared_ptr<MediaBuffer> &) override;
   virtual std::shared_ptr<MediaBuffer> FetchOutput() override;
 
 protected:
   MppCodingType coding_type;
   uint32_t output_mb_flags;
-  PixelFormat output_fmt;
   // call before Init()
   void SetMppCodeingType(MppCodingType type);
   virtual bool
@@ -57,9 +56,9 @@ protected:
   // Control before encoding.
   int EncodeControl(int cmd, void *param);
 
-  virtual int PrepareMppFrame(std::shared_ptr<MediaBuffer> input,
+  virtual int PrepareMppFrame(const std::shared_ptr<MediaBuffer> &input,
                               MppFrame &frame);
-  virtual int PrepareMppPacket(std::shared_ptr<MediaBuffer> output,
+  virtual int PrepareMppPacket(std::shared_ptr<MediaBuffer> &output,
                                MppPacket &packet);
   virtual int PrepareMppExtraBuffer(std::shared_ptr<MediaBuffer> extra_output,
                                     MppBuffer &buffer);

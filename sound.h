@@ -36,6 +36,8 @@ typedef enum {
   SAMPLE_FMT_S16,
   SAMPLE_FMT_S32,
   SAMPLE_FMT_VORBIS,
+  SAMPLE_FMT_AAC,
+  SAMPLE_FMT_MP2,
   SAMPLE_FMT_NB
 } SampleFormat;
 
@@ -43,17 +45,17 @@ typedef struct {
   SampleFormat fmt;
   int channels;
   int sample_rate;
-  int frames;
+  int nb_samples;
 } SampleInfo;
 
 #ifdef __cplusplus
 }
 #endif
 
-_API const char *SampleFormatToString(SampleFormat fmt);
-_API SampleFormat StringToSampleFormat(const char *fmt_str);
+_API const char *SampleFmtToString(SampleFormat fmt);
+_API SampleFormat StringToSampleFmt(const char *fmt_str);
 _API bool SampleInfoIsValid(const SampleInfo &sample_info);
-_API size_t GetFrameSize(const SampleInfo &sample_info);
+_API size_t GetSampleSize(const SampleInfo &sample_info);
 
 #include <map>
 #include <string>

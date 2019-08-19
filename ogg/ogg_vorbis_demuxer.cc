@@ -89,11 +89,12 @@ bool OggVorbisDemuxer::Init(std::shared_ptr<Stream> input,
   sample_info.fmt = SAMPLE_FMT_S16; // rockchip's audio codec totally only S16LE
   sample_info.channels = vi->channels;
   sample_info.sample_rate = vi->rate;
-  sample_info.frames = 0;
+  sample_info.nb_samples = 0;
   aud_cfg.bit_rate = ov_bitrate(&vf, -1);
   // aud_cfg.bit_rate_nominal = vi->bitrate_nominal;
   // aud_cfg.bit_rate_upper = vi->bitrate_upper;
   // aud_cfg.bit_rate_lower = vi->bitrate_lower;
+  out_cfg->type = Type::Audio;
 
   total_time = ov_time_total(&vf, -1);
   if (total_time == OV_EINVAL)
@@ -139,7 +140,7 @@ std::shared_ptr<MediaBuffer> OggVorbisDemuxer::Read(size_t request_size) {
     info.fmt = SAMPLE_FMT_S16;
     info.channels = vi->channels;
     info.sample_rate = vi->rate;
-    info.frames = ret / (vi->channels * 2);
+    info.nb_samples = ret / (vi->channels * 2);
   } else if (ret == 0) {
     sb->SetEOF(true);
   } else if (ret < 0) {

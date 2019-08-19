@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
     easymedia::REFLECTOR(Stream)::DumpFactories();
 
     std::string stream_name("alsa_playback_stream");
-    std::string fmt_str = SampleFormatToString(sample_info.fmt);
+    std::string fmt_str = SampleFmtToString(sample_info.fmt);
     std::string rule;
     PARAM_STRING_APPEND(rule, KEY_INPUTDATATYPE, fmt_str);
     if (!easymedia::REFLECTOR(Stream)::IsMatch(stream_name.c_str(),
@@ -170,8 +170,8 @@ int main(int argc, char **argv) {
     }
     if (out_stream)
       out_stream->Write(
-          buffer->GetPtr(), sample_buffer->GetFrameSize(),
-          sample_buffer->GetFrames()); // TODO: check the ret value
+          buffer->GetPtr(), sample_buffer->GetSampleSize(),
+          sample_buffer->GetSamples()); // TODO: check the ret value
     if (output_file_fd >= 0)
       write(output_file_fd, buffer->GetPtr(), buffer->GetValidSize());
   }

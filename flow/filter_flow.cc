@@ -69,7 +69,7 @@ FilterFlow::FilterFlow(const char *param)
       return;
     }
   }
-  input_pix_fmt = GetPixFmtByString(params[KEY_INPUTDATATYPE].c_str());
+  input_pix_fmt = StringToPixFmt(params[KEY_INPUTDATATYPE].c_str());
   SlotMap sm;
   int input_maxcachenum = 2;
   ParseParamToSlotMap(params, sm, input_maxcachenum);

@@ -245,7 +245,7 @@ int AlsaPlayBackStream::Open() {
                          2 << (MATH_LOG2(sample_info.sample_rate *
                                          kPresetFrames / kPresetSampleRate) -
                                1));
-  frame_size = GetFrameSize(sample_info);
+  frame_size = GetSampleSize(sample_info);
   if (frame_size == 0)
     goto err;
   if (ALSA_set_period_size(pcm_handle, frames, frame_size, hwparams,
