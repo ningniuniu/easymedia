@@ -42,14 +42,13 @@ public:
   static const char *GetCodecName() { return "libvorbisenc"; }
   virtual bool Init() override { return true; }
   virtual bool InitConfig(const MediaConfig &cfg) override;
-  virtual int
-  Process(std::shared_ptr<MediaBuffer> input _UNUSED,
-          std::shared_ptr<MediaBuffer> output _UNUSED,
-          std::shared_ptr<MediaBuffer> extra_output _UNUSED) override {
+  virtual int Process(const std::shared_ptr<MediaBuffer> &,
+                      std::shared_ptr<MediaBuffer> &,
+                      std::shared_ptr<MediaBuffer>) override {
     errno = ENOSYS;
     return -1;
   }
-  virtual int SendInput(std::shared_ptr<MediaBuffer> input) override;
+  virtual int SendInput(const std::shared_ptr<MediaBuffer> &input) override;
   virtual std::shared_ptr<MediaBuffer> FetchOutput() override;
 
 private:
@@ -62,9 +61,11 @@ private:
 
   std::deque<std::shared_ptr<MediaBuffer>> cached_ogg_packets;
   static const int MAX_CACHED_SIZE = 8;
+  static const uint32_t gBufferFlag = MediaBuffer::kBuildinLibvorbisenc;
 };
 
 VorbisEncoder::VorbisEncoder(const char *param _UNUSED) {
+  output_fmt = SAMPLE_FMT_VORBIS;
   vorbis_info_init(&vi);
   vorbis_comment_init(&vc);
   memset(&vd, 0, sizeof(vd));
@@ -114,14 +115,14 @@ bool VorbisEncoder::InitConfig(const MediaConfig &cfg) {
     LOG("vorbis_analysis_headerout failed, ret = %d\n", ret);
     return false;
   }
-  void *extradata = nullptr;
-  size_t extradatasize = 0;
   std::list<ogg_packet> ogg_packets;
   ogg_packets.push_back(header);
   ogg_packets.push_back(header_comm);
   ogg_packets.push_back(header_code);
-  if (PackOggPackets(ogg_packets, &extradata, &extradatasize)) {
-    SetExtraData(extradata, extradatasize, false);
+  auto extradata = PackOggPackets(ogg_packets);
+  if (extradata) {
+    extradata->SetUserFlag(gBufferFlag);
+    SetExtraData(extradata);
   } else {
     LOG("PackOggPackets failed\n");
     return false;
@@ -129,10 +130,9 @@ bool VorbisEncoder::InitConfig(const MediaConfig &cfg) {
   return AudioEncoder::InitConfig(cfg);
 }
 
-int VorbisEncoder::SendInput(std::shared_ptr<MediaBuffer> input) {
+int VorbisEncoder::SendInput(const std::shared_ptr<MediaBuffer> &input) {
   assert(input->GetType() == Type::Audio);
-  std::shared_ptr<easymedia::SampleBuffer> sample_buffer =
-      std::static_pointer_cast<easymedia::SampleBuffer>(input);
+  auto sample_buffer = std::static_pointer_cast<SampleBuffer>(input);
   SampleInfo &info = sample_buffer->GetSampleInfo();
   if (info.channels != 2 || info.fmt != SAMPLE_FMT_S16) {
     LOG("libvorbisenc only support s16 with 2ch\n");
@@ -140,8 +140,8 @@ int VorbisEncoder::SendInput(std::shared_ptr<MediaBuffer> input) {
   }
 
   int ret;
-  int frame_num = sample_buffer->GetFrames();
-  if (frame_num == 0) {
+  int sample_num = sample_buffer->GetSamples();
+  if (sample_num == 0) {
     if ((ret = vorbis_analysis_wrote(&vd, 0)) < 0) {
       LOG("vorbis_analysis_wrote 0 failed, ret = %d\n", ret);
       return -1;
@@ -153,9 +153,9 @@ int VorbisEncoder::SendInput(std::shared_ptr<MediaBuffer> input) {
     }
     int i;
     signed char *readbuffer = (signed char *)sample_buffer->GetPtr();
-    float **buffer = vorbis_analysis_buffer(&vd, frame_num);
+    float **buffer = vorbis_analysis_buffer(&vd, sample_num);
     /* uninterleave samples */
-    for (i = 0; i < frame_num; i++) {
+    for (i = 0; i < sample_num; i++) {
       buffer[0][i] =
           ((readbuffer[i * 4 + 1] << 8) | (0x00ff & (int)readbuffer[i * 4])) /
           32768.f;
@@ -182,17 +182,17 @@ int VorbisEncoder::SendInput(std::shared_ptr<MediaBuffer> input) {
         errno = ENOMEM;
         return -1;
       }
-      auto buffer =
-          std::make_shared<MediaBuffer>(new_packet->packet, new_packet->bytes,
-                                        -1, new_packet, __ogg_packet_free);
+      MediaBuffer mb(new_packet->packet, new_packet->bytes, -1, new_packet,
+                     __ogg_packet_free);
+      auto buffer = std::make_shared<SampleBuffer>(mb, SAMPLE_FMT_VORBIS);
       if (!buffer) {
         errno = ENOMEM;
         return -1;
       }
-      buffer->SetType(Type::Audio);
       buffer->SetValidSize(op.bytes);
-      buffer->SetTimeStamp(op.granulepos);
+      buffer->SetUSTimeStamp(op.granulepos);
       buffer->SetEOF(op.e_o_s);
+      buffer->SetUserFlag(gBufferFlag);
       cached_ogg_packets.push_back(buffer);
     }
     if (ret < 0) {

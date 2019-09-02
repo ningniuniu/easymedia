@@ -151,6 +151,8 @@ if(OGG)
   add_subdirectory(ogg)
 endif()
 
+add_subdirectory(ffmpeg)
+
 option(LIVE555 "compile: live555" OFF)
 if(LIVE555)
   include_directories(${GROUPSOCK_HEADER_DIR})

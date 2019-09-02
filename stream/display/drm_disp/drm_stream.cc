@@ -162,7 +162,7 @@ int DRMStream::Open() {
     return -1;
   }
   drm_fmt = GetDRMFmtByString(data_type.c_str());
-  img_info.pix_fmt = GetPixFmtByString(data_type.c_str());
+  img_info.pix_fmt = StringToPixFmt(data_type.c_str());
   if (!data_type.empty() && !filter_ids_by_data_type(res, data_type)) {
     LOG("data type [%s] is unacceptable\n", data_type.c_str());
     return -1;

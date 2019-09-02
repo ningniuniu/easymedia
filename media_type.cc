@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Hertz Wang 1989wanghang@163.com
+ * Copyright (C) 2019 Hertz Wang 1989wanghang@163.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,29 +19,21 @@
  *
  */
 
-#include "demuxer.h"
-
-#include "buffer.h"
+#include "media_type.h"
 #include "utils.h"
 
 namespace easymedia {
 
-DEFINE_REFLECTOR(Demuxer)
-
-// request should equal demuxer_name
-DEFINE_FACTORY_COMMON_PARSE(Demuxer)
-
-Demuxer::Demuxer(const char *param) : total_time(0.0f) {
-  std::map<std::string, std::string> params;
-  if (!parse_media_param_map(param, params))
-    return;
-  for (auto &p : params) {
-    const std::string &key = p.first;
-    if (key == KEY_PATH)
-      path = p.second;
-  }
+Type StringToDataType(const char *data_type) {
+  if (string_start_withs(data_type, AUDIO_PREFIX))
+    return Type::Audio;
+  else if (string_start_withs(data_type, IMAGE_PREFIX))
+    return Type::Image;
+  else if (string_start_withs(data_type, VIDEO_PREFIX))
+    return Type::Video;
+  else if (string_start_withs(data_type, TEXT_PREFIX))
+    return Type::Text;
+  return Type::None;
 }
-
-DEFINE_PART_FINAL_EXPOSE_PRODUCT(Demuxer, Demuxer)
 
 } // namespace easymedia

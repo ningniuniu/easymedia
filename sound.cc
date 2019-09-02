@@ -31,24 +31,18 @@ static const struct SampleFormatEntry {
   SampleFormat fmt;
   const char *fmt_str;
 } sample_format_string_map[] = {
-    {SAMPLE_FMT_U8, AUDIO_PCM_U8},
-    {SAMPLE_FMT_S16, AUDIO_PCM_S16},
-    {SAMPLE_FMT_S32, AUDIO_PCM_S32},
+    {SAMPLE_FMT_U8, AUDIO_PCM_U8},   {SAMPLE_FMT_S16, AUDIO_PCM_S16},
+    {SAMPLE_FMT_S32, AUDIO_PCM_S32}, {SAMPLE_FMT_VORBIS, AUDIO_VORBIS},
+    {SAMPLE_FMT_AAC, AUDIO_AAC},     {SAMPLE_FMT_MP2, AUDIO_MP2},
 };
 
-const char *SampleFormatToString(SampleFormat fmt) {
-  for (size_t i = 0; i < ARRAY_ELEMS(sample_format_string_map) - 1; i++) {
-    if (fmt == sample_format_string_map[i].fmt)
-      return sample_format_string_map[i].fmt_str;
-  }
+const char *SampleFmtToString(SampleFormat fmt) {
+  FIND_ENTRY_TARGET(fmt, sample_format_string_map, fmt, fmt_str)
   return nullptr;
 }
 
-SampleFormat StringToSampleFormat(const char *fmt_str) {
-  for (size_t i = 0; i < ARRAY_ELEMS(sample_format_string_map) - 1; i++) {
-    if (!strcmp(sample_format_string_map[i].fmt_str, fmt_str))
-      return sample_format_string_map[i].fmt;
-  }
+SampleFormat StringToSampleFmt(const char *fmt_str) {
+  FIND_ENTRY_TARGET_BY_STRCMP(fmt_str, sample_format_string_map, fmt_str, fmt)
   return SAMPLE_FMT_NONE;
 }
 
@@ -57,7 +51,7 @@ bool SampleInfoIsValid(const SampleInfo &sample_info) {
          (sample_info.sample_rate > 0);
 }
 
-size_t GetFrameSize(const SampleInfo &sample_info) {
+size_t GetSampleSize(const SampleInfo &sample_info) {
   size_t sample_size = sample_info.channels;
   switch (sample_info.fmt) {
   case SAMPLE_FMT_U8:
@@ -77,7 +71,7 @@ bool ParseSampleInfoFromMap(std::map<std::string, std::string> &params,
                             SampleInfo &si) {
   std::string value;
   CHECK_EMPTY(value, params, KEY_INPUTDATATYPE)
-  si.fmt = StringToSampleFormat(value.c_str());
+  si.fmt = StringToSampleFmt(value.c_str());
   if (si.fmt == SAMPLE_FMT_NONE) {
     LOG("unsupport sample fmt %s\n", value.c_str());
     return false;
@@ -87,19 +81,19 @@ bool ParseSampleInfoFromMap(std::map<std::string, std::string> &params,
   CHECK_EMPTY(value, params, KEY_SAMPLE_RATE)
   si.sample_rate = std::stoi(value);
   CHECK_EMPTY(value, params, KEY_FRAMES)
-  si.frames = std::stoi(value);
+  si.nb_samples = std::stoi(value);
   return true;
 }
 
 std::string to_param_string(const SampleInfo &si) {
   std::string s;
-  const char *fmt = SampleFormatToString(si.fmt);
+  const char *fmt = SampleFmtToString(si.fmt);
   if (!fmt)
     return s;
   PARAM_STRING_APPEND(s, KEY_INPUTDATATYPE, fmt);
   PARAM_STRING_APPEND_TO(s, KEY_CHANNELS, si.channels);
   PARAM_STRING_APPEND_TO(s, KEY_SAMPLE_RATE, si.sample_rate);
-  PARAM_STRING_APPEND_TO(s, KEY_FRAMES, si.frames);
+  PARAM_STRING_APPEND_TO(s, KEY_FRAMES, si.nb_samples);
   return s;
 }
 

@@ -77,11 +77,11 @@ AlsaCaptureStream::~AlsaCaptureStream() {
 size_t AlsaCaptureStream::Read(void *ptr, size_t size, size_t nmemb) {
   size_t buffer_len = size * nmemb;
   snd_pcm_sframes_t gotten = 0;
-  snd_pcm_sframes_t frames =
+  snd_pcm_sframes_t nb_samples =
       (size == frame_size ? nmemb : buffer_len / frame_size);
-  while (frames > 0) {
+  while (nb_samples > 0) {
     // SND_PCM_ACCESS_RW_INTERLEAVED
-    int status = snd_pcm_readi(alsa_handle, ptr, frames);
+    int status = snd_pcm_readi(alsa_handle, ptr, nb_samples);
     if (status < 0) {
       if (status == -EAGAIN) {
         /* Apparently snd_pcm_recover() doesn't handle this case - does it
@@ -100,7 +100,7 @@ size_t AlsaCaptureStream::Read(void *ptr, size_t size, size_t nmemb) {
       errno = EIO;
       break;
     }
-    frames -= status;
+    nb_samples -= status;
     gotten += status;
   }
 

@@ -36,6 +36,7 @@ MPPDecoder::MPPDecoder(const char *param)
   MediaConfig &cfg = GetConfig();
   ImageInfo &img_info = cfg.img_cfg.image_info;
   img_info.pix_fmt = PIX_FMT_NONE;
+  cfg.type = Type::None;
   std::map<std::string, std::string> params;
   std::list<std::pair<const std::string, std::string &>> req_list;
   std::string input_data_type;
@@ -61,7 +62,7 @@ MPPDecoder::MPPDecoder(const char *param)
   }
   coding_type = GetMPPCodingType(input_data_type);
   if (!output_data_type.empty()) {
-    output_format = GetPixFmtByString(output_data_type.c_str());
+    output_format = StringToPixFmt(output_data_type.c_str());
     if (output_format == PIX_FMT_NONE) {
       LOG("invalid output format %s\n", output_data_type.c_str());
       return;
@@ -226,14 +227,14 @@ static int SetImageBufferWithMppFrame(std::shared_ptr<ImageBuffer> ib,
     mpp_frame_deinit(&frame);
   }
   ib->SetValidSize(size);
-  ib->SetTimeStamp(pts);
+  ib->SetUSTimeStamp(pts);
   ib->SetEOF(eos);
 
   return 0;
 }
 
-int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
-                        std::shared_ptr<MediaBuffer> output,
+int MPPDecoder::Process(const std::shared_ptr<MediaBuffer> &input,
+                        std::shared_ptr<MediaBuffer> &output,
                         std::shared_ptr<MediaBuffer> extra_output _UNUSED) {
   if (!support_sync) {
     errno = ENOSYS;
@@ -273,7 +274,7 @@ int MPPDecoder::Process(std::shared_ptr<MediaBuffer> input,
   }
   assert(packet);
   mpp_packet_set_length(packet, input->GetValidSize());
-  mpp_packet_set_pts(packet, input->GetTimeStamp());
+  mpp_packet_set_pts(packet, input->GetUSTimeStamp());
   if (input->IsEOF()) {
     LOG("send eos packet to MPP\n");
     mpp_packet_set_eos(packet);
@@ -430,7 +431,7 @@ out:
   return -EFAULT;
 }
 
-int MPPDecoder::SendInput(std::shared_ptr<MediaBuffer> input) {
+int MPPDecoder::SendInput(const std::shared_ptr<MediaBuffer> &input) {
   if (!support_async) {
     errno = ENOSYS;
     return -ENOSYS;
@@ -448,7 +449,7 @@ int MPPDecoder::SendInput(std::shared_ptr<MediaBuffer> input) {
     LOG("Failed to init MPP packet (ret = %d)\n", ret);
     return -EFAULT;
   }
-  mpp_packet_set_pts(packet, input->GetTimeStamp());
+  mpp_packet_set_pts(packet, input->GetUSTimeStamp());
   if (input->IsEOF()) {
     LOG("send eos packet to MPP\n");
     mpp_packet_set_eos(packet);
@@ -491,6 +492,7 @@ std::shared_ptr<MediaBuffer> MPPDecoder::FetchOutput() {
     img_info.height = mpp_frame_get_height(mppframe);
     img_info.vir_width = mpp_frame_get_hor_stride(mppframe);
     img_info.vir_height = mpp_frame_get_ver_stride(mppframe);
+    cfg.type = Type::Image;
     ret = mpi->control(ctx, MPP_DEC_SET_INFO_CHANGE_READY, NULL);
     if (ret != MPP_OK)
       LOG("info change ready failed ret = %d\n", ret);
@@ -504,7 +506,7 @@ std::shared_ptr<MediaBuffer> MPPDecoder::FetchOutput() {
       errno = ENOMEM;
       goto out;
     }
-    mb->SetTimeStamp(mpp_frame_get_pts(mppframe));
+    mb->SetUSTimeStamp(mpp_frame_get_pts(mppframe));
     mb->SetEOF(true);
     mpp_frame_deinit(&mppframe);
     return mb;

@@ -45,7 +45,8 @@ static char optstr[] = "?i:d:f:b:o:t:w:h:";
 static bool eos = true;
 static int output_file_fd = -1;
 
-static void dump_output(std::shared_ptr<easymedia::ImageBuffer> out_image) {
+static void dump_output(const std::shared_ptr<easymedia::MediaBuffer> &out) {
+  auto out_image = std::static_pointer_cast<easymedia::ImageBuffer>(out);
   // hardware always need aligh width/height, we write the whole buffer with
   // virtual region which may contains invalid data
   if (output_file_fd >= 0 && out_image->GetValidSize() > 0) {
@@ -242,7 +243,8 @@ int main(int argc, char **argv) {
     auto mb = easymedia::MediaBuffer::Alloc2(
         out_len, easymedia::MediaBuffer::MemType::MEM_HARD_WARE);
     assert(mb.GetSize() > 0);
-    auto output = std::make_shared<easymedia::ImageBuffer>(mb);
+    std::shared_ptr<easymedia::MediaBuffer> output =
+        std::make_shared<easymedia::ImageBuffer>(mb);
     assert(output && output->GetSize() == out_len);
     output->SetValidSize(output->GetSize());
     ssize_t rsize = fread(input->GetPtr(), 1, len, single_file);
@@ -312,7 +314,7 @@ int main(int argc, char **argv) {
       }
       if (f != single_file)
         fclose(f);
-      buffer->SetTimeStamp(easymedia::gettimeofday());
+      buffer->SetUSTimeStamp(easymedia::gettimeofday());
       int ret = mpp_dec->SendInput(buffer);
       if (ret == -EAGAIN) {
         last_buffer = buffer;
@@ -322,7 +324,7 @@ int main(int argc, char **argv) {
       auto buffer = std::make_shared<easymedia::MediaBuffer>();
       assert(buffer);
       buffer->SetEOF(true);
-      buffer->SetTimeStamp(easymedia::gettimeofday());
+      buffer->SetUSTimeStamp(easymedia::gettimeofday());
       int ret = mpp_dec->SendInput(buffer);
       sent_eos = true;
       if (ret == -EAGAIN) {

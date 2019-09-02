@@ -171,7 +171,8 @@ MPPContext::~MPPContext() {
   }
 }
 
-MPP_RET init_mpp_buffer(MppBuffer &buffer, std::shared_ptr<MediaBuffer> &mb,
+MPP_RET init_mpp_buffer(MppBuffer &buffer,
+                        const std::shared_ptr<MediaBuffer> &mb,
                         size_t frame_size) {
   MPP_RET ret;
   int fd = mb->GetFD();
@@ -217,7 +218,7 @@ fail:
 }
 
 MPP_RET init_mpp_buffer_with_content(MppBuffer &buffer,
-                                     std::shared_ptr<MediaBuffer> &mb) {
+                                     const std::shared_ptr<MediaBuffer> &mb) {
   size_t size = mb->GetValidSize();
   MPP_RET ret = init_mpp_buffer(buffer, mb, size);
   if (ret)

@@ -35,10 +35,10 @@ public:
   static const char *GetCodecName() { return "rkmpp"; }
 
   virtual bool Init() override;
-  virtual int Process(std::shared_ptr<MediaBuffer> input,
-                      std::shared_ptr<MediaBuffer> output,
+  virtual int Process(const std::shared_ptr<MediaBuffer> &input,
+                      std::shared_ptr<MediaBuffer> &output,
                       std::shared_ptr<MediaBuffer> extra_output) override;
-  virtual int SendInput(std::shared_ptr<MediaBuffer> input) override;
+  virtual int SendInput(const std::shared_ptr<MediaBuffer> &input) override;
   virtual std::shared_ptr<MediaBuffer> FetchOutput() override;
 
 private:

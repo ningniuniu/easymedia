@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
     if (nal_type == 5)
       buffer->SetUserFlag(easymedia::MediaBuffer::kIntra);
     buffer->SetValidSize(len);
-    // buffer->SetTimeStamp(easymedia::gettimeofday()); // ms
+    // buffer->SetUSTimeStamp(easymedia::gettimeofday()); // us
     buffer_list[file_index - 1] = buffer;
     file_index++;
   }
@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
     if (buffer_idx == 0) {
       // send sps and pps
       for (auto &buf : spspps) {
-        buf->SetTimeStamp(easymedia::gettimeofday());
+        buf->SetUSTimeStamp(easymedia::gettimeofday());
         rtsp_flow->SendInput(buf, 0);
       }
       buffer_idx++;
@@ -190,7 +190,7 @@ int main(int argc, char **argv) {
       buffer_idx = 0;
       continue;
     }
-    buf->SetTimeStamp(easymedia::gettimeofday());
+    buf->SetUSTimeStamp(easymedia::gettimeofday());
     rtsp_flow->SendInput(buf, 0);
     buffer_idx++;
     loop++;

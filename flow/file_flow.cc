@@ -166,7 +166,7 @@ void FileReadFlow::ReadThreadRun() {
       }
       buffer->SetValidSize(buffer->GetSize());
     }
-    buffer->SetTimeStamp(gettimeofday());
+    buffer->SetUSTimeStamp(gettimeofday());
     SendInput(buffer, 0);
     if (fps != 0) {
       static int interval = 1000 / fps;

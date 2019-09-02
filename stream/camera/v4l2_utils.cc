@@ -73,12 +73,7 @@ static const struct V4L2FmtStringEntry {
                            {V4L2_PIX_FMT_H264, VIDEO_H264}};
 
 __u32 GetV4L2FmtByString(const char *type) {
-  if (!type)
-    return 0;
-  for (size_t i = 0; i < ARRAY_ELEMS(v4l2_fmt_string_map) - 1; i++) {
-    if (!strcmp(type, v4l2_fmt_string_map[i].type_str))
-      return v4l2_fmt_string_map[i].fmt;
-  }
+  FIND_ENTRY_TARGET_BY_STRCMP(type, v4l2_fmt_string_map, type_str, fmt)
   return 0;
 }
 
@@ -101,12 +96,7 @@ static const struct V4L2ColorSpaceStringEntry {
     {V4L2_COLORSPACE_DCI_P3, KEY_V4L2_CS(DCI_P3)}};
 
 __u32 GetV4L2ColorSpaceByString(const char *type) {
-  if (!type)
-    return 0;
-  for (size_t i = 0; i < ARRAY_ELEMS(v4l2_cs_string_map) - 1; i++) {
-    if (!strcmp(type, v4l2_cs_string_map[i].type_str))
-      return v4l2_cs_string_map[i].colorspace;
-  }
+  FIND_ENTRY_TARGET_BY_STRCMP(type, v4l2_cs_string_map, type_str, colorspace)
   return 0;
 }
 

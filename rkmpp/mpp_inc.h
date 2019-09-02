@@ -49,11 +49,12 @@ struct MPPContext {
 };
 
 // no time-consuming, init a mppbuffer with MediaBuffer
-MPP_RET init_mpp_buffer(MppBuffer &buffer, std::shared_ptr<MediaBuffer> &mb,
+MPP_RET init_mpp_buffer(MppBuffer &buffer,
+                        const std::shared_ptr<MediaBuffer> &mb,
                         size_t frame_size);
 // may time-consuming
 MPP_RET init_mpp_buffer_with_content(MppBuffer &buffer,
-                                     std::shared_ptr<MediaBuffer> &mb);
+                                     const std::shared_ptr<MediaBuffer> &mb);
 } // namespace easymedia
 
 #endif // EASYMEDIA_MPP_INC_H_

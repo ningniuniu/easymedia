@@ -36,6 +36,7 @@
 
 #include "buffer.h"
 #include "demuxer.h"
+#include "utils.h"
 
 static char optstr[] = "?i:o:";
 
@@ -85,8 +86,8 @@ int main(int argc, char **argv) {
 
   // here we use fixed demuxer "oggvorbis"
   std::string codec_name("oggvorbis");
-  std::string param = "path=";
-  param += input_path;
+  std::string param;
+  PARAM_STRING_APPEND(param, KEY_PATH, input_path);
   auto ogg_demuxer = easymedia::REFLECTOR(Demuxer)::Create<easymedia::Demuxer>(
       codec_name.c_str(), param.c_str());
 
@@ -127,18 +128,19 @@ int main(int argc, char **argv) {
     easymedia::REFLECTOR(Stream)::DumpFactories();
 
     std::string stream_name("alsa_playback_stream");
-    std::string fmt_str = SampleFormatToString(sample_info.fmt);
-    std::string rule = "input_data_type=" + fmt_str + "\n";
+    std::string fmt_str = SampleFmtToString(sample_info.fmt);
+    std::string rule;
+    PARAM_STRING_APPEND(rule, KEY_INPUTDATATYPE, fmt_str);
     if (!easymedia::REFLECTOR(Stream)::IsMatch(stream_name.c_str(),
                                                rule.c_str())) {
       fprintf(stderr, "unsupport data type\n");
       exit(EXIT_FAILURE);
     }
-    std::string params = "device=";
-    params += alsa_device + "\n";
-    params += "format=" + fmt_str + "\n";
-    params += "channels=" + std::to_string(sample_info.channels) + "\n";
-    params += "sample_rate=" + std::to_string(sample_info.sample_rate) + "\n";
+    std::string params;
+    PARAM_STRING_APPEND(params, KEY_DEVICE, alsa_device);
+    PARAM_STRING_APPEND(params, KEY_SAMPLE_FMT, fmt_str);
+    PARAM_STRING_APPEND_TO(params, KEY_CHANNELS, sample_info.channels);
+    PARAM_STRING_APPEND_TO(params, KEY_SAMPLE_RATE, sample_info.sample_rate);
     LOG("params:\n%s\n", params.c_str());
     out_stream = easymedia::REFLECTOR(Stream)::Create<easymedia::Stream>(
         stream_name.c_str(), params.c_str());
@@ -168,8 +170,8 @@ int main(int argc, char **argv) {
     }
     if (out_stream)
       out_stream->Write(
-          buffer->GetPtr(), sample_buffer->GetFrameSize(),
-          sample_buffer->GetFrames()); // TODO: check the ret value
+          buffer->GetPtr(), sample_buffer->GetSampleSize(),
+          sample_buffer->GetSamples()); // TODO: check the ret value
     if (output_file_fd >= 0)
       write(output_file_fd, buffer->GetPtr(), buffer->GetValidSize());
   }

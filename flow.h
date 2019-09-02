@@ -50,9 +50,10 @@ DECLARE_REFLECTOR(Flow)
 
 class MediaBuffer;
 enum class Model { NONE, ASYNCCOMMON, ASYNCATOMIC, SYNC };
+// PushMode
 enum class InputMode { NONE, BLOCKING, DROPFRONT, DROPCURRENT };
 using MediaBufferVector = std::vector<std::shared_ptr<MediaBuffer>>;
-// TODO: outputs ret, outslot index
+// TODO: outputs ret, outslot index, outslot queue model
 using FunctionProcess =
     std::add_pointer<bool(Flow *f, MediaBufferVector &input_vector)>::type;
 template <int in_index, int out_index>
@@ -61,15 +62,17 @@ bool void_transaction(Flow *f, MediaBufferVector &input_vector);
 class _API SlotMap {
 public:
   SlotMap()
-      : process(nullptr), thread_model(Model::SYNC),
-        mode_when_full(InputMode::DROPFRONT), interval(16.66f) {}
+      : thread_model(Model::SYNC), mode_when_full(InputMode::DROPFRONT),
+        process(nullptr), interval(16.66f) {}
   std::vector<int> input_slots;
-  std::vector<int> output_slots;
-  FunctionProcess process;
   Model thread_model;
   InputMode mode_when_full;
   std::vector<bool> fetch_block; // if ASYNCCOMMON
   std::vector<int> input_maxcachenum;
+  std::vector<int> output_slots;
+  // std::vector<DataSetModel> output_ds_model;
+  std::vector<bool> hold_input;
+  FunctionProcess process;
   float interval;
 };
 
@@ -120,10 +123,11 @@ protected:
     void SetOutputToQueueBehavior(const std::shared_ptr<MediaBuffer> &output);
 
   public:
-    FlowMap() : valid(false) { assert(list_mtx.valid); }
+    FlowMap() : valid(false), hold_input(false) { assert(list_mtx.valid); }
     FlowMap(FlowMap &&);
-    void Init(Model m);
+    void Init(Model m, bool hold_in);
     bool valid;
+    bool hold_input;
     // down flow
     void AddFlow(std::shared_ptr<Flow> flow, int index);
     void RemoveFlow(std::shared_ptr<Flow> flow);

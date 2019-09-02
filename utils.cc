@@ -114,6 +114,13 @@ bool has_intersection(const char *str, const char *expect,
   return false;
 }
 
+std::string get_media_value_by_key(const char *param, const char *key) {
+  std::map<std::string, std::string> param_map;
+  if (!parse_media_param_map(param, param_map))
+    return std::string();
+  return param_map[key];
+}
+
 bool string_start_withs(std::string const &fullString,
                         std::string const &starting) {
   if (fullString.length() >= starting.length()) {

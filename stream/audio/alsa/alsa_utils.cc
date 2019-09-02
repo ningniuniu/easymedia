@@ -21,6 +21,7 @@
 
 #include "alsa_utils.h"
 
+#include "key_string.h"
 #include "utils.h"
 
 static const struct SampleFormatEntry {
@@ -33,10 +34,7 @@ static const struct SampleFormatEntry {
 };
 
 snd_pcm_format_t SampleFormatToAlsaFormat(SampleFormat fmt) {
-  for (size_t i = 0; i < ARRAY_ELEMS(sample_format_alsa_map) - 1; i++) {
-    if (fmt == sample_format_alsa_map[i].fmt)
-      return sample_format_alsa_map[i].alsa_fmt;
-  }
+  FIND_ENTRY_TARGET(fmt, sample_format_alsa_map, fmt, alsa_fmt)
   return SND_PCM_FORMAT_UNKNOWN;
 }
 
@@ -56,24 +54,23 @@ int ParseAlsaParams(const char *param,
   int ret = 0;
   if (!easymedia::parse_media_param_map(param, params))
     return 0;
-  // "format", "channels", "sample_rate"; "device"
   for (auto &p : params) {
     const std::string &key = p.first;
-    if (key == "format") {
-      SampleFormat fmt = StringToSampleFormat(p.second.c_str());
+    if (key == KEY_SAMPLE_FMT) {
+      SampleFormat fmt = StringToSampleFmt(p.second.c_str());
       if (fmt == SAMPLE_FMT_NONE) {
         LOG("unknown pcm fmt: %s\n", p.second.c_str());
         return 0;
       }
       sample_info.fmt = fmt;
       ret++;
-    } else if (key == "channels") {
+    } else if (key == KEY_CHANNELS) {
       sample_info.channels = stoi(p.second);
       ret++;
-    } else if (key == "sample_rate") {
+    } else if (key == KEY_SAMPLE_RATE) {
       sample_info.sample_rate = stoi(p.second);
       ret++;
-    } else if (key == "device") {
+    } else if (key == KEY_DEVICE) {
       device = p.second;
     }
   }

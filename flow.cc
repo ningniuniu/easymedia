@@ -48,9 +48,9 @@ private:
   void ASyncFetchInputAtomic(MediaBufferVector &in);
 
   void SendNullBufferDown(std::list<Flow::FlowInputMap> &flows);
-  void SendBufferDown(Flow::FlowMap &fm, std::list<Flow::FlowInputMap> &flows,
-                      bool process_ret);
-  void SendBufferDownFromDeque(Flow::FlowMap &fm,
+  void SendBufferDown(Flow::FlowMap &fm, const MediaBufferVector &in,
+                      std::list<Flow::FlowInputMap> &flows, bool process_ret);
+  void SendBufferDownFromDeque(Flow::FlowMap &fm, const MediaBufferVector &in,
                                std::list<Flow::FlowInputMap> &flows,
                                bool process_ret);
 
@@ -156,16 +156,16 @@ void FlowCoroutine::RunOnce() {
                          (int)(ad.Get() / 1000));
   }
 #endif // DEBUG
-  for (auto &buffer : in_vector)
-    buffer.reset();
   for (int idx : out_slots) {
     auto &fm = flow->downflowmap[idx];
     std::list<Flow::FlowInputMap> flows;
     fm.list_mtx.read_lock();
     flows = fm.flows;
     fm.list_mtx.unlock();
-    (this->*send_down_func)(fm, flows, ret);
+    (this->*send_down_func)(fm, in_vector, flows, ret);
   }
+  for (auto &buffer : in_vector)
+    buffer.reset();
 }
 
 void FlowCoroutine::WhileRun() {
@@ -241,18 +241,23 @@ void FlowCoroutine::SendNullBufferDown(std::list<Flow::FlowInputMap> &flows) {
 }
 
 void FlowCoroutine::SendBufferDown(Flow::FlowMap &fm,
+                                   const MediaBufferVector &in,
                                    std::list<Flow::FlowInputMap> &flows,
                                    bool process_ret) {
   if (!process_ret) {
     SendNullBufferDown(flows);
     return;
   }
-  for (auto &f : flows)
+  for (auto &f : flows) {
+    if (fm.hold_input)
+      FlowOutputHoldInput(fm.cached_buffer, in);
     f.flow->SendInput(fm.cached_buffer, f.index_of_in);
+  }
 }
 
 void FlowCoroutine::SendBufferDownFromDeque(
-    Flow::FlowMap &fm, std::list<Flow::FlowInputMap> &flows, bool process_ret) {
+    Flow::FlowMap &fm, const MediaBufferVector &in,
+    std::list<Flow::FlowInputMap> &flows, bool process_ret) {
   if (!process_ret) {
     SendNullBufferDown(flows);
     return;
@@ -260,6 +265,8 @@ void FlowCoroutine::SendBufferDownFromDeque(
   if (fm.cached_buffers.empty())
     return;
   for (auto &buffer : fm.cached_buffers) {
+    if (fm.hold_input)
+      FlowOutputHoldInput(buffer, in);
     for (auto &f : flows)
       f.flow->SendInput(buffer, f.index_of_in);
   }
@@ -313,13 +320,14 @@ Flow::FlowMap::FlowMap(FlowMap &&fm) {
   }
 }
 
-void Flow::FlowMap::Init(Model m) {
+void Flow::FlowMap::Init(Model m, bool hold_in) {
   assert(!valid);
   valid = true;
   if (m == Model::ASYNCCOMMON)
     set_output_behavior = &FlowMap::SetOutputToQueueBehavior;
   else
     set_output_behavior = &FlowMap::SetOutputBehavior;
+  hold_input = hold_in;
 }
 
 void Flow::FlowMap::SetOutputBehavior(
@@ -462,8 +470,10 @@ bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
     int max_idx = out_slots[out_slots.size() - 1];
     if ((int)downflowmap.size() <= max_idx)
       downflowmap.resize(max_idx + 1);
-    for (int i : out_slots) {
-      downflowmap[i].Init(map.thread_model);
+    for (size_t i = 0; i < out_slots.size(); i++) {
+      downflowmap[out_slots[i]].Init(map.thread_model, map.hold_input.size() > i
+                                                           ? map.hold_input[i]
+                                                           : false);
       out_slot_num++;
     }
   }

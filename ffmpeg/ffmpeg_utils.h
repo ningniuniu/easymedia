@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Hertz Wang 1989wanghang@163.com
+ * Copyright (C) 2019 Hertz Wang 1989wanghang@163.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,29 +19,26 @@
  *
  */
 
-#include "demuxer.h"
+#ifndef EASYMEDIA_FFMPEG_UTILS_H_
+#define EASYMEDIA_FFMPEG_UTILS_H_
 
-#include "buffer.h"
-#include "utils.h"
+extern "C" {
+#include <libavformat/avformat.h>
+}
+
+#include "image.h"
+#include "sound.h"
 
 namespace easymedia {
 
-DEFINE_REFLECTOR(Demuxer)
+enum AVPixelFormat PixFmtToAVPixFmt(PixelFormat fmt);
+enum AVCodecID PixFmtToAVCodecID(PixelFormat fmt);
 
-// request should equal demuxer_name
-DEFINE_FACTORY_COMMON_PARSE(Demuxer)
+enum AVCodecID SampleFmtToAVCodecID(SampleFormat fmt);
+enum AVSampleFormat SampleFmtToAVSamFmt(SampleFormat sfmt);
 
-Demuxer::Demuxer(const char *param) : total_time(0.0f) {
-  std::map<std::string, std::string> params;
-  if (!parse_media_param_map(param, params))
-    return;
-  for (auto &p : params) {
-    const std::string &key = p.first;
-    if (key == KEY_PATH)
-      path = p.second;
-  }
-}
-
-DEFINE_PART_FINAL_EXPOSE_PRODUCT(Demuxer, Demuxer)
+void PrintAVError(int err, const char *log, const char *mark);
 
 } // namespace easymedia
+
+#endif // #ifndef EASYMEDIA_FFMPEG_UTILS_H_
