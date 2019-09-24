@@ -18,7 +18,7 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
 
     确保对应CMakeLists.txt设置-DRKMPP=ON -DRKMPP_ENCODER=ON
 
-- 范例：[mpp_enc_test.cc](../../frameworks/media/rkmpp/test/mpp_enc_test.cc)
+- 范例：[mpp_enc_test.cc](../../../framework/media/rkmpp/test/mpp_enc_test.cc)
 
     使用命令查看使用方法：./rkmpp_enc_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
 
@@ -38,7 +38,7 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
 
     确保对应CMakeLists.txt设置-DRKMPP=ON -DRKMPP_DECODER=ON
 
-- 范例：[mpp_dec_test.cc](../../frameworks/media/rkmpp/test/mpp_dec_test.cc)
+- 范例：[mpp_dec_test.cc](../../../framework/media/rkmpp/test/mpp_dec_test.cc)
 
     使用命令查看使用方法：./rkmpp_dec_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
 
@@ -60,7 +60,7 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
     确保对应CMakeLists.txt设置-D\<FORMAT\>=ON -D\<FORMAT\>_DEMUXER=ON  
     比如ogg音频解封装解码oggvorbis，就是-DOGGVORBIS=ON -DOGGVORBIS_DEMUXER=ON
 
-- 范例：[ogg_decode_test.cc](../../frameworks/media/ogg/test/ogg_decode_test.cc)
+- 范例：[ogg_decode_test.cc](../../../framework/media/ogg/test/ogg_decode_test.cc)
 
     使用命令查看使用方法：./ogg_decode_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
 
@@ -81,7 +81,7 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
 
     确保对应CMakeLists.txt设置-DALSA_PLAYBACK=ON
 
-- 范例：[ogg_decode_test.cc](../../frameworks/media/ogg/test/ogg_decode_test.cc)，复用[媒体格式解封装范例](#媒体格式解封装)一样的范例
+- 范例：[ogg_decode_test.cc](../../../framework/media/ogg/test/ogg_decode_test.cc)，复用[媒体格式解封装范例](#媒体格式解封装)一样的范例
 
     使用命令：./ogg_decode_test -i test.ogg -o alsa:default
 
@@ -101,7 +101,7 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
 
     确保对应CMakeLists.txt设置-DALSA_CAPTURE=ON
 
-- 范例：[ogg_encode_test.cc](../../frameworks/media/ogg/test/ogg_encode_test.cc)， 复用[媒体格式封装范例](#媒体格式封装)一样的范例
+- 范例：[ogg_encode_test.cc](../../../framework/media/ogg/test/ogg_encode_test.cc)， 复用[媒体格式封装范例](#媒体格式封装)一样的范例
 
     使用命令：./ogg_encode_test -f s16le -c 2 -r 48000 -i alsa:default -o output_s16le_c2_r48k.pcm
 
@@ -121,7 +121,7 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
     确保对应CMakeLists.txt设置-D\<FORMAT\>_ENCODER=ON  
     比如VORBIS音频编码vorbis，就是-DOGGVORBIS=ON -DVORBIS_ENCODER=ON
 
-- 范例：[ogg_encode_test.cc](../../frameworks/media/ogg/test/ogg_encode_test.cc)
+- 范例：[ogg_encode_test.cc](../../../framework/media/ogg/test/ogg_encode_test.cc)
 
     使用命令查看使用方法：./ogg_encode_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
 
@@ -146,8 +146,8 @@ easymedia为了使多媒体相关开发更简单而做，将比较偏底层一�
 
 - 范例：
 
-    [ogg_encode_test.cc](../../frameworks/media/ogg/test/ogg_encode_test.cc)  
-    [ffmpeg_enc_mux_test.cc](../../frameworks/media/ffmpeg/test/ffmpeg_enc_mux_test.cc)
+    [ogg_encode_test.cc](../../../framework/media/ogg/test/ogg_encode_test.cc)  
+    [ffmpeg_enc_mux_test.cc](../../../framework/media/ffmpeg/test/ffmpeg_enc_mux_test.cc)
 
     使用命令查看使用方法：./ogg_encode_test -? / ./ffmpeg_enc_mux_test -?（可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。
 
@@ -169,9 +169,9 @@ rtsp服务端（基于live555）
 
     确保对应CMakeLists.txt设置-DLIVE555=ON -DLIVE555_SERVER=ON -DLIVE555_SERVER_H264=ON
 
-- 范例：[rtsp_server_test.cc](../../frameworks/media/live555/server/test/rtsp_server_test.cc)
+- 范例：[rtsp_server_test.cc](../../../framework/media/live555/server/test/rtsp_server_test.cc)
 
-    拷贝对应的h264单帧数据[h264_frames](../../frameworks/media/live555/server/test/h264_frames)到板端文件夹备用。  
+    拷贝对应的h264单帧数据[h264_frames](../../../framework/media/live555/server/test/h264_frames)到板端文件夹备用。  
     使用命令查看使用方法：./rtsp_server_test -? （可能默认生成的固件里没有此可执行bin，需要到pc上生成的路径手动push到板端）。  
     在pc端播放验证时，注意最好板端是用有线网络，在很多EVB板子上无线wifi经常导致丢包问题。
 
@@ -195,7 +195,7 @@ rtsp服务端（基于live555）
 
     确保对应CMakeLists.txt设置-DV4L2_CAPTURE=ON
 
-- 范例：[camera_capture_test.cc](../../frameworks/media/stream/camera/test/camera_capture_test.cc)
+- 范例：[camera_capture_test.cc](../../../framework/media/stream/camera/test/camera_capture_test.cc)
 
     使用命令查看使用方法：./camera_cap_test -?
 
