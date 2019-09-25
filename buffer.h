@@ -123,14 +123,7 @@ public:
 
   enum class MemType {
     MEM_COMMON,
-#ifdef LIBION
-    MEM_ION,
-    MEM_HARD_WARE = MEM_ION,
-#endif
-#ifdef LIBDRM
-    MEM_DRM,
-    MEM_HARD_WARE = MEM_DRM,
-#endif
+    MEM_HARD_WARE,
   };
   static std::shared_ptr<MediaBuffer> Alloc(size_t size,
                                             MemType type = MemType::MEM_COMMON);
