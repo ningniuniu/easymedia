@@ -36,11 +36,11 @@ MediaBuffer::MemType StringToMemType(const char *s) {
   if (s) {
 #ifdef LIBION
     if (!strcmp(s, KEY_MEM_ION) || !strcmp(s, KEY_MEM_HARDWARE))
-      return MediaBuffer::MemType::MEM_ION;
+      return MediaBuffer::MemType::MEM_HARD_WARE;
 #endif
 #ifdef LIBDRM
     if (!strcmp(s, KEY_MEM_DRM) || !strcmp(s, KEY_MEM_HARDWARE))
-      return MediaBuffer::MemType::MEM_DRM;
+      return MediaBuffer::MemType::MEM_HARD_WARE;
 #endif
     LOG("warning: %s is not supported or not integrated, fallback to common\n",
         s);
@@ -363,11 +363,11 @@ MediaBuffer MediaBuffer::Alloc2(size_t size, MemType type) {
   case MemType::MEM_COMMON:
     return alloc_common_memory(size);
 #ifdef LIBION
-  case MemType::MEM_ION:
+  case MemType::MEM_HARD_WARE:
     return alloc_ion_memory(size);
 #endif
 #ifdef LIBDRM
-  case MemType::MEM_DRM:
+  case MemType::MEM_HARD_WARE:
     return alloc_drm_memory(size);
 #endif
   default:
