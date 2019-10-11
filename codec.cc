@@ -142,6 +142,7 @@ split_h264_separate(const uint8_t *buffer, size_t length, int64_t timestamp) {
       break;
     case 1:
       flag = MediaBuffer::kPredicted;
+      break;
     default:
       flag = 0;
     }

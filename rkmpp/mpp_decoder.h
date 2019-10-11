@@ -45,7 +45,7 @@ private:
   PixelFormat output_format;
   RK_S32 fg_limit_num;
   RK_U32 need_split;
-  RK_U32 timeout;
+  MppPollType timeout;
   MppCodingType coding_type;
   std::shared_ptr<MPPContext> mpp_ctx;
   bool support_sync;

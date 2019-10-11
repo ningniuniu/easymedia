@@ -39,7 +39,7 @@
 
 #include "decoder.h"
 
-#define MAX_FILE_NUM 10
+#define MAX_FILE_NUM 9
 static char optstr[] = "?i:d:f:b:o:t:w:h:";
 
 static bool eos = true;
@@ -66,6 +66,12 @@ static bool get_output_and_process(easymedia::VideoDecoder *mpp_dec) {
     fprintf(stderr, "fatal error %m\n");
     eos = true; // finish
     return false;
+  }
+  if (out_buffer && !out_buffer->IsValid() && !out_buffer->IsEOF()) {
+    // got a image info buffer
+    fprintf(stderr, "got info frame\n");
+    // fetch the real frame
+    out_buffer = mpp_dec->FetchOutput();
   }
   if (out_buffer) {
     dump_output(std::static_pointer_cast<easymedia::ImageBuffer>(out_buffer));
@@ -170,12 +176,13 @@ int main(int argc, char **argv) {
   // the files in input_dir_path be supposed one slice frame,
   // so that split mode is not nessary.
   int split_mode = input_dir_path.empty() ? 1 : 0;
-  int timeout = -1;
+  int timeout = -1; // blocking is not a good solution as input is complex,
+                    // you must guaranteed that input is not too bad
   if (async) {
     timeout = 200; // ms
   } else {
     // make it no wait when getting decoded frame from mpp
-    timeout = 0;
+    // timeout = 0;
   }
   std::string param;
   PARAM_STRING_APPEND(param, KEY_INPUTDATATYPE, input_format);

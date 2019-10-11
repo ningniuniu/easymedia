@@ -78,9 +78,13 @@ MPPDecoder::MPPDecoder(const char *param)
   if (!split_mode.empty())
     need_split = std::stoi(split_mode);
   if (!stimeout.empty()) {
-    timeout = std::stoi(stimeout);
-    if (timeout == 0)
+    int tout = std::stoi(stimeout);
+    if (tout == 0)
       timeout = MPP_POLL_NON_BLOCK;
+    else if (tout < 0)
+      timeout = MPP_POLL_BLOCK;
+    else
+      timeout = (MppPollType)tout;
   }
 }
 
@@ -123,7 +127,10 @@ bool MPPDecoder::Init() {
   }
 
   if (timeout != MPP_POLL_NON_BLOCK) {
-    param = &timeout;
+    // if timeout is MPP_POLL_BLOCK, some codec need a whole key frame with
+    // extradata, such as, h264 need spspps+I frame as once input
+    RK_U32 to = timeout;
+    param = &to;
     ret = mpi->control(ctx, MPP_SET_OUTPUT_TIMEOUT, param);
     LOG("mpi set output timeout = %d, ret = %d\n", timeout, ret);
     if (MPP_OK != ret)
@@ -191,7 +198,7 @@ static int SetImageBufferWithMppFrame(std::shared_ptr<ImageBuffer> ib,
                                       std::shared_ptr<MPPContext> mctx,
                                       MppFrame &frame) {
   const MppBuffer buffer = mpp_frame_get_buffer(frame);
-  if (!buffer) {
+  if (!buffer || mpp_buffer_get_size(buffer) == 0) {
     LOG("Failed to retrieve the frame buffer\n");
     return -EFAULT;
   }
@@ -475,6 +482,7 @@ std::shared_ptr<MediaBuffer> MPPDecoder::FetchOutput() {
   MppApi *mpi = mpp_ctx->mpi;
   MPP_RET ret = mpi->decode_get_frame(ctx, &mppframe);
   errno = 0;
+  LOGD("decode_get_frame ret = %d, mpp frame is %p\n", ret, mppframe);
   if (ret != MPP_OK) {
     if (ret != MPP_ERR_TIMEOUT)
       LOG("Failed to get a frame from MPP (ret = %d)\n", ret);
@@ -498,7 +506,14 @@ std::shared_ptr<MediaBuffer> MPPDecoder::FetchOutput() {
       LOG("info change ready failed ret = %d\n", ret);
     LOG("MppDec Info change get, %dx%d in (%dx%d)\n", img_info.width,
         img_info.height, img_info.vir_width, img_info.vir_height);
-    goto out;
+    // return a zero size buffer, but contain image info
+    auto mb = std::make_shared<ImageBuffer>();
+    if (!mb) {
+      errno = ENOMEM;
+      goto out;
+    }
+    mb->GetImageInfo() = img_info;
+    return mb;
   } else if (mpp_frame_get_eos(mppframe)) {
     LOG("Received EOS frame.\n");
     auto mb = std::make_shared<ImageBuffer>();
