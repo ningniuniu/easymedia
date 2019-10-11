@@ -181,8 +181,11 @@ int main(int argc, char **argv) {
   if (async) {
     timeout = 200; // ms
   } else {
+    // if block, must have split data before send data to mpp
+
     // make it no wait when getting decoded frame from mpp
-    // timeout = 0;
+    if (split_mode)
+      timeout = 0;
   }
   std::string param;
   PARAM_STRING_APPEND(param, KEY_INPUTDATATYPE, input_format);
