@@ -52,6 +52,7 @@ class MediaBuffer;
 enum class Model { NONE, ASYNCCOMMON, ASYNCATOMIC, SYNC };
 // PushMode
 enum class InputMode { NONE, BLOCKING, DROPFRONT, DROPCURRENT };
+enum class HoldInputMode { NONE, HOLD_INPUT, INHERIT_FORM_INPUT };
 using MediaBufferVector = std::vector<std::shared_ptr<MediaBuffer>>;
 // TODO: outputs ret, outslot index, outslot queue model
 using FunctionProcess =
@@ -71,7 +72,7 @@ public:
   std::vector<int> input_maxcachenum;
   std::vector<int> output_slots;
   // std::vector<DataSetModel> output_ds_model;
-  std::vector<bool> hold_input;
+  std::vector<HoldInputMode> hold_input;
   FunctionProcess process;
   float interval;
 };
@@ -123,11 +124,13 @@ protected:
     void SetOutputToQueueBehavior(const std::shared_ptr<MediaBuffer> &output);
 
   public:
-    FlowMap() : valid(false), hold_input(false) { assert(list_mtx.valid); }
+    FlowMap() : valid(false), hold_input(HoldInputMode::NONE) {
+      assert(list_mtx.valid);
+    }
     FlowMap(FlowMap &&);
-    void Init(Model m, bool hold_in);
+    void Init(Model m, HoldInputMode hold_in);
     bool valid;
-    bool hold_input;
+    HoldInputMode hold_input;
     // down flow
     void AddFlow(std::shared_ptr<Flow> flow, int index);
     void RemoveFlow(std::shared_ptr<Flow> flow);
@@ -214,8 +217,10 @@ Model GetModelByString(const std::string &model);
 InputMode GetInputModelByString(const std::string &in_model);
 void ParseParamToSlotMap(std::map<std::string, std::string> &params,
                          SlotMap &sm, int &input_maxcachenum);
-void FlowOutputHoldInput(std::shared_ptr<MediaBuffer> &out_buffer,
-                         const MediaBufferVector &input_vector);
+size_t FlowOutputHoldInput(std::shared_ptr<MediaBuffer> &out_buffer,
+                           const MediaBufferVector &input_vector);
+size_t FlowOutputInheritFromInput(std::shared_ptr<MediaBuffer> &out_buffer,
+                                  const MediaBufferVector &input_vector);
 
 // the separator of flow params and flow core element params
 #define FLOW_PARAM_SEPARATE_CHAR ' '

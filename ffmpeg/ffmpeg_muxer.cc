@@ -223,7 +223,7 @@ bool FFMPEGMuxer::NewMuxerStream(
   assert(!streams[stream_no]);
   streams[stream_no] = s;
   nb_streams++;
-  assert(context->nb_streams == nb_streams);
+  assert((int)context->nb_streams == nb_streams);
 
   return true;
 }
@@ -256,9 +256,10 @@ std::shared_ptr<MediaBuffer> FFMPEGMuxer::WriteHeader(int stream_no) {
     return nullptr;
   }
 #ifndef NDEBUG
-  for (auto no : streams) {
-    LOGD("stream index %d, after write header time_base: %d/%d\n", no,
-         streams[no]->time_base.num, streams[no]->time_base.den);
+  int i = 0;
+  for (auto s : streams) {
+    LOGD("stream index %d, after write header time_base: %d/%d\n", i++,
+         s->time_base.num, s->time_base.den);
   }
 #endif
   return empty;

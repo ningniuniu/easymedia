@@ -47,12 +47,16 @@ private:
   void ASyncFetchInputCommon(MediaBufferVector &in);
   void ASyncFetchInputAtomic(MediaBufferVector &in);
 
-  void SendNullBufferDown(std::list<Flow::FlowInputMap> &flows);
+  void SendNullBufferDown(Flow::FlowMap &fm, const MediaBufferVector &in,
+                          std::list<Flow::FlowInputMap> &flows);
   void SendBufferDown(Flow::FlowMap &fm, const MediaBufferVector &in,
                       std::list<Flow::FlowInputMap> &flows, bool process_ret);
   void SendBufferDownFromDeque(Flow::FlowMap &fm, const MediaBufferVector &in,
                                std::list<Flow::FlowInputMap> &flows,
                                bool process_ret);
+  size_t OutputHoldRelated(Flow::FlowMap &fm,
+                           std::shared_ptr<MediaBuffer> &out_buffer,
+                           const MediaBufferVector &input_vector);
 
   Flow *flow;
   Model model;
@@ -234,8 +238,15 @@ void FlowCoroutine::ASyncFetchInputAtomic(MediaBufferVector &in) {
   }
 }
 
-void FlowCoroutine::SendNullBufferDown(std::list<Flow::FlowInputMap> &flows) {
+void FlowCoroutine::SendNullBufferDown(Flow::FlowMap &fm,
+                                       const MediaBufferVector &in,
+                                       std::list<Flow::FlowInputMap> &flows) {
   std::shared_ptr<MediaBuffer> nullbuffer;
+  if (fm.hold_input != HoldInputMode::NONE) {
+    auto empty_result = std::make_shared<easymedia::MediaBuffer>();
+    if (empty_result && OutputHoldRelated(fm, empty_result, in) > 0)
+      nullbuffer = empty_result;
+  }
   for (auto &f : flows)
     f.flow->SendInput(nullbuffer, f.index_of_in);
 }
@@ -245,12 +256,11 @@ void FlowCoroutine::SendBufferDown(Flow::FlowMap &fm,
                                    std::list<Flow::FlowInputMap> &flows,
                                    bool process_ret) {
   if (!process_ret) {
-    SendNullBufferDown(flows);
+    SendNullBufferDown(fm, in, flows);
     return;
   }
   for (auto &f : flows) {
-    if (fm.hold_input)
-      FlowOutputHoldInput(fm.cached_buffer, in);
+    OutputHoldRelated(fm, fm.cached_buffer, in);
     f.flow->SendInput(fm.cached_buffer, f.index_of_in);
   }
 }
@@ -259,18 +269,28 @@ void FlowCoroutine::SendBufferDownFromDeque(
     Flow::FlowMap &fm, const MediaBufferVector &in,
     std::list<Flow::FlowInputMap> &flows, bool process_ret) {
   if (!process_ret) {
-    SendNullBufferDown(flows);
+    SendNullBufferDown(fm, in, flows);
     return;
   }
   if (fm.cached_buffers.empty())
     return;
   for (auto &buffer : fm.cached_buffers) {
-    if (fm.hold_input)
-      FlowOutputHoldInput(buffer, in);
+    OutputHoldRelated(fm, buffer, in);
     for (auto &f : flows)
       f.flow->SendInput(buffer, f.index_of_in);
   }
   fm.cached_buffers.clear();
+}
+
+size_t
+FlowCoroutine::OutputHoldRelated(Flow::FlowMap &fm,
+                                 std::shared_ptr<MediaBuffer> &out_buffer,
+                                 const MediaBufferVector &input_vector) {
+  if (fm.hold_input == HoldInputMode::HOLD_INPUT)
+    return FlowOutputHoldInput(out_buffer, input_vector);
+  else if (fm.hold_input == HoldInputMode::INHERIT_FORM_INPUT)
+    return FlowOutputInheritFromInput(out_buffer, input_vector);
+  return 0;
 }
 
 DEFINE_REFLECTOR(Flow)
@@ -320,7 +340,7 @@ Flow::FlowMap::FlowMap(FlowMap &&fm) {
   }
 }
 
-void Flow::FlowMap::Init(Model m, bool hold_in) {
+void Flow::FlowMap::Init(Model m, HoldInputMode hold_in) {
   assert(!valid);
   valid = true;
   if (m == Model::ASYNCCOMMON)
@@ -471,9 +491,9 @@ bool Flow::InstallSlotMap(SlotMap &map, const std::string &mark,
     if ((int)downflowmap.size() <= max_idx)
       downflowmap.resize(max_idx + 1);
     for (size_t i = 0; i < out_slots.size(); i++) {
-      downflowmap[out_slots[i]].Init(map.thread_model, map.hold_input.size() > i
-                                                           ? map.hold_input[i]
-                                                           : false);
+      downflowmap[out_slots[i]].Init(
+          map.thread_model,
+          map.hold_input.size() > i ? map.hold_input[i] : HoldInputMode::NONE);
       out_slot_num++;
     }
   }
@@ -691,11 +711,26 @@ void ParseParamToSlotMap(std::map<std::string, std::string> &params,
   }
 }
 
-void FlowOutputHoldInput(std::shared_ptr<MediaBuffer> &out_buffer,
-                         const MediaBufferVector &input_vector) {
+size_t FlowOutputHoldInput(std::shared_ptr<MediaBuffer> &out_buffer,
+                           const MediaBufferVector &input_vector) {
   assert(out_buffer);
-  for (size_t i = 0; i < input_vector.size(); i++)
+  size_t i = 0;
+  for (; i < input_vector.size(); i++)
     out_buffer->SetRelatedSPtr(input_vector[i], i);
+  return i;
+}
+
+size_t FlowOutputInheritFromInput(std::shared_ptr<MediaBuffer> &out_buffer,
+                                  const MediaBufferVector &input_vector) {
+  assert(out_buffer);
+  size_t ret = 0;
+  auto &vec = out_buffer->GetRelatedSPtrs();
+  for (size_t i = 0; i < input_vector.size(); i++) {
+    auto &input_vec = input_vector[i]->GetRelatedSPtrs();
+    ret += input_vec.size();
+    vec.insert(vec.end(), input_vec.begin(), input_vec.end());
+  }
+  return ret;
 }
 
 std::string JoinFlowParam(const std::string &flow_param, size_t num_elem, ...) {

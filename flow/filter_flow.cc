@@ -95,7 +95,7 @@ FilterFlow::FilterFlow(const char *param)
   sm.output_slots.push_back(0);
   auto &hold = params[KEY_OUTPUT_HOLD_INPUT];
   if (!hold.empty())
-    sm.hold_input.push_back(!!std::stoi(hold));
+    sm.hold_input.push_back((HoldInputMode)std::stoi(hold));
 
   sm.process = do_filters;
   if (!InstallSlotMap(sm, name, -1)) {
