@@ -67,7 +67,8 @@ int CalPixFmtSize(const PixelFormat &fmt, const int width, const int height) {
   int num = 0;
   int den = 0;
   GetPixFmtNumDen(fmt, num, den);
-  return width * height * num / den;
+  // mpp always require buffer align 16
+  return UPALIGNTO16(width) * UPALIGNTO16(height) * num / den;
 }
 
 static const struct PixFmtStringEntry {
